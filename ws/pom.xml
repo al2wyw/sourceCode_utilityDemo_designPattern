@@ -8,7 +8,7 @@
     <name>maven-tomcat Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <server.url>http://127.0.0.1:53126</server.url>
+        <server.url>http://localhost:8080</server.url>
     </properties>
     <dependencies>
         <dependency>
@@ -72,12 +72,12 @@
                 <version>2.1</version>
                 <configuration>
                     <url>${server.url}/manager/text</url>
-                    <server>TomcatServer</server>
+                    <server>tomcat</server>
 
                     <!-- Set tomcat credenctials here or in .m2/settings.xml -->
 
-                    <username>tomcat</username>
-                    <password>123</password>
+                    <username>admin</username>
+                    <password>admin</password>
 
                     <!-- Deploy: mvn tomcat7:deploy -->
                     <!-- Redeploy: mvn tomcat7:redeploy -->
