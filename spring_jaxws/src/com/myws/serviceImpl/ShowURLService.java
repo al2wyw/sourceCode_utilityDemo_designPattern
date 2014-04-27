@@ -19,10 +19,11 @@ public class ShowURLService implements ShowService{
 	public boolean action(List<?> l) {
 		ResourceBundle rb = ResourceBundle.getBundle("ShowURLService", Locale.ENGLISH);
 		log.info(rb.getString("start"));
+		String path=ShowURLService.class.getClassLoader().getResource("/wsdl").getFile();
 		log.info(System.getProperty("user.dir"));
 		ArrayList<ws> list=(ArrayList<ws>)l;
 		XMLInputFactory factory = XMLInputFactory.newInstance();
-		File wsdl=new File(System.getProperty("user.dir")+"/wsdl");
+		File wsdl=new File(path);
 		if(!wsdl.exists())
 		{
 			log.error(rb.getString("error.nowsdl"));
@@ -31,11 +32,15 @@ public class ShowURLService implements ShowService{
 			if(wsdl.isDirectory()){
 				File[] files=wsdl.listFiles();
 				for(File f:files){
-					if(f.getName().endsWith("wsdl")){
+					String filename=f.getName();
+					if(filename.endsWith("wsdl")){
 						try{
 							ws test=new ws();
-							String name=f.getName().split(".")[0];
-							FileReader fileReader = new FileReader(f.getName());
+							log.info("the current file is "+filename);
+							String[] str=filename.split("\\.");
+							log.info("the length of string array is "+str.length);
+							String name=str[0];
+							FileReader fileReader = new FileReader(f);
 							XMLEventReader reader = factory.createXMLEventReader(fileReader);
 							log.info(rb.getString("xmlstream"));
 							while(reader.hasNext()){

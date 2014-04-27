@@ -112,8 +112,15 @@
           <includes>  
               <include>*.dtd</include>  
 			  <include>*.xml</include>  
+			  <include>*.properties</include>  
           </includes>  
-       </resource> 
+       </resource>
+		<resource>  
+          <directory>${basedir}</directory> 
+		  <includes>
+		  <include>wsdl/*.*</include> 
+		  </includes>
+       </resource> 	   
 	   </resources>
         <plugins>
             <plugin>
