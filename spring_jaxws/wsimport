@@ -1,0 +1,1 @@
+wsimport -keep wsdl/HelloPersonService.wsdl -b binding.xml -s src
