@@ -17,7 +17,7 @@ public class ShowURLService implements ShowService{
 	
 	@Override
 	public boolean action(List<?> l) {
-		ResourceBundle rb = ResourceBundle.getBundle("showURLService", Locale.ENGLISH);
+		ResourceBundle rb = ResourceBundle.getBundle("ShowURLService", Locale.ENGLISH);
 		log.info(rb.getString("start"));
 		log.info(System.getProperty("user.dir"));
 		ArrayList<ws> list=(ArrayList<ws>)l;
