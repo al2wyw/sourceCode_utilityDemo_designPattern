@@ -15,6 +15,7 @@
     <logger name="handler.validationHandler">
     	 <level value="INFO" />
     </logger>
+    
   
    <!-- for all other loggers log only debug and above log messages -->
      <root>

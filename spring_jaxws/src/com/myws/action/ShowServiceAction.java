@@ -3,13 +3,14 @@ import com.opensymphony.xwork2.*;
 import com.myws.service.ShowService;
 import com.myws.model.ws;
 import java.util.List;
+import java.util.ArrayList;
 public class ShowServiceAction extends ActionSupport {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private ShowService action;
-	private List<ws> urls;
+	private List<ws> urls = new ArrayList<ws>(10);
 	public ShowService getAction() {
 		return action;
 	}

@@ -26,4 +26,10 @@
 
 	<bean id="helloWS" class="annotation.test" />
 	<bean id="validation" class="handler.validationHandler"/>
+	
+	<bean id="showservice" class="com.myws.action.ShowServiceAction">
+		<property name="action">
+			<bean class="com.myws.serviceImpl.ShowURLService"/>
+		</property>
+	</bean>
 </beans>
