@@ -16,6 +16,11 @@
     	        </listener-class>
   	</listener>
   	
+  	<context-param>
+    	<param-name>contextConfigLocation</param-name>
+   		<param-value>classpath:applicationContext.xml</param-value>
+  </context-param>
+  	
   <servlet>
     	        <servlet-name>jaxws-servlet</servlet-name>
     	       <servlet-class>

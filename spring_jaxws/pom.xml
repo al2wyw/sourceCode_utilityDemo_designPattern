@@ -1,12 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>co.codehuters.springjaxws.example</groupId>
-	<artifactId>SpringJaxWS</artifactId>
+	<groupId>com.johnny</groupId>
+	<artifactId>spring_jaxws</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>SpringJaxWS Maven Webapp</name>
 	<url>http://maven.apache.org</url>
+	
+	<properties>
+        <server.url>http://192.168.100.104:8080</server.url>
+    </properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -60,6 +65,53 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>SpringJaxWS</finalName>
-	</build>
+        <finalName>spring_jaxws</finalName>
+		<sourceDirectory>${basedir}/src</sourceDirectory>
+		<resources>
+		<resource>  
+          <directory>${basedir}/src</directory>  
+          <includes>  
+              <include>*.dtd</include>  
+			  <include>*.xml</include>  
+          </includes>  
+       </resource> 
+	   </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <url>${server.url}/manager/text</url>
+                    <server>TomcatServer</server>
+
+                    <!-- Set tomcat credenctials here or in .m2/settings.xml -->
+
+                    <username>admin</username>
+                    <password>admin</password>
+
+                    <!-- Deploy: mvn tomcat7:deploy -->
+                    <!-- Redeploy: mvn tomcat7:redeploy -->
+
+                    <path>/${project.build.finalName}</path>
+                </configuration>
+            </plugin>
+			<plugin>  
+				<groupId>org.apache.maven.plugins</groupId>  
+				<artifactId>maven-war-plugin</artifactId>  
+				<version>2.2</version>  
+				<configuration>
+					<warName>${project.build.finalName}</warName>
+					<warSourceDirectory>${basedir}/WebContent</warSourceDirectory>
+				</configuration> 
+			</plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

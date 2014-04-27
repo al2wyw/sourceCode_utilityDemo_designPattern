@@ -1,5 +1,5 @@
 
-package com.myws;
+package client.com.myws;
 
 import java.net.MalformedURLException;
 import java.net.URL;

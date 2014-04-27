@@ -1,5 +1,5 @@
 
-package com.myws;
+package client.com.myws;
 
 import java.util.concurrent.Future;
 import javax.jws.WebMethod;
@@ -31,11 +31,11 @@ public interface AnnotationTest {
      * 
      * @param customer
      * @return
-     *     returns javax.xml.ws.Response<com.myws.NameResponse>
+     *     returns javax.xml.ws.Response<client.com.myws.NameResponse>
      */
     @WebMethod(operationName = "name")
-    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "com.myws.Name")
-    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "com.myws.NameResponse")
+    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "client.com.myws.Name")
+    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "client.com.myws.NameResponse")
     public Response<NameResponse> nameAsync(
         @WebParam(name = "customer", targetNamespace = "")
         String customer);
@@ -48,8 +48,8 @@ public interface AnnotationTest {
      *     returns java.util.concurrent.Future<? extends java.lang.Object>
      */
     @WebMethod(operationName = "name")
-    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "com.myws.Name")
-    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "com.myws.NameResponse")
+    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "client.com.myws.Name")
+    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "client.com.myws.NameResponse")
     public Future<?> nameAsync(
         @WebParam(name = "customer", targetNamespace = "")
         String customer,
@@ -64,8 +64,8 @@ public interface AnnotationTest {
      */
     @WebMethod
     @WebResult(name = "outcome", targetNamespace = "")
-    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "com.myws.Name")
-    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "com.myws.NameResponse")
+    @RequestWrapper(localName = "name", targetNamespace = "http://www.myws.com", className = "client.com.myws.Name")
+    @ResponseWrapper(localName = "nameResponse", targetNamespace = "http://www.myws.com", className = "client.com.myws.NameResponse")
     @Action(input = "http://www.myws.com/annotation_test/nameRequest", output = "http://www.myws.com/annotation_test/nameResponse")
     public String name(
         @WebParam(name = "customer", targetNamespace = "")
