@@ -8,9 +8,10 @@
 <title>show services</title>
 </head>
 <body>
+<h1>Web Service List</h1>
 <table style="border:solid 1px grey;border-collapse:collapse">
-<s:iterator var="ent" value="#urls">
-<tr><td>ent.WSName</td><td><a href="enr.url">ent.url</a></td></tr>
+<s:iterator var="ent" value="urls">
+<tr><td>${ent.wsName}</td><td><a href="${ent.url}">${ent.url}</a></td></tr>
 </s:iterator>
 </table>
 </body>

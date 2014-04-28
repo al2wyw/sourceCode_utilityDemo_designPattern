@@ -10,7 +10,7 @@ public class ShowServiceAction extends ActionSupport {
 	 */
 	private static final long serialVersionUID = 1L;
 	private ShowService action;
-	private List<ws> urls = new ArrayList<ws>(10);
+	private List<ws> urls ;
 	public ShowService getAction() {
 		return action;
 	}
@@ -25,6 +25,7 @@ public class ShowServiceAction extends ActionSupport {
 	}
 	
 	public String execute(){
+		urls = new ArrayList<ws>(10);
 		if(action.action(urls))
 			return SUCCESS;
 		else
