@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class Receiver {  
 	private int value=100;
+	private CareTaker c=new CareTaker();
     public void action(){ 
         System.out.println("command received!");  
         Random ran=new Random();
@@ -18,13 +19,13 @@ public class Receiver {
 	public void setValue(int value) {
 		this.value = value;
 	}
-	public Mememto save(){
+	public void save(){
 		Mememto m=new Mememto();
 		m.setValue(getValue());
-		return m;
+		c.store(m);;
 	}
-	public void restore(Mememto m){
-		setValue(m.getValue());
+	public void restore(){
+		setValue(c.retrieve().getValue());
 	}
 }  
 
