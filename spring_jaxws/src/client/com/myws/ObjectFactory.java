@@ -24,8 +24,8 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Name_QNAME = new QName("http://www.myws.com", "name");
-    private final static QName _NameResponse_QNAME = new QName("http://www.myws.com", "nameResponse");
+    private final static QName _Show_QNAME = new QName("http://myws.com/", "show");
+    private final static QName _ShowResponse_QNAME = new QName("http://myws.com/", "showResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: client.com.myws
@@ -35,37 +35,45 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link NameResponse }
+     * Create an instance of {@link ShowResponse }
      * 
      */
-    public NameResponse createNameResponse() {
-        return new NameResponse();
+    public ShowResponse createShowResponse() {
+        return new ShowResponse();
     }
 
     /**
-     * Create an instance of {@link Name }
+     * Create an instance of {@link Show }
      * 
      */
-    public Name createName() {
-        return new Name();
+    public Show createShow() {
+        return new Show();
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Name }{@code >}}
+     * Create an instance of {@link Person }
      * 
      */
-    @XmlElementDecl(namespace = "http://www.myws.com", name = "name")
-    public JAXBElement<Name> createName(Name value) {
-        return new JAXBElement<Name>(_Name_QNAME, Name.class, null, value);
+    public Person createPerson() {
+        return new Person();
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link NameResponse }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link Show }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://www.myws.com", name = "nameResponse")
-    public JAXBElement<NameResponse> createNameResponse(NameResponse value) {
-        return new JAXBElement<NameResponse>(_NameResponse_QNAME, NameResponse.class, null, value);
+    @XmlElementDecl(namespace = "http://myws.com/", name = "show")
+    public JAXBElement<Show> createShow(Show value) {
+        return new JAXBElement<Show>(_Show_QNAME, Show.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ShowResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://myws.com/", name = "showResponse")
+    public JAXBElement<ShowResponse> createShowResponse(ShowResponse value) {
+        return new JAXBElement<ShowResponse>(_ShowResponse_QNAME, ShowResponse.class, null, value);
     }
 
 }

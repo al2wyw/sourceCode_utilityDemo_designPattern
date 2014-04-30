@@ -23,9 +23,20 @@
 			</ws:service>
 		</wss:service>
 	</wss:binding>
+	
+	
 
 	<bean id="helloWS" class="annotation.test" />
 	<bean id="validation" class="handler.validationHandler"/>
+	
+	<wss:binding url="/people">
+		<wss:service>
+			<ws:service bean="#peopleWS" >
+			</ws:service>
+		</wss:service>
+	</wss:binding>
+	
+	<bean id="peopleWS" class="webservice.ShowPeopleService" />
 	
 	<bean id="showservice" class="com.myws.action.ShowServiceAction">
 		<property name="action">
