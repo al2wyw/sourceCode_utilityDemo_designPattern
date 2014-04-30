@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+targetNamespace="http://www.myws.com/"
+xmlns="http://www.myws.com/"
+ elementFormDefault="qualified">
+
+ 	<xs:complexType name="Person_Type">
+   <xs:sequence>
+    <xs:element name="name" type="xs:string" />
+    <xs:element name="id" type="xs:string" />
+    <xs:element name="salary" type="xs:decimal" />
+   </xs:sequence>
+  </xs:complexType>
+
+ <xs:element name="People">
+ 	<xs:complexType>
+ 		<xs:sequence>
+ 			<xs:element name="Person" type="Person_Type" maxOccurs="unbounded"/>
+ 		</xs:sequence>  
+ 	</xs:complexType>
+ </xs:element>
+</xs:schema>

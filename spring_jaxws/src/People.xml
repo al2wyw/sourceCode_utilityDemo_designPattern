@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<People>
+<People xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://www.myws.com/"
+xsi:schemaLocation="http://www.myws.com/ People.xsd">
 	<Person>
 		<name>Peter</name>
 		<id>abc345</id>

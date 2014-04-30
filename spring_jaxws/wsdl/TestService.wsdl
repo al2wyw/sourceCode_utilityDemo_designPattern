@@ -36,7 +36,7 @@
   </binding>
   <service name="testService">
     <port name="annotation_testPort" binding="tns:annotation_testPortBinding">
-      <soap:address location="http://192.168.1.100:8080/spring_jaxws/test?wsdl"/>
+      <soap:address location="http://192.168.100.104:8080/spring_jaxws/test?wsdl"/>
     </port>
   </service>
 </definitions>
