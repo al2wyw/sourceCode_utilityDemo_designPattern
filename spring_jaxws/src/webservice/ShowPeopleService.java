@@ -12,7 +12,7 @@ import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.*;
-@WebService(name="showPeople",targetNamespace="http://www.myws.com/")
+@WebService(name="showPeople",targetNamespace="http://myws.com/")
 public class ShowPeopleService {
 	private static Logger log=Logger.getLogger(ShowPeopleService.class);
 	@WebMethod
@@ -27,6 +27,7 @@ public class ShowPeopleService {
 			log.info("create pointer xml reader");
 			while(reader.hasNext()){
 				int i=reader.next();
+				log.info(translate(i));
 				if(i==XMLStreamConstants.START_ELEMENT){
 					String ele= reader.getLocalName();
 					if(ele.equals("Person")){
@@ -34,14 +35,16 @@ public class ShowPeopleService {
 						log.info("create a new person");
 						while(reader.hasNext()){
 							int j=reader.next();
+							log.info(translate(j));
 							if(j==XMLStreamConstants.START_ELEMENT){
 								String test=reader.getLocalName();
 								if(test.equals("name")){
 									p.setName(reader.getElementText());
 								}else if(test.equals("id")){
 									p.setId(reader.getElementText());
-								}else{
+								}else if(test.equals("salary")){
 									p.setSalary(Double.parseDouble(reader.getElementText()));
+									break;
 								}
 							}
 						}
@@ -79,5 +82,42 @@ public class ShowPeopleService {
 			  log.error(e.getMessage(),e);
 			  log.error("Result : Invalid!");
 		  }
+	
+	 }
+	 public String translate(int i){
+		 String t = "test";
+		 switch(i){
+		 case XMLStreamConstants.ATTRIBUTE  : t = "XMLStreamConstants.ATTRIBUTE";
+			 break;
+		 case XMLStreamConstants.CDATA  : t = "XMLStreamConstants.CDATA";
+			 break;
+		 case XMLStreamConstants.CHARACTERS  : t = "XMLStreamConstants.CHARACTERS";
+			 break;
+		 case XMLStreamConstants.COMMENT  : t = "XMLStreamConstants.COMMENT";
+			 break;
+		 case XMLStreamConstants.DTD  : t = "XMLStreamConstants.DTD";
+			 break;
+		 case XMLStreamConstants.END_DOCUMENT  : t = "XMLStreamConstants.END_DOCUMENT";
+			 break;
+		 case XMLStreamConstants.END_ELEMENT  : t = "XMLStreamConstants.END_ELEMENT";
+			 break;
+		 case XMLStreamConstants.ENTITY_DECLARATION  : t = "XMLStreamConstants.ENTITY_DECLARATION";
+			 break;
+		 case XMLStreamConstants.ENTITY_REFERENCE  : t = "XMLStreamConstants.ENTITY_REFERENCE";
+			 break;
+		 case XMLStreamConstants.NAMESPACE  : t = "XMLStreamConstants.NAMESPACE";
+			 break;
+		 case XMLStreamConstants.NOTATION_DECLARATION  : t = "XMLStreamConstants.NOTATION_DECLARATION";
+			 break;
+		 case XMLStreamConstants.PROCESSING_INSTRUCTION  : t = "XMLStreamConstants.PROCESSING_INSTRUCTION";
+			 break;
+		 case XMLStreamConstants.SPACE  : t = "XMLStreamConstants.SPACE";
+			 break;
+		 case XMLStreamConstants.START_DOCUMENT : t = "XMLStreamConstants.START_DOCUMENT";
+			 break;
+		 case XMLStreamConstants.START_ELEMENT : t = "XMLStreamConstants.START_ELEMENT";
+			 break;
+		 }
+		 return t;
 	 }
 }

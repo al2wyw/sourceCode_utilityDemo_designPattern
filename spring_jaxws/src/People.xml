@@ -11,7 +11,7 @@ xsi:schemaLocation="http://www.myws.com/ People.xsd">
 		<id>abd345</id>
 		<salary>189.12</salary>
 	</Person>
-	<Person>
+	<Person male="test">
 		<name>Ken</name>
 		<id>abe545</id>
 		<salary>89.12</salary>
@@ -21,4 +21,8 @@ xsi:schemaLocation="http://www.myws.com/ People.xsd">
 		<id>abf345</id>
 		<salary>89.34</salary>
 	</Person>
+	<love>test</love>
+	<test/>
+	<badlove person="peter" action="beat">test</badlove>
 </People>
+
