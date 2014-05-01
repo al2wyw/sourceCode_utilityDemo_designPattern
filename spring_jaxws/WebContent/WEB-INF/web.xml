@@ -40,6 +40,10 @@
     <servlet-name>jaxws-servlet</servlet-name>
     <url-pattern>/people</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>jaxws-servlet</servlet-name>
+    <url-pattern>/clientIP</url-pattern>
+  </servlet-mapping>
   <servlet>
     <description></description>
     <display-name>hello</display-name>

@@ -38,6 +38,15 @@
 	
 	<bean id="peopleWS" class="webservice.ShowPeopleService" />
 	
+	<wss:binding url="/clientIP">
+		<wss:service>
+			<ws:service bean="#clientWS" >
+			</ws:service>
+		</wss:service>
+	</wss:binding>
+	
+	<bean id="clientWS" class="webservice.webservicecontext" />
+	
 	<bean id="showservice" class="com.myws.action.ShowServiceAction">
 		<property name="action">
 			<bean class="com.myws.serviceImpl.ShowURLService"/>
