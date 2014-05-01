@@ -32,7 +32,7 @@
   </binding>
   <service name="ShowPeopleServiceService">
     <port name="showPeoplePort" binding="tns:showPeoplePortBinding">
-      <soap:address location="http://192.168.1.100:8080/spring_jaxws/people?wsdl"/>
+      <soap:address location="http://192.168.100.104:8080/spring_jaxws/people?wsdl"/>
     </port>
   </service>
 </definitions>

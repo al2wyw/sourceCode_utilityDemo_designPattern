@@ -24,5 +24,6 @@ xsi:schemaLocation="http://www.myws.com/ People.xsd">
 	<love>test</love>
 	<test/>
 	<badlove person="peter" action="beat">test</badlove>
+	<att attr="test"/>
 </People>
 
