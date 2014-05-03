@@ -1,0 +1,30 @@
+<!DOCTYPE validators PUBLIC
+"-//OpenSymphony Group//XWork Validator 1.0.2//EN" 
+"http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+<validators>
+
+ <validator type="requiredstring">
+ 	<param name="fieldname">person.name</param>
+ 	<message>name is required.</message>
+ </validator>
+ <validator type="fieldexpression">
+ 	  <param name="fieldname">person.name</param>
+      <param name="expression">person.name.startsWith('mark')</param>
+      <message>name does not start with mark</message>
+  </validator>
+  <validator type="requiredstring" >
+ 	<param name="fieldname">person.id</param>
+ 	<message>id is required.</message>
+ </validator>
+ <validator type="double">
+ 	<param name="fieldname">person.salary</param>
+ 	<param name="minInclusive">0.0</param>
+ 	<param name="maxExclusive">9999.99</param>
+ 	<message>salary is between ${minInclusive} and ${maxExclusive}</message>
+ </validator>
+ <validator type="regex">
+ 	<param name="fieldname">person.salary</param>
+ 	<param name="expression"><![CDATA[[0-9]+.[0-9]+]]></param>
+ 	<message>salary is 0.0 format.</message>
+ </validator>
+</validators>

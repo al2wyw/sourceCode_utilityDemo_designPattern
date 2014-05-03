@@ -11,7 +11,7 @@ public class peopleClient {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try{
-			URL url=new URL("http://192.168.100.104:8080/spring_jaxws/people?wsdl");
+			URL url=new URL("http://localhost:8080/spring_jaxws/people?wsdl");
 			ShowPeopleServiceService service=new ShowPeopleServiceService(url);
 			ShowPeople port=service.getShowPeoplePort();
 			List<Person> list=port.show();

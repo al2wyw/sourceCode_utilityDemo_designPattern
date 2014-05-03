@@ -46,5 +46,14 @@
 			<result name="success">/success.jsp</result>
 		</action>
 		
+		<action name="person" class="savePersonAction" method="execute">
+			<interceptor-ref name="fileUploadStack" />
+			<result name="success">/inputPersonSuccess.jsp</result>
+			<result name="input">/inputPerson.jsp</result>
+		</action>
+		<action name="inputperson" class="savePersonAction" method="input">
+			<interceptor-ref name="fileUploadStack" />
+			<result name="input">/inputPerson.jsp</result>
+		</action>
 	</package>
 </struts>

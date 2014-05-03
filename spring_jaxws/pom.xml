@@ -112,17 +112,22 @@
 	<build>
         <finalName>spring_jaxws</finalName>
 		<sourceDirectory>${basedir}/src</sourceDirectory>
+		<filters> <!-- 过滤器，用于过滤resource中的各个文件 -->
+    			<filter>pom.properties</filter>
+  		</filters>
 		<resources>
 		<resource>  
-          <directory>${basedir}/src</directory>  
+          <directory>${basedir}/src</directory>
+          <!-- resources by default includes **/* --> 
           <includes>  
-              <include>*.dtd</include>  
-			  <include>*.xml</include>  
-			  <include>*.properties</include> 
-			  <include>*.xsd</include>  
+              <include>**/*.dtd</include>  
+			  <include>**/*.xml</include>  
+			  <include>**/*.properties</include> 
+			  <include>**/*.xsd</include>  
           </includes>  
        </resource>
-		<resource>  
+		<resource>
+		  <filtering>true</filtering>   
           <directory>${basedir}</directory> 
 		  <includes>
 		  <include>wsdl/*.*</include> 
@@ -167,4 +172,18 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+    		<profile>
+    			<id>mac</id>
+    			<properties>
+        			<server.url>http://localhost:8080</server.url>
+    			</properties>
+    		</profile>
+    		<profile>
+    			<id>win7</id>
+    			<properties>
+        			<server.url>http://192.168.1.100:8080</server.url>
+    			</properties>
+    		</profile>
+    </profiles>
 </project>

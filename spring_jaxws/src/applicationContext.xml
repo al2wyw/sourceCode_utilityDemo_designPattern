@@ -52,4 +52,10 @@
 			<bean class="com.myws.serviceImpl.ShowURLService"/>
 		</property>
 	</bean>
+	
+	<bean id="savePersonAction" class="com.myws.action.savePersonAction" scope="prototype">
+		<property name="action" ref="savePersonXML"/>
+	</bean>
+	<bean id="savePersonXML" class="com.myws.serviceImpl.savePersonToXml"></bean>
+	
 </beans>
