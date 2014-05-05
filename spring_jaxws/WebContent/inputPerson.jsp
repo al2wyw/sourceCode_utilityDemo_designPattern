@@ -10,9 +10,14 @@
 <body style="width:800px;">
 <div style="margin:auto;">
 <s:form action="person" method="post" theme="simple">
+<!-- 
 <s:text name="person.name"/><s:textfield name="person.name" /> <br/>
 <s:text name="person.id"/><s:textfield name="person.id"/> <br/>
 <s:text name="person.salary"/><s:textfield name="person.salary"/><br/>
+-->
+<s:text name="person.name"/><input type="text" name="person.name" value="<s:property value='person.name'/>"/> <br/>
+<s:text name="person.id"/><input type="text" name="person.id" value="<s:property value='person.id'/>"/> <br/>
+<s:text name="person.salary"/><input type="text" name="person.salary" value="<s:property value='person.salary'/>"/><br/>
 <s:submit key="submit" />
 </s:form>
 <s:fielderror/><br/>
