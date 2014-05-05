@@ -9,12 +9,13 @@
 </head>
 <body style="width:800px;">
 <div style="margin:auto;">
-<s:form action="person" method="post">
-<s:textfield key="person.name" /> 
-<s:textfield key="person.id" /> 
-<s:textfield key="person.salary" />
+<s:form action="person" method="post" theme="simple">
+<s:text name="person.name"/><s:textfield name="person.name" /> <br/>
+<s:text name="person.id"/><s:textfield name="person.id"/> <br/>
+<s:text name="person.salary"/><s:textfield name="person.salary"/><br/>
 <s:submit key="submit" />
 </s:form>
+<s:fielderror/><br/>
 </div>
 </body>
 </html>

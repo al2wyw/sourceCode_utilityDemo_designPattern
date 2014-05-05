@@ -9,7 +9,7 @@ public class savePersonAction extends ActionSupport{
 	public String execute(){
 		if(person!=null){
 			action.save(person);
-		
+			showInTextArea();
 			return SUCCESS;
 		}
 		return INPUT;
@@ -33,5 +33,9 @@ public class savePersonAction extends ActionSupport{
 	public void setAction(savePerson action) {
 		this.action = action;
 	}
-	
+	public void showInTextArea(){
+		ActionContext ctx = ActionContext.getContext();
+		String s="test\ntest\ttest";
+		ctx.put("test", s);
+	}
 }

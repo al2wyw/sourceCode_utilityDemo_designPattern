@@ -15,5 +15,8 @@
 <s:property value="person.salary"/>!<br/>
 THE END
 </p>
+<input type="text" value="test"/>
+<textarea rows="10" cols="100">${requestScope.test}</textarea>
+<p>${requestScope.test}</p>
 </body>
 </html>
