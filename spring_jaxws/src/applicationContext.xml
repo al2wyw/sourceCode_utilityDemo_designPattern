@@ -5,12 +5,12 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-2.5.xsd
        http://jax-ws.dev.java.net/spring/core
         http://jax-ws.dev.java.net/spring/core.xsd
         http://jax-ws.dev.java.net/spring/servlet
-        http://jax-ws.dev.java.net/spring/servlet.xsd
-        http://www.springframework.org/schema/context
-		http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+        http://jax-ws.dev.java.net/spring/servlet.xsd">
 
     <context:annotation-config />
     
@@ -54,9 +54,51 @@
 	</bean>
 	<!-- scope="prototype" -->
 	<bean id="savePersonAction" class="com.myws.action.savePersonAction" scope="prototype">
-		<property name="action" ref="savePersonXML"/>
+		<property name="action" ref="savePersonService"/>
 	</bean>
-	<bean id="savePersonXML" class="com.myws.serviceImpl.savePersonToXml"></bean>
+	<bean id="savePersonService" class="com.myws.serviceImpl.savePersonService">
+		<property name="save" ref="savePersonXML"/>
+		<property name="saveDB" ref="savePersonDB"/>
+		<property name="flag" value="false"/>
+	</bean>
+	<bean id="savePersonXML" class="com.myws.daoImpl.savePersonToXml"></bean>
+	<bean id="savePersonDB" class="com.myws.daoImpl.savePersonToDB">
+		<property name="insert" ref="insert"/>
+	</bean>
 	
 	
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+  	
+  	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">  
+        <property name="poolProperties">  
+            <bean class="org.apache.tomcat.jdbc.pool.PoolProperties">  
+                <property name="url" value="${jdbc.url}"/>  
+                <property name="driverClassName" value="${jdbc.class}"/>  
+                <property name="username" value="${jdbc.username}"/>  
+                <property name="password" value="${jdbc.password}"/>  
+                <property name="jmxEnabled" value="true"/>  
+                <property name="testWhileIdle" value="false"/>  
+                <property name="testOnBorrow" value="true"/>  
+                <property name="validationInterval" value="30000"/>  
+                <property name="testOnReturn" value="false"/>  
+                <property name="validationQuery" value="select 1"/>  
+                <property name="timeBetweenEvictionRunsMillis" value="30000"/>  
+                <property name="maxActive" value="100"/>  
+                <property name="initialSize" value="10"/>  
+                <property name="maxWait" value="10000"/>  
+                <property name="removeAbandonedTimeout" value="60"/>  
+                <property name="minEvictableIdleTimeMillis" value="30000"/>  
+                <property name="minIdle" value="10"/>  
+                <property name="logAbandoned" value="true"/>  
+                <property name="removeAbandoned" value="true"/>  
+                <property name="jdbcInterceptors" value="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer"/>  
+            </bean>  
+        </property> 
+    </bean>
+    
+    <bean id="insert" class="org.springframework.jdbc.core.simple.SimpleJdbcInsert">
+    	<constructor-arg type="javax.sql.DataSource" ref="dataSource"/>
+    </bean>
+    
+
 </beans>

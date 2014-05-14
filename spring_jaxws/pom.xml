@@ -94,7 +94,12 @@
             	</exclusion>
             </exclusions>
         </dependency>
-        
+        <!-- 加入JDBC的依赖 -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>3.2.4.RELEASE</version>
+		</dependency>
 		<!-- JAX-WS -->
 		<dependency>
 			<groupId>org.jvnet.jax-ws-commons.spring</groupId>
@@ -112,7 +117,7 @@
 	<build>
         <finalName>spring_jaxws</finalName>
 		<sourceDirectory>${basedir}/src</sourceDirectory>
-		<filters> <!-- 过滤器，用于过滤resource中的各个文件 -->
+		<filters> 
     			<filter>pom.properties</filter>
   		</filters>
 		<resources>

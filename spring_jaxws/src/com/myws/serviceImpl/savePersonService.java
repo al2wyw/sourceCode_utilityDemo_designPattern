@@ -1,8 +1,26 @@
 package com.myws.serviceImpl;
 import com.myws.dao.savePerson;
 import com.myws.model.Person;
-public class savePersonService {
+import com.myws.service.saveService;
+public class savePersonService implements saveService{
 	private savePerson save;
+	private savePerson saveDB;
+	private boolean flag;
+	public boolean isFlag() {
+		return flag;
+	}
+
+	public void setFlag(boolean flag) {
+		this.flag = flag;
+	}
+
+	public savePerson getSaveDB() {
+		return saveDB;
+	}
+
+	public void setSaveDB(savePerson saveDB) {
+		this.saveDB = saveDB;
+	}
 
 	public savePerson getSave() {
 		return save;
@@ -12,6 +30,10 @@ public class savePersonService {
 		this.save = save;
 	}
 	public void saveAction(Person p){
-		save.save(p);
+		if(flag)
+			save.save(p);
+		else
+			saveDB.save(p);
 	}
+	
 }
