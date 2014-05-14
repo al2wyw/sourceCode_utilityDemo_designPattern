@@ -1,9 +1,9 @@
-package com.myws.serviceImpl;
+package com.myws.daoImpl;
 import java.io.File;
 import java.io.FileWriter;
 
+import com.myws.dao.savePerson;
 import com.myws.model.Person;
-import com.myws.service.savePerson;
 
 import javax.xml.stream.*;
 public class savePersonToXml implements savePerson{
