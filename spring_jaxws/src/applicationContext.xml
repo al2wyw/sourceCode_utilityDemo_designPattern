@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ws="http://jax-ws.dev.java.net/spring/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:ws="http://jax-ws.dev.java.net/spring/core"
 	xmlns:wss="http://jax-ws.dev.java.net/spring/servlet"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
        http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context-2.5.xsd
+		 http://www.springframework.org/schema/aop 
+		 http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
        http://jax-ws.dev.java.net/spring/core
         http://jax-ws.dev.java.net/spring/core.xsd
         http://jax-ws.dev.java.net/spring/servlet
@@ -47,7 +54,9 @@
 	
 	<bean id="clientWS" class="webservice.webservicecontext" />
 	
-	<bean id="showservice" class="com.myws.action.ShowServiceAction">
+	<!-- <bean class="com.myws.serviceImpl.BeanPostProcess"/>-->
+	<bean class="com.myws.serviceImpl.initializeBean"></bean>
+	<bean id="showservice" class="com.myws.action.ShowServiceAction" init-method="init">
 		<property name="action">
 			<bean class="com.myws.serviceImpl.ShowURLService"/>
 		</property>
@@ -61,11 +70,21 @@
 		<property name="saveDB" ref="savePersonDB"/>
 		<property name="flag" value="false"/>
 	</bean>
+	<bean id="savePersonModService" class="com.myws.serviceImpl.savePersonModService">
+	</bean>
 	<bean id="savePersonXML" class="com.myws.daoImpl.savePersonToXml"></bean>
-	<bean id="savePersonDB" class="com.myws.daoImpl.savePersonToDB">
-		<property name="insert" ref="insert"/>
+	<bean id="savePersonDB" class="com.myws.daoImpl.savePersonToDB" autowire="byName">
 	</bean>
 	
+	<bean id="logbeforesave" class="com.myws.serviceImpl.logBeforeAdvisor"/>
+	<aop:config proxy-target-class="true">
+		<aop:aspect ref="logbeforesave">
+			<aop:pointcut id="test" expression="execution(* com..saveService.saveAction(*)) and args(person)"/>
+			<!-- execution at the interface will intercept all the subclass -->
+			<!-- the expression can not start with ..  -->
+			<aop:before method="log" pointcut-ref="test" arg-names="person"/>
+		</aop:aspect>
+	</aop:config>
 	
 	<context:property-placeholder location="classpath:jdbc.properties"/>
   	
@@ -95,10 +114,10 @@
             </bean>  
         </property> 
     </bean>
-    
+    <!--  
     <bean id="insert" class="org.springframework.jdbc.core.simple.SimpleJdbcInsert">
     	<constructor-arg type="javax.sql.DataSource" ref="dataSource"/>
     </bean>
-    
+    -->
 
 </beans>

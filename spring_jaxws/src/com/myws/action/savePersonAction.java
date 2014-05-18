@@ -1,10 +1,10 @@
 package com.myws.action;
 import com.opensymphony.xwork2.*;
-import com.myws.serviceImpl.savePersonService;
+import com.myws.service.saveService;
 import com.myws.model.Person;
 public class savePersonAction extends ActionSupport{
 	private static final long serialVersionUID = 1L;
-	private savePersonService action;
+	private saveService action;
 	private Person person;
 	public String execute(){
 		if(person!=null){
@@ -28,10 +28,10 @@ public class savePersonAction extends ActionSupport{
 		this.person = person;
 	}
 	
-	public savePersonService getAction() {
+	public saveService getAction() {
 		return action;
 	}
-	public void setAction(savePersonService action) {
+	public void setAction(saveService action) {
 		this.action = action;
 	}
 	public void showInTextArea(){

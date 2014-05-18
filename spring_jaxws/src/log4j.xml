@@ -9,11 +9,18 @@
           <param name="ConversionPattern" value="%d %-5p %c.%M:%L - %m%n"/> 
        </layout> 
     </appender>
+    
+    <appender name="COLSOUT" class="org.apache.log4j.ConsoleAppender">
+       <layout class="org.apache.log4j.PatternLayout"> 
+          <param name="ConversionPattern" value="%d %-5p %c.%M:%L - %m%n"/> 
+       </layout> 
+    </appender>
  
     <!-- specify the logging level for loggers from other libraries -->
 
     <logger name="handler.validationHandler">
     	 <level value="INFO" />
+    	 <appender-ref ref="STDOUT"/>
     </logger>
     
     <logger name="com.opensymphony">
@@ -27,7 +34,7 @@
    <!-- for all other loggers log only debug and above log messages -->
      <root>
         <priority value="INFO"/> 
-        <appender-ref ref="STDOUT" /> 
+        <appender-ref ref="COLSOUT" /> 
      </root> 
     
 </log4j:configuration> 

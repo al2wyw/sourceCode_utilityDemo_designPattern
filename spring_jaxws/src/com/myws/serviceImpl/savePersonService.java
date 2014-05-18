@@ -10,6 +10,12 @@ public class savePersonService implements saveService{
 		return flag;
 	}
 
+	public savePersonService() {
+		super();
+		// TODO Auto-generated constructor stub
+		System.out.println("Service save person initialized");
+	}
+
 	public void setFlag(boolean flag) {
 		this.flag = flag;
 	}
@@ -30,6 +36,7 @@ public class savePersonService implements saveService{
 		this.save = save;
 	}
 	public void saveAction(Person p){
+		System.out.println(this.getClass().getCanonicalName());
 		if(flag)
 			save.save(p);
 		else

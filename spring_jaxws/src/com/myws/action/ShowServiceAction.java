@@ -31,4 +31,7 @@ public class ShowServiceAction extends ActionSupport {
 		else
 			return INPUT;
 	}
+	public void init(){
+		System.out.println("init method called");
+	}
 }
