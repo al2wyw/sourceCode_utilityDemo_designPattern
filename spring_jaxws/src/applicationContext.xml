@@ -67,7 +67,7 @@
 	</bean>
 	<bean id="savePersonService" class="com.myws.serviceImpl.savePersonService">
 		<property name="save" ref="savePersonXML"/>
-		<property name="saveDB" ref="savePersonDB"/>
+		<property name="saveDB" ref="savePersonNotToDBCaller"/>
 		<property name="flag" value="false"/>
 	</bean>
 	<bean id="savePersonModService" class="com.myws.serviceImpl.savePersonModService">
@@ -75,19 +75,44 @@
 	<bean id="savePersonXML" class="com.myws.daoImpl.savePersonToXml"></bean>
 	<bean id="savePersonDB" class="com.myws.daoImpl.savePersonToDB" autowire="byName">
 	</bean>
+	<bean id="savePersonNotToDBCaller" class="com.myws.daoImpl.savePersonNotToDBCaller">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+		<property name="action" ref="savePersonNotToDBCallee"/>
+	</bean>
+	<bean id="savePersonNotToDBCallee" class="com.myws.daoImpl.savePersonNotToDBCallee">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
 	
 	<bean id="logbeforesave" class="com.myws.serviceImpl.logBeforeAdvisor"/>
+	<bean id="logbeforeagainsave" class="com.myws.serviceImpl.logBeforeAgainAdvisor"/>
 	<aop:config proxy-target-class="true">
+		<aop:pointcut id="test" expression="execution(* *..saveService.saveAction(*)) and args(person)"/>
+		<aop:pointcut id="save" expression="execution(* *..savePersonNotToDBCaller.*(*)) or execution(* *..savePersonNotToDBCallee.*(*))"/>
+		<aop:advisor advice-ref="txm" pointcut-ref="save"/>
 		<aop:aspect ref="logbeforesave">
-			<aop:pointcut id="test" expression="execution(* com..saveService.saveAction(*)) and args(person)"/>
+			<!-- execution at the interface will intercept all the subclass -->
+			<!-- the expression can not start with ..  -->
+			<aop:before method="log" pointcut-ref="test" arg-names="person"/>
+		</aop:aspect>
+		<aop:aspect ref="logbeforeagainsave">
 			<!-- execution at the interface will intercept all the subclass -->
 			<!-- the expression can not start with ..  -->
 			<aop:before method="log" pointcut-ref="test" arg-names="person"/>
 		</aop:aspect>
 	</aop:config>
 	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<tx:advice id="txm" transaction-manager="transactionManager">
+		<tx:attributes>  
+	         <tx:method name="save" propagation="REQUIRED" rollback-for="RuntimeException"/>  
+	     </tx:attributes> 
+	</tx:advice>
 	<context:property-placeholder location="classpath:jdbc.properties"/>
-  	
+  	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+  		<property name="dataSource" ref="dataSource"/>
+  	</bean>
   	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">  
         <property name="poolProperties">  
             <bean class="org.apache.tomcat.jdbc.pool.PoolProperties">  

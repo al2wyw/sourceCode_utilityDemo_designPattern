@@ -35,12 +35,16 @@ public class savePersonService implements saveService{
 	public void setSave(savePerson save) {
 		this.save = save;
 	}
-	public void saveAction(Person p){
+	public void saveAction(Person p) {
 		System.out.println(this.getClass().getCanonicalName());
+		try{
 		if(flag)
 			save.save(p);
 		else
 			saveDB.save(p);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 }
