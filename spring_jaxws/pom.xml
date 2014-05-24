@@ -94,11 +94,18 @@
             	</exclusion>
             </exclusions>
         </dependency>
+        <!-- memcached -->
         <dependency>
-        	<groupId>net.spy</groupId>
-        	<artifactId>spymemcached</artifactId>
-        	<version>2.11.2</version>
+	        	<groupId>net.spy</groupId>
+	        	<artifactId>spymemcached</artifactId>
+	        	<version>2.11.2</version>
         </dependency>
+        <!-- active mq -->
+        <dependency>
+			  <groupId>org.apache.activemq</groupId>
+			  <artifactId>activemq-core</artifactId>
+			  <version>5.5.0</version>
+		</dependency>
         <!-- 加入JDBC的依赖 -->
 		<dependency>
 			<groupId>org.springframework</groupId>

@@ -6,6 +6,7 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:aop="http://www.springframework.org/schema/aop"
     xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:amq="http://activemq.apache.org/schema/core"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
        http://www.springframework.org/schema/context
@@ -17,7 +18,10 @@
        http://jax-ws.dev.java.net/spring/core
         http://jax-ws.dev.java.net/spring/core.xsd
         http://jax-ws.dev.java.net/spring/servlet
-        http://jax-ws.dev.java.net/spring/servlet.xsd">
+        http://jax-ws.dev.java.net/spring/servlet.xsd
+        http://activemq.apache.org/schema/core
+        http://activemq.apache.org/schema/core/activemq-core.xsd
+        ">
 
     <context:annotation-config />
     
@@ -200,4 +204,28 @@
 	    <property name="failureMode" value="Redistribute"/>
 	    <property name="useNagleAlgorithm" value="false"/>
    </bean>
+   
+  <!--  
+   <amq:broker useJmx="false" persistent="false">
+    		<amq:transportConnectors>
+	      <amq:transportConnector uri="tcp://localhost:0" />
+	    </amq:transportConnectors>
+  </amq:broker>
+ 
+  <amq:connectionFactory id="jmsFactory" brokerURL="vm://localhost"/>
+  -->
+  <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+    <property name="connectionFactory">
+      <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL">
+          <value>tcp://${jms.ip}:${jms.port}</value>
+        </property>
+      </bean>
+    </property>
+  </bean>
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <property name="connectionFactory">
+      <ref local="jmsFactory"/>
+    </property>
+  </bean>
 </beans>
