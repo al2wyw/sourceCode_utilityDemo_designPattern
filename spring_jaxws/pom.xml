@@ -94,6 +94,11 @@
             	</exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+        	<groupId>net.spy</groupId>
+        	<artifactId>spymemcached</artifactId>
+        	<version>2.11.2</version>
+        </dependency>
         <!-- 加入JDBC的依赖 -->
 		<dependency>
 			<groupId>org.springframework</groupId>
