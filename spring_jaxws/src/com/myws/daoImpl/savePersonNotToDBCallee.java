@@ -10,7 +10,7 @@ public class savePersonNotToDBCallee implements savePerson {
 	public void save(Person p) throws Exception{
 		// TODO Auto-generated method stub
 		jdbcTemplate.update("insert into myreftab(name,skill) values('alisa','c++')");
-		throw new RuntimeException("rollback exceptions"); 
+		throw new Exception("rollback exceptions"); 
 	}
 	public JdbcTemplate getJdbcTemplate() {
 		return jdbcTemplate;

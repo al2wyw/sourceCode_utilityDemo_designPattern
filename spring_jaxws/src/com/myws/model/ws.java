@@ -1,6 +1,10 @@
 package com.myws.model;
 
-public class ws {
+public class ws implements java.io.Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String url;
 	private String wsName;
 	

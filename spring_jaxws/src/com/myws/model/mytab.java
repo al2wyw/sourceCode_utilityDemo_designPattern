@@ -1,6 +1,10 @@
 package com.myws.model;
 import java.sql.Date;
-public class mytab {
+public class mytab implements java.io.Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private String name;
 	private double salary;

@@ -38,10 +38,10 @@ public class savePersonService implements saveService{
 	public void saveAction(Person p) {
 		System.out.println(this.getClass().getCanonicalName());
 		try{
-		if(flag)
-			save.save(p);
-		else
-			saveDB.save(p);
+			if(flag)
+				save.save(p);
+			else
+				saveDB.save(p);
 		}catch(Exception e){
 			e.printStackTrace();
 		}

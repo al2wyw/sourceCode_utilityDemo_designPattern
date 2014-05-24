@@ -34,7 +34,9 @@
     <logger name="org.springframework">
     	<level value="INFO" />
     </logger>
-  
+    <logger name="org.springframework.dao">
+    	<level value="INFO" />
+    </logger>
    <!-- for all other loggers log only debug and above log messages -->
      <root>
         <priority value="INFO"/> 

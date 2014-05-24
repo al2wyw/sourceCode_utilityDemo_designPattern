@@ -22,8 +22,8 @@ public class queryMytabImpl implements queryMytab {
 	@Override
 	public mytab query(String name) throws Exception {
 		// TODO Auto-generated method stub
-		 Object[] params = new Object[] { name };    
-		 int[] types = new int[] { Types.VARCHAR }; 
+		Object[] params = new Object[] { name };    
+		int[] types = new int[] { Types.VARCHAR }; 
 		mytab o=jdbcTemplate.queryForObject("select * from mytab where name=?",params,types, new RowMapper<mytab>(){
 			 public mytab mapRow(ResultSet rs, int num) throws SQLException {
 				 mytab o=new mytab();

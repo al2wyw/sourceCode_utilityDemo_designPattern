@@ -55,5 +55,10 @@
 			<interceptor-ref name="fileUploadStack" />
 			<result name="input">/inputPerson.jsp</result>
 		</action>
+		
+		<action name="querymytab" class="querymytabAction">
+			<interceptor-ref name="fileUploadStack" />
+			<result name="success">/querySuccess.jsp</result>
+		</action>
 	</package>
 </struts>

@@ -83,23 +83,39 @@
 		<property name="jdbcTemplate" ref="jdbcTemplate"/>
 	</bean>
 	
+	<bean id="querymytabAction" class="com.myws.action.showMytabAction" scope="prototype">
+		<property name="action" ref="queryMytabService"/>
+	</bean>
+	<bean id="queryMytabService" class="com.myws.serviceImpl.queryMytabServiceImpl">
+		<property name="action" ref="queryMytabDao"/>
+	</bean>
+	<bean id="queryMytabDao" class="com.myws.daoImpl.queryMytabImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate"/>
+	</bean>
+	
+	<!-- aspect definition  -->
 	<bean id="logbeforesave" class="com.myws.serviceImpl.logBeforeAdvisor"/>
 	<bean id="logbeforeagainsave" class="com.myws.serviceImpl.logBeforeAgainAdvisor"/>
+	<bean id="cachedAround" class="com.myws.serviceImpl.cachedAdvisorImpl">
+		<property name="memcachedClient" ref="memcachedClient"/>
+	</bean>
 	<aop:config proxy-target-class="true">
 		<aop:pointcut id="test" expression="execution(* *..saveService.saveAction(*)) and args(person)"/>
 		<aop:pointcut id="save" expression="execution(* *..savePersonNotToDBCaller.*(*)) or execution(* *..savePersonNotToDBCallee.*(*))"/>
-		<aop:pointcut id="save" expression="execution(* *..savePersonNotToDBCaller.*(*)) or execution(* *..savePersonNotToDBCallee.*(*))"/>
+		<aop:pointcut id="query" expression="execution(* *..queryMytabImpl.*(*))"/>
+		<aop:pointcut id="queryService" expression="execution(* *..queryMytabService.queryByName(*)) and args(key)"/>
 		<aop:advisor advice-ref="txm" pointcut-ref="save"/>
-		<aop:advisor advice-ref="txm" pointcut-ref="save"/>
+		<aop:advisor advice-ref="txm" pointcut-ref="query"/>
 		<aop:aspect ref="logbeforesave">
 			<!-- execution at the interface will intercept all the subclass -->
 			<!-- the expression can not start with ..  -->
 			<aop:before method="log" pointcut-ref="test" arg-names="person"/>
 		</aop:aspect>
 		<aop:aspect ref="logbeforeagainsave">
-			<!-- execution at the interface will intercept all the subclass -->
-			<!-- the expression can not start with ..  -->
 			<aop:before method="log" pointcut-ref="test" arg-names="person"/>
+		</aop:aspect>
+		<aop:aspect ref="cachedAround">
+			<aop:around method="cachedHandler" pointcut-ref="queryService" arg-names="key"/>
 		</aop:aspect>
 	</aop:config>
 	
@@ -112,6 +128,9 @@
 	         <tx:method name="query" propagation="REQUIRED" rollback-for="RuntimeException"/> 
 	     </tx:attributes> 
 	</tx:advice>
+
+	
+	<!-- JDBC Connection -->
 	<context:property-placeholder location="classpath:jdbc.properties"/>
   	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
   		<property name="dataSource" ref="dataSource"/>
@@ -142,11 +161,7 @@
             </bean>  
         </property> 
     </bean>
-    <!--  
-    <bean id="insert" class="org.springframework.jdbc.core.simple.SimpleJdbcInsert">
-    	<constructor-arg type="javax.sql.DataSource" ref="dataSource"/>
-    </bean>
-    -->
+    
     
     <!-- xmemcached connection -->
     <!--  
@@ -168,7 +183,7 @@
         factory-method="build" destroy-method="shutdown" />
      -->
     <!-- spymemcached connection --> 
-    <bean id="memcachedClient" class="net.spy.memcached.spring.MemcachedClientFactoryBean">
+    <bean id="memcachedClient" class="net.spy.memcached.spring.MemcachedClientFactoryBean" >
 	    <property name="servers" value="${memcache.ip}:${memcache.port}"/>
 	    <property name="protocol" value="BINARY"/>
 	    <property name="transcoder">
@@ -178,7 +193,9 @@
 	    </property>
 	    <property name="opTimeout" value="1000"/>
 	    <property name="timeoutExceptionThreshold" value="1998"/>
-	    <property name="hashAlg" value="KETAMA_HASH"/>
+	    <property name="hashAlg">
+            <value type="net.spy.memcached.DefaultHashAlgorithm">KETAMA_HASH</value>
+		</property>
 	    <property name="locatorType" value="CONSISTENT"/> 
 	    <property name="failureMode" value="Redistribute"/>
 	    <property name="useNagleAlgorithm" value="false"/>
