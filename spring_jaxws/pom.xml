@@ -100,13 +100,23 @@
 	        	<artifactId>spymemcached</artifactId>
 	        	<version>2.11.2</version>
         </dependency>
-        <!-- active mq -->
+        <!-- active mq includes activemq-core -->
         <dependency>
-			  <groupId>org.apache.activemq</groupId>
-			  <artifactId>activemq-core</artifactId>
-			  <version>5.5.0</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+			<version>3.2.4.RELEASE</version>
 		</dependency>
-        <!-- 加入JDBC的依赖 -->
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-pool</artifactId>
+			<version>5.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+		<!-- 加入JDBC的依赖 -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
