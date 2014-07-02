@@ -1,5 +1,8 @@
 package xpadro.tutorial.rest.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -11,10 +14,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.MatrixVariable;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
@@ -37,6 +43,10 @@ public class WarehouseController {
 	@Autowired
 	private WarehouseRepository warehouseRepository;
 
+	@ModelAttribute("product1")
+	public Product getFirstProduct(@RequestParam(value="productId") int id){
+		return warehouseRepository.getWarehouse(id).getProduct(1);
+	}
 	
 	/**
 	 * Returns the warehouse requested by its id.
@@ -92,10 +102,12 @@ public class WarehouseController {
 	
 
 	@RequestMapping(value="/warehouses/{warehouseId}/{productId}", method=RequestMethod.GET)
-	public String showProduct(@PathVariable("warehouseId") int warehouseId, @PathVariable("productId") int productId,HttpServletRequest request) {
+	public String showProduct(@PathVariable("warehouseId") int warehouseId, @PathVariable("productId") int productId,HttpServletRequest request, Model model) {
 		Product p = warehouseRepository.getProduct(warehouseId, productId);
-		//m.addAttribute("product",p);
-		request.setAttribute("product", p);
+		Product p1 = warehouseRepository.getProduct(warehouseId, productId + 1);
+		//can not assign "product" twice
+		model.addAttribute("product",p1);
+		//request.setAttribute("product", p);
 		return "product";
 	}
 	
@@ -109,12 +121,32 @@ public class WarehouseController {
 	
 	@RequestMapping(value="/warehouses/mav/{stockId}/{productId}", method=RequestMethod.GET)
 	public ModelAndView showProduct(@PathVariable("stockId") int stockId, @PathVariable("productId") int productId) {
+		
 		ModelAndView mv = new ModelAndView("test");
 		Product test = warehouseRepository.getProduct(stockId, productId);
 		mv.addObject("product", test);
 		return mv; 
 	}
 	
+	@RequestMapping(value="/warehouses/{stockId}/{id}/{description}", method=RequestMethod.GET)
+	public ModelAndView showProduct(@PathVariable("stockId") int stockId,@ModelAttribute Product product) {
+		warehouseRepository.addProduct(stockId, product);
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("test");
+		return mv; 
+	}
+	
+	@RequestMapping(value = "/warehouses/matrix/{ownerId}/products/{petId}", method = RequestMethod.GET)
+	public void findProduct(
+	@MatrixVariable Map<String, String> matrixVars,
+	@MatrixVariable(pathVar="petId") Map<String, String> petMatrixVars) {
+	// /spring/warehouses/matrix/42;q=11;r=12/products/21;q=22;s=23
+	// matrixVars: ["q" : [11,22], "r" : 12, "s" : 23]
+	// petMatrixVars: ["q" : 11, "s" : 23]
+		System.out.println(matrixVars);
+		System.out.println(petMatrixVars);
+	}
+
 	/**
 	 * Handles ProductNotFoundException and returns a 404 response status code
 	 */
