@@ -59,7 +59,12 @@ public class WarehouseRepositoryImpl implements WarehouseRepository {
 	public void removeProduct(int warehouseId, int productId) {
 		warehouses.get(warehouseId).removeProduct(productId);
 	}
-
+	
+	@Override
+	public void modifyProduct(int warehouseId, Product product) {
+		warehouses.get(warehouseId).getProduct(product.getId()).setDescription(product.getDescription());
+	}
+	
 	private void createDummyWarehouses() {
 		Set<Product> products = new HashSet<Product>();
 		Product product = new Product(1, "PROD_004");

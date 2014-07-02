@@ -59,4 +59,11 @@ public interface WarehouseRepository {
 	 * @param productId
 	 */
 	public void removeProduct(int warehouseId, int productId);
+	
+	/**
+	 * Modify an existing product identified by the id
+	 * @param warehouseId
+	 * @param product
+	 */
+	public void modifyProduct(int warehouseId, Product product);
 }

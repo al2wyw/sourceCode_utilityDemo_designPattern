@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 import xpadro.tutorial.rest.exception.ProductNotFoundException;
 import xpadro.tutorial.rest.model.Product;
@@ -89,12 +90,29 @@ public class WarehouseController {
 		return warehouseRepository.getProduct(warehouseId, productId);
 	}
 	
+
 	@RequestMapping(value="/warehouses/{warehouseId}/{productId}", method=RequestMethod.GET)
 	public String showProduct(@PathVariable("warehouseId") int warehouseId, @PathVariable("productId") int productId,HttpServletRequest request) {
 		Product p = warehouseRepository.getProduct(warehouseId, productId);
 		//m.addAttribute("product",p);
 		request.setAttribute("product", p);
 		return "product";
+	}
+	
+	@RequestMapping(value="/warehouses/{stockId}/products", method=RequestMethod.PUT , consumes="application/json")
+	@ResponseStatus(HttpStatus.ACCEPTED)
+	public void modifyProduct(@PathVariable("stockId") int stockId, @RequestBody Product product,
+			HttpServletRequest request, HttpServletResponse response) {
+		warehouseRepository.modifyProduct(stockId, product);
+		response.setHeader("Location", request.getRequestURL().append("/").append(product.getId()).toString());
+	}
+	
+	@RequestMapping(value="/warehouses/mav/{stockId}/{productId}", method=RequestMethod.GET)
+	public ModelAndView showProduct(@PathVariable("stockId") int stockId, @PathVariable("productId") int productId) {
+		ModelAndView mv = new ModelAndView("test");
+		Product test = warehouseRepository.getProduct(stockId, productId);
+		mv.addObject("product", test);
+		return mv; 
 	}
 	
 	/**
