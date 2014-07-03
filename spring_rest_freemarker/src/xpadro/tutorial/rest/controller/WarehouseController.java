@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import xpadro.tutorial.rest.exception.MyException;
 import xpadro.tutorial.rest.exception.ProductNotFoundException;
 import xpadro.tutorial.rest.model.Product;
 import xpadro.tutorial.rest.model.Warehouse;
@@ -43,8 +44,14 @@ public class WarehouseController {
 	@Autowired
 	private WarehouseRepository warehouseRepository;
 
-	@ModelAttribute("product1")
-	public Product getFirstProduct(@RequestParam(value="productId") int id){
+	@ModelAttribute(value="product1")
+	public Product getFirstProduct(@RequestParam(value="productId",required=false) Integer id){
+		if(id==null){
+			id=new Integer(1);
+			System.out.println("the product id is "+id+", called from getFirstProduct");
+			throw new MyException("1");
+				
+		}
 		return warehouseRepository.getWarehouse(id).getProduct(1);
 	}
 	
@@ -151,14 +158,14 @@ public class WarehouseController {
 	 * Handles ProductNotFoundException and returns a 404 response status code
 	 */
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	@ExceptionHandler({ProductNotFoundException.class})
+	@ExceptionHandler({ProductNotFoundException.class, MyException.class})
 	public void handleProductNotFound(ProductNotFoundException pe) {
 		logger.warn("Product not found. Code: "+pe.getMessage());
 	}
 	
 	
 	@InitBinder
-	public void testBinder(WebDataBinder binder, WebRequest req) {
+	public void testBinder(WebDataBinder binder) {
 		System.out.println();
 	}
 }
