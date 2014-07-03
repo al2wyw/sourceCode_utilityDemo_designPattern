@@ -49,12 +49,15 @@ public class WarehouseController {
 		if(id==null){
 			id=new Integer(1);
 			System.out.println("the product id is "+id+", called from getFirstProduct");
-			throw new MyException("1");
 				
 		}
 		return warehouseRepository.getWarehouse(id).getProduct(1);
 	}
 	
+	@RequestMapping(value="/test1", method=RequestMethod.GET)
+	public void test(){
+		//throw new MyException("2");
+	}
 	/**
 	 * Returns the warehouse requested by its id.
 	 * @param id
@@ -159,13 +162,14 @@ public class WarehouseController {
 	 */
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	@ExceptionHandler({ProductNotFoundException.class, MyException.class})
-	public void handleProductNotFound(ProductNotFoundException pe) {
-		logger.warn("Product not found. Code: "+pe.getMessage());
+	public void handleProductNotFound(Exception pe) {
+		logger.warn("Product not found. Code: "+pe.getMessage()+ " exception type is "+pe.getClass().getName());
 	}
 	
 	
 	@InitBinder
 	public void testBinder(WebDataBinder binder) {
-		System.out.println();
+		
+		//binder.registerCustomEditor(requiredType, field, propertyEditor);
 	}
 }
