@@ -1,0 +1,5 @@
+<h2> product1 : ${product1.id!0} is descripted by ${product1.description!"test"}</h2>
+<#if Session["productSes"]?exists>
+<#assign productSess = Session["productSes"]/>
+<h2>test ${productSess.id}</h2>
+</#if>

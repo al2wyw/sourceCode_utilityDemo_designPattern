@@ -84,6 +84,22 @@ function put(){
 <button onclick="del()">delete</button><br/>
 <button onclick="put()">put</button><br/>
 <button onclick="post()">post</button><br/>
-<button onclick="location.href='spring/warehouses/1'">show</button>
+<button onclick="location.href='spring/warehouses/1'">show</button><br/>
+<form method="GET" action="spring/stocks/1/products/1" >
+<fieldset>
+<legend>Form2:</legend>
+<select name="select" multiple>
+<option value="test1">test1</option>
+<option value="test2">test2</option>
+<option value="test3">test3</option>
+</select>
+<br/>
+<input type="checkbox" name="box" value="box1"/>box1<br/>
+<input type="checkbox" name="box" value="box2"/>box2<br/>
+<input type="checkbox" name="box" value="box3"/>box3<br/>
+<br/>
+<input type="submit" value="test"/>
+</fieldset>
+</form>
 </body>
 </html>

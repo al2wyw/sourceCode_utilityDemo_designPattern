@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -45,13 +46,12 @@ public class WarehouseController {
 	private WarehouseRepository warehouseRepository;
 
 	@ModelAttribute(value="product1")
-	public Product getFirstProduct(@RequestParam(value="productId",required=false) Integer id){
+	public Product getFirstProduct(@RequestParam(value="product1",required=false) Integer id){
 		if(id==null){
 			id=new Integer(1);
 			System.out.println("the product id is "+id+", called from getFirstProduct");
-				
 		}
-		return warehouseRepository.getWarehouse(id).getProduct(1);
+		return warehouseRepository.getWarehouse(1).getProduct(id);
 	}
 	
 	@RequestMapping(value="/test1", method=RequestMethod.GET)
@@ -112,13 +112,15 @@ public class WarehouseController {
 	
 
 	@RequestMapping(value="/warehouses/{warehouseId}/{productId}", method=RequestMethod.GET)
-	public String showProduct(@PathVariable("warehouseId") int warehouseId, @PathVariable("productId") int productId,HttpServletRequest request, Model model) {
+	public ModelAndView showProduct(@PathVariable("warehouseId") int warehouseId, @PathVariable("productId") int productId,HttpServletRequest request, Model model,ModelAndView mav) {
 		Product p = warehouseRepository.getProduct(warehouseId, productId);
 		Product p1 = warehouseRepository.getProduct(warehouseId, productId + 1);
-		//can not assign "product" twice
+		//request,session attribute can not have the same name with model object 
 		model.addAttribute("product",p1);
-		//request.setAttribute("product", p);
-		return "product";
+		//request.getSession().setAttribute("product", p);
+		mav.setViewName("product");
+		mav.addObject("product", p);
+		return mav;
 	}
 	
 	@RequestMapping(value="/warehouses/{stockId}/products", method=RequestMethod.PUT , consumes="application/json")
