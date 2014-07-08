@@ -21,5 +21,26 @@ padding-bottom:5px;
 <div class="errorinf"><@spring.showErrors "<br/>"/><br/></div>
 <input type="submit" value='<@spring.message "submit"/>'/>
 </form>
+<#assign x=2.582/>  
+<#assign y=5/> 
+#{x; m5}<br/>
+#{x; m1}<br/>
+#{y; m2}<br/>
+<#assign a=[1,2,3,4,5]/>
+${a[0]}<br/>
+<#assign b=2..6/>
+${b[0]}<br/>
+the number of elements in the array ${b?size}<br/>
+<#if g??>
+test the variable g exist!
+</#if>
+<#macro book test>  
+<#nested 1,2> ${test?trim}
+<#nested 2,3> ${test?trim}
+<#if true>
+<p>test for macro</p>
+</#if>
+</#macro>  
+<@book "myteeth ";x,y> ${x}_${y} .book</@book > 
 </body>
 </html>
