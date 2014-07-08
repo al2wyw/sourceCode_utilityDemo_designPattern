@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+.errorinf{
+color:red;
+font-weight:bold;
+padding-top:5px;
+padding-bottom:5px;
+}
+</style>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<#import "spring.ftl" as spring/>
+<form action="Product" method="POST">
+<@spring.message "product.id"/>: <@spring.formInput "product.id"/><br/>
+<div class="errorinf"><@spring.showErrors "<br/>"/><br/></div>
+<@spring.message "product.des"/>: <@spring.formInput "product.description"/><br/>
+<div class="errorinf"><@spring.showErrors "<br/>"/><br/></div>
+<input type="submit" value='<@spring.message "submit"/>'/>
+</form>
+</body>
+</html>

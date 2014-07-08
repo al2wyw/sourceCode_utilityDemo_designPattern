@@ -2,6 +2,13 @@ package xpadro.tutorial.rest.model;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
+import com.sun.istack.internal.NotNull;
+
 /**
  * A product contained in a warehouse.
  * @author xpadro
@@ -9,7 +16,13 @@ import java.io.Serializable;
  */
 public class Product implements Serializable {
 	private static final long serialVersionUID = 1018938490349056134L;
+	
+	@NotNull()
+	@Max(value=100,message="{productid.error}")
 	private Integer id;
+	
+	@NotEmpty(message="{productdes.not.empty}")
+	@Pattern(regexp="PROD_[0-9]{3}",message="{productdes.error}")
 	private String description;
 	
 	

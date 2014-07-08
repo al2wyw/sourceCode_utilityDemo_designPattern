@@ -18,6 +18,24 @@
 	<!-- Detects MVC annotations like @RequestMapping -->
 	<mvc:annotation-driven/>
 	
+	<!-- store the locale in the session -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">  
+	    <property name="defaultLocale" value="en" />  
+	</bean>
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">  
+	    <property name="basenames">  
+	        <list>  
+	            <value>classpath:Message</value>  
+	        </list>  
+	    </property>  
+	</bean>  
+	<mvc:interceptors>
+		<bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">  
+			<property name="paramName" value="siteLanguage"/>  
+		</bean> 
+	</mvc:interceptors>
+	
+	
 	<!-- freemarker的配置 -->  
     <bean id="freemarkerConfigurer"  
         class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">  
