@@ -42,5 +42,16 @@ test the variable g exist!
 </#if>
 </#macro>  
 <@book "myteeth ";x,y> ${x}_${y} .book</@book > 
+<#assign user="peter"/>
+<#assign x>Hello ${user}!</#assign>
+${x} <br/>
+
+<#macro test foo bar="Bar" baaz=-1>  
+  Test text(two different ways to call macro), and the params: ${foo}, ${bar}, ${baaz}  
+</#macro> 
+<@test "a" "b" 5*5-2/>  <br/>   <#--no formal parameters-->
+<@test foo="a" bar="b"/>  <br/> <#--formal parameters-->
+<@test foo="a" baaz=5*5-2/>  <br/>
+<@test foo="a"/> <br/>
 </body>
 </html>
