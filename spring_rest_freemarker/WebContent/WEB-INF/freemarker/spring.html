@@ -53,5 +53,13 @@ ${x} <br/>
 <@test foo="a" bar="b"/>  <br/> <#--formal parameters-->
 <@test foo="a" baaz=5*5-2/>  <br/>
 <@test foo="a"/> <br/>
+
+<p>===========================</p>
+<#assign testmap={"test1":1, "test2":2}/>
+<ol>
+<#list testmap?values as t>
+<li>${t}</li>
+</#list>
+</ol>
 </body>
 </html>
