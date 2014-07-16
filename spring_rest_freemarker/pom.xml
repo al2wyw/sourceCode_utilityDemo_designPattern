@@ -77,6 +77,16 @@
 		<version>${spring.version}</version>
 	</dependency>
 	<dependency>
+		<groupId>org.testng</groupId>
+		<artifactId>testng</artifactId>
+		<version>6.8</version>
+	</dependency>
+	<dependency>
+		<groupId>org.easymock</groupId>
+		<artifactId>easymock</artifactId>
+		<version>3.1</version>
+	</dependency>
+	<dependency>
 		<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
 		<version>${junit.version}</version>

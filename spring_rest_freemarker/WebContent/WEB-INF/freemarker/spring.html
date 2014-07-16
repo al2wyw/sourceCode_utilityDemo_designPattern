@@ -13,6 +13,8 @@ padding-bottom:5px;
 <title>Insert title here</title>
 </head>
 <body>
+<#assign mythis=option/>
+<h1>${mythis}</h1>
 <#import "spring.ftl" as spring/>
 <form action="Product" method="POST">
 <@spring.message "product.id"/>: <@spring.formInput "product.id"/><br/>
