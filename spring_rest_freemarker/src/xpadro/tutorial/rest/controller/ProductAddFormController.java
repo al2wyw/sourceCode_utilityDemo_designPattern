@@ -28,6 +28,7 @@ public class ProductAddFormController {
 	    response.addHeader( "Cache-Control", "no-store" );
 	    response.setDateHeader("Expires", 0);
 	    map.addAttribute("product", new Product());
+	    map.addAttribute("option", "option for show the form");
 		return "spring";
 	}
 	
@@ -43,7 +44,7 @@ public class ProductAddFormController {
 			return "spring";
 		}
 		warehouseRepository.addProduct(1, product); //hardcode warehouse id
-		return "redirect:addResult";
+		return "redirect:addResult"; //must have a requestmapping resolver
 	}
 	
 	@RequestMapping(value="/addResult", method=RequestMethod.GET)

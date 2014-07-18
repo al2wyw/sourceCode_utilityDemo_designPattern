@@ -13,6 +13,8 @@ padding-bottom:5px;
 <title>Insert title here</title>
 </head>
 <body>
+<#assign mythis=option/>
+<h1>${mythis}</h1>
 <#import "spring.ftl" as spring/>
 <form action="Product" method="POST">
 <@spring.message "product.id"/>: <@spring.formInput "product.id"/><br/>
@@ -53,5 +55,13 @@ ${x} <br/>
 <@test foo="a" bar="b"/>  <br/> <#--formal parameters-->
 <@test foo="a" baaz=5*5-2/>  <br/>
 <@test foo="a"/> <br/>
+
+<p>===========================</p>
+<#assign testmap={"test1":1, "test2":2}/>
+<ol>
+<#list testmap?values as t>
+<li>${t}</li>
+</#list>
+</ol>
 </body>
 </html>
