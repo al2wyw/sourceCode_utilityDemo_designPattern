@@ -96,8 +96,11 @@ public class HttpTools {
 
 				while (null != stringOneLine) {
 					resposneMessage.append(stringOneLine);
+					System.out.println("test2");
 					stringOneLine = reader.readLine();
+					System.out.println("test1");
 				}
+				System.out.println("test end");
 			} catch (IOException e) {
 				throw e;
 			}
