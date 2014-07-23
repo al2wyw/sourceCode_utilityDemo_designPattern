@@ -25,42 +25,42 @@ public class WarehouseRepositoryImpl implements WarehouseRepository {
 		createDummyWarehouses();
 	}
 
-	@Override
+	
 	public Warehouse getWarehouse(Integer id) {
 		return warehouses.get(id);
 	}
 
-	@Override
+
 	public void createWarehouse(Warehouse warehouse) {
 		warehouses.put(warehouse.getId(), warehouse);
 	}
 
-	@Override
+
 	public void removeWarehouse(int warehouseId) {
 		warehouses.remove(warehouseId);
 	}
 
-	@Override
+
 	public Set<Product> getProducts(int warehouseId) {
 		return warehouses.get(warehouseId).getProducts();
 	}
 
-	@Override
+
 	public Product getProduct(int warehouseId, int productId) {
 		return warehouses.get(warehouseId).getProduct(productId);
 	}
 
-	@Override
+
 	public void addProduct(int warehouseId, Product product) {
 		warehouses.get(warehouseId).addProduct(product);
 	}
 
-	@Override
+
 	public void removeProduct(int warehouseId, int productId) {
 		warehouses.get(warehouseId).removeProduct(productId);
 	}
 	
-	@Override
+
 	public void modifyProduct(int warehouseId, Product product) {
 		warehouses.get(warehouseId).getProduct(product.getId()).setDescription(product.getDescription());
 	}

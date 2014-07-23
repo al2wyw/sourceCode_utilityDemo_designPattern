@@ -154,7 +154,7 @@ public class WarehouseController {
 	@MatrixVariable(pathVar="petId") Map<String, String> petMatrixVars) {
 	// /spring/warehouses/matrix/42;q=11;r=12/products/21;q=22;s=23
 	// matrixVars: ["q" : [11,22], "r" : 12, "s" : 23]
-	// petMatrixVars: ["q" : 11, "s" : 23]
+	// petMatrixVars: ["q" : 22, "s" : 23]
 		System.out.println(matrixVars);
 		System.out.println(petMatrixVars);
 	}
