@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jQuery.parseXML demo</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+<body>
+<p id="someElement"></p>
+<p id="anotherElement"></p>
+<script>
+"use strict"
+var xml = "<rss version='2.0'><channel><title>RSS Title</title><name>RSS Name</name></channel></rss>",
+xmlDoc = $.parseXML( xml ),
+$xml = $( xmlDoc ),
+$title = $xml.find( "title" ),
+$name = $xml.find( "name" );
+alert(xmlDoc);
+// Append "RSS Title" to #someElement
+$( "#someElement" ).append( $title.text() );
+// Change the title to "XML Title"
+$title.text( "XML Title" );
+// Append "XML Title" to #anotherElement
+$( "#anotherElement" ).append( $name.text() );
+</script>
+</body>
+</html>

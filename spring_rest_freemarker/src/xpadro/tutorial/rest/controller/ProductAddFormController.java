@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +19,7 @@ import xpadro.tutorial.rest.repository.WarehouseRepository;
 public class ProductAddFormController {
 	
 	@Autowired
+	@Qualifier("warehouseRepository")
 	private WarehouseRepository warehouseRepository;
 	
 	@RequestMapping(value="/Product", method=RequestMethod.GET)

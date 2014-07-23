@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jQuery.makeArray demo</title>
+<style>
+div {
+color: red;
+}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+<body>
+<div>First</div>
+<div>Second</div>
+<div>Third</div>
+<div>Fourth</div>
+<div id="data" data-role="page" data-last-value="43" data-hidden="true" data-options='{"name":"John"}'></div> 
+<div id="ans"></div>
+<script>
+// Returns a NodeList
+var elems = document.getElementsByTagName( "div" );
+// Convert the NodeList to an Array
+var arr = jQuery.makeArray( elems );
+// Use an Array method on list of dom elements
+arr.reverse();
+$( arr ).appendTo( document.body );
+
+var t = $("#data").data("role");
+t += " "+$("#data").data("last-value");
+t += " "+$("#data").data("hidden") ;
+t += " "+$("#data").data("options").name;
+$("#ans").text(t); 
+</script>
+</body>
+</html>

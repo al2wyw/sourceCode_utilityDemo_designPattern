@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="test.css"><!--first come first load-->
+<style type="text/css"><!--second come second load-->
+.para{
+	color:blue;
+}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script> 
+"use strict"
+var count=0;
+$(document).ready(function(){
+  $("#first").click(function(){
+    if($(".div").css("width") != "250px"){
+     $(".div").animate({
+      width:'250px',
+      opacity:'0.5',
+    });
+}else{
+     $(".div").animate({
+      width:'150px',
+      opacity:'0.5',
+    });
+}
+  count++;
+  $(".real").after("<p id='test"+count+"'>test</p>");
+  var text="<p id='show'>";
+  text=text+$(".para").css("font-size")+"<br/>";
+  text=text+$(".para").css("color")+"<br/>";
+  text=text+$(".para").css("height")+"<br/>";
+  text=text+$(".para").css("margin")+"<br/>";
+  text=text+"</p>"
+  $("#show").html(text);
+  });
+  
+  $("#second").click(function(){
+    if(count!=0){
+		var selector="#test"+count;
+		$(selector).remove();
+		count--;
+	}
+  });
+});
+</script> 
+</head>
+ 
+<body style="margin:0px;border:0px;">
+<div style="margin:auto;border:1px solid gray;width:500px;height:900px">
+<div>
+<button id="first">Start Animation</button>
+<button id="second">remove text</button>
+<p class="para" style="color:black">By default, all HTML elements have a static position, and cannot be moved. To manipulate the position, remember to first set the CSS position property of the element to relative, fixed, or absolute!</p>
+<div class="div" style="background:#98bf21;height:100px;width:100px;position:absolute;">
+</div>
+<div class="real" style="height:100px;width:100px;display:hidden"></div>
+<p id="show"></p>
+</div>
+</div>
+</body>
+</html>
