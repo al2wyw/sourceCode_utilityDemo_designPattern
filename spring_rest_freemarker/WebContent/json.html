@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+$(function(){
+	$("button").click(function(){
+		var type = $(this).text();
+		$.ajax({
+			url     : "/json/"+type,
+			type    : "GET",
+			timeout : 10000,
+			success : function(data){
+						console.log(data.successMsg);
+						console.log(data.errorMsg);
+						console.log(data.body);
+					}
+			
+		});
+	});
+}		
+);
+</script>
+</head>
+<body>
+<h1>deploy successfully</h1>
+<button>success</button>
+<button>fail</button>
+</body>
+</html>
