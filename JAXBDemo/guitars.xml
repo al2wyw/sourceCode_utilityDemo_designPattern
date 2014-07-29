@@ -1,0 +1,32 @@
+<guitars>
+  <guitar id="10021">
+    <builder luthier="true">Ryan</builder>
+    <model>Mission Grand Concert</model>
+    <back-sides>Brazilian Rosewood</back-sides>
+    <top>Adirondack Spruce</top>
+    <notes>
+      <![CDATA[
+        Just unbelievable...   this guitar has all the tone & 
+        resonance you could ever want. I mean, <<WOW!!!>> This 
+        is a lifetime guitar.
+      ]]>
+    </notes>
+  </guitar>
+  <guitar id="0923">
+    <builder smallShop="true">Bourgeois</builder>
+    <model>OMC</model>
+    <back-sides>Bubinga</back-sides>
+    <top>Adirondack Spruce</top>
+  </guitar>
+  <guitar id="11091">
+    <builder>Martin & Company</builder>
+    <model>OM-28VR</model>
+    <back-sides>Indian Rosewood</back-sides>
+    <top bearclaw="true">Sitka Spruce</top>
+    <notes>It's certainly true that Martin isn't the only game in town anymore. 
+           Still, the OM-28VR is one of their best models...     and this one 
+           has some fabulous bearclaw to boot.              Nice specimen of a 
+           still-important guitar manufacturer.
+    </notes>
+  </guitar>
+</guitars>
