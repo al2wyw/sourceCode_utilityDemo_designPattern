@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<customer id="100">
+    <age>29</age>
+    <book>
+        <id>1</id>
+        <name>圣经</name>
+        <price>100</price>
+    </book>
+    <book>
+        <id>2</id>
+        <name>宽容</name>
+        <price>50</price>
+    </book>
+    <mybook>
+        <id>3</id>
+        <name>史记</name>
+        <price>20</price>
+    </mybook>
+    <name>suo</name>
+</customer>
