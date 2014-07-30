@@ -1,16 +1,13 @@
-package com.expedia.e3.insurance.tools;
+package test1;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.MalformedURLException;
 import java.net.URLConnection;
-
 import javax.net.ssl.HttpsURLConnection;
-
-import test1.urlWrapper;
 
 public class HttpTools
 {
@@ -18,8 +15,11 @@ public class HttpTools
     private HttpTools()
     {
     }
+    static public String postRequestByGlobalURLConnection(String urlString,String requestString, String method, int connectTimeout, int readTimeout) throws MalformedURLException{
+    	return postRequest(new urlWrapper(urlString),requestString,  method, connectTimeout, readTimeout);
+    }
 
-	static public String postRequestByGlobalURLConnection(String urlString, String requestString, String method, int connectTimeout, int readTimeout)
+	static public String postRequest(urlWrapper url, String requestString, String method, int connectTimeout, int readTimeout)
 	{	
 		final int DEFAULT_CONNECT_TIMEOUT= 5000;
 		final int DEFAULT_READ_TIMEOUT = 120000;
@@ -27,11 +27,11 @@ public class HttpTools
 		String responseString;
 		requestString = requestString.replaceAll("(\\r|\\n)", "");			
 		
+		String urlString = url.toString();
+		
 		String requestLog = "URLConnection [" + urlString + "] sending request:" + requestString;
 		try
 		{										
-			URL url = new URL(urlString);
-			
 			URLConnection con = null;
 			if(urlString.indexOf("https:") != -1) 
 			{ 
@@ -120,4 +120,5 @@ public class HttpTools
 	}
 
 }
+
 
