@@ -1,4 +1,4 @@
-package xpadro.tutorial.rest.model;
+package annotation;
 
 public class Main {
 
