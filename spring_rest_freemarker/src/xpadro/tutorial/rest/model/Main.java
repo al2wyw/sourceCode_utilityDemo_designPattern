@@ -6,6 +6,6 @@ public class Main {
 		Apple apple = (Apple) FruitInfoUtil.getFruit(Apple.class);
 		apple.displayName();
 		apple.displayColor();
+		apple.displayProvider();
 	}
-
 }

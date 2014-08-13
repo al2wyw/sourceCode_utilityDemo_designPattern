@@ -95,6 +95,43 @@ public class TripDurationMapper implements RequestContextMapper<ValueType> {
         logger.info("the trip end is "+tripEndDate.toString());
         logger.info("the trip duration is "+tripDuration);
         return new ValueTypeBuilder().with(tripDuration).build();
+        
+//        int tripDuration = 0;
+//        int flightDuration = 0;
+//        int carDuration = 0;
+//        int hotelDuration = 0;
+//
+//        DateTime curTripStartDate = null;
+//        DateTime curTripEndDate = null;
+//
+//        HotelInsuranceProductRequestType hotelInsuranceProductRequest = request.getHotelInsuranceProductRequest();
+//        curTripStartDate = hotelInsuranceProductRequest.getHotelInfo().getCheckInDate();
+//        curTripEndDate = hotelInsuranceProductRequest.getHotelInfo().getCheckOutDate();
+//        hotelDuration = getStayDuration(curTripStartDate, curTripEndDate);
+//
+//        FlightInsuranceProductRequestType flightInsuranceProductRequest = request.getFlightInsuranceProductRequest();
+//        List<FlightLegInfoType> flightLegInfoList = flightInsuranceProductRequest.getFlightInfo().getFlightLegInfoList().getFlightLegInfo();
+//        int size = flightLegInfoList.size();
+//        curTripStartDate = flightLegInfoList.get(0).getDepartureTime();
+//        curTripEndDate = flightLegInfoList.get(size - 1).getArrivalTime();
+//        flightDuration = getStayDuration(curTripStartDate, curTripEndDate);
+//
+//        CarInsuranceProductRequestType carInsuranceProductRequest = request.getCarInsuranceProductRequest();
+//        curTripStartDate = carInsuranceProductRequest.getCarInfo().getPickupTime();
+//        curTripEndDate = carInsuranceProductRequest.getCarInfo().getDropoffTime();
+//        carDuration = getStayDuration(curTripStartDate, curTripEndDate);
+//
+//        // find the longest duration
+//        tripDuration = flightDuration;
+//        if (carDuration > tripDuration)
+//        {
+//            tripDuration = carDuration;
+//        }
+//        if (hotelDuration > tripDuration)
+//        {
+//            tripDuration = hotelDuration;
+//        }
+//        return new ValueTypeBuilder().with(tripDuration).build();
     }
 
     @Override

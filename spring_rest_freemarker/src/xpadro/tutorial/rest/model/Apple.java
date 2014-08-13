@@ -39,4 +39,8 @@ public class Apple implements Fruit{
     public void displayColor(){
         System.out.println("fruit's color is£º"+getColor());
     }
+    
+    public void displayProvider(){
+    	System.out.println("fruit's providor is£º"+getProvider());
+    }
 }
