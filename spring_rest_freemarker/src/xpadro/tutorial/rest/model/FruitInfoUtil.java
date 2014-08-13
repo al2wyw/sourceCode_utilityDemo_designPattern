@@ -7,7 +7,7 @@ import xpadro.tutorial.rest.model.FruitColor.Color;
 public class FruitInfoUtil {
 	public static Fruit getFruit(Class<? extends Fruit> clazz) throws InstantiationException, IllegalAccessException{
 		Fruit fruit = clazz.newInstance();
-		Field[] fields = clazz.getFields();
+		Field[] fields = clazz.getDeclaredFields();
 		for(Field field:fields){
 			if(field.getName().equals("appleName")){
 				String name=field.getAnnotation(FruitName.class).value();
