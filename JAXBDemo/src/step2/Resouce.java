@@ -27,11 +27,7 @@ public class Resouce {
 
 	// 如果想在节点外面包一层xml元素节点，可以用
 	@XmlElementWrapper(name = "properties")
-	@XmlElements({
-	// @XmlElement(name = "property", type = Property.class),
-	// @XmlElement(name = "adInfo", type =
-	// AdInfo.class)一个集合可以放置多个xml元素名称和对象类型、在xml中是相互独立的集合元素，无包含关系
-	})
+	@XmlElement
 	public List<Property> getProperties() {
 		return Properties;
 	}

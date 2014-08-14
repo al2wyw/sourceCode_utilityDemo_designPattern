@@ -1,13 +1,5 @@
 package step2;
 
-/** 
- *转换为xml的实体类 
- */
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-//类注解，一个类最多可以有一个根元素 
-@XmlRootElement(name = "Property")
 public class Property {
 
 	private String sequence;
@@ -15,8 +7,6 @@ public class Property {
 	private String elementName;
 	private String entityField;
 
-	// 普通属性
-	@XmlElement
 	public String getSequence() {
 		return sequence;
 	}
@@ -25,7 +15,7 @@ public class Property {
 		this.sequence = sequence;
 	}
 
-	@XmlElement
+
 	public Integer getStyleId() {
 		return styleId;
 	}
@@ -34,7 +24,6 @@ public class Property {
 		this.styleId = styleId;
 	}
 
-	@XmlElement
 	public String getElementName() {
 		return elementName;
 	}
@@ -43,7 +32,6 @@ public class Property {
 		this.elementName = elementName;
 	}
 
-	@XmlElement
 	public String getEntityField() {
 		return entityField;
 	}
