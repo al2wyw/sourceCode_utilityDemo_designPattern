@@ -1,20 +1,23 @@
 package step2;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Writer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-/**
- * xml与JAVA对象相互转化
- */
+import com.sun.xml.bind.marshaller.CharacterEscapeHandler;
+
+//by default, marshaller will change <&> to &gt; &lt; &amp;
+//by default, unmarshaller will change &gt; &lt; &amp; to <&>
+//by default, unmarshaller will remove <![CDATA[]]>, but will not reomve &lt;![CDATA[]]&gt;
 public class JAXB2Tester {
 
 	/**
@@ -25,23 +28,21 @@ public class JAXB2Tester {
 	 * @param xmlPath
 	 *            需要转换的xml路径
 	 */
-	public static Object xml2Bean(Class<?> zClass, String xml) {
+	public static Object xml2Bean(Class<?> zClass, String xmlFile) {
 		Object obj = null;
 		JAXBContext context = null;
-		if (null == xml || "".equals(xml) || "null".equalsIgnoreCase(xml)
-				|| xml.length() < 1)
+		if (null == xmlFile || "".equals(xmlFile))
 			return obj;
 		try {
 			context = JAXBContext.newInstance(zClass);
-			// if without "utf-8", Invalid byte 2 of 2-byte UTF-8 sequence.
-			InputStream iStream = new ByteArrayInputStream(
-					xml.getBytes("utf-8"));
+			// if the file is encoded in utf8? will this still work fine?
+			InputStream iStream = new FileInputStream(xmlFile);
 			Unmarshaller um = context.createUnmarshaller();
 			obj = (Object) um.unmarshal(iStream);
 			return obj;
 		} catch (JAXBException e) {
 			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		return obj;
@@ -50,15 +51,25 @@ public class JAXB2Tester {
 	public static String bean2Xml(Object bean) {
 		String xmlString = null;
 		JAXBContext context;
-		StringWriter writer;
+		FileWriter writer;
 		if (null == bean)
 			return xmlString;
 		try {
-			// 下面代码将对象转变为xml
 			context = JAXBContext.newInstance(bean.getClass());
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			writer = new StringWriter();
+            m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            m.setProperty(CharacterEscapeHandler.class.getName(), new CharacterEscapeHandler(){
+            	
+				@Override
+				public void escape(char[] arg0, int arg1, int arg2,
+						boolean arg3, Writer arg4) throws IOException {
+					//do not escape < > &
+					arg4.write(arg0,arg1,arg2);
+				}
+            	
+            });
+			writer = new FileWriter(new File("test.xml"));
 			m.marshal(bean, writer);
 			xmlString = writer.toString();
 			System.out.println(xmlString);

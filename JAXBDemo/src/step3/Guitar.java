@@ -14,8 +14,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
-
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 /**
  * <p>Java class for anonymous complex type.
  * 
@@ -59,6 +58,8 @@ public class Guitar {
     protected String backSides;
     @XmlElement(required = true)
     protected Top top;
+    @XmlJavaTypeAdapter(NoteTypeAdapter.class)
+    @XmlElement
     protected String notes;
     @XmlAttribute(required = true)
     protected String id;

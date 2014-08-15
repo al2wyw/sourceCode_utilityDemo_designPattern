@@ -1,0 +1,16 @@
+&lt;ul style="list-style-type:none;margin:0px;"&gt;
+&lt;li&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;img src="//media.expedia.com/tshops/media/berkely/check_20x20.gif" height="14px" /&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;&lt;strong&gt;Annullamento &lt;/strong&gt;prima del volo&lt;/p&gt;&lt;/div&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;span style="margin-left: 20px;"&gt;?&lt;/span&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;Fino a € 2.500 nel caso in cui un imprevisto ti impedisse di partire&lt;/p&gt;&lt;/div&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;span style="margin-left: 20px;"&gt;?&lt;/span&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;In caso di malattia, infortunio, perdita del lavoro e cassa integrazione&lt;/p&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;img src="//media.expedia.com/tshops/media/berkely/check_20x20.gif" height="14px" /&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;&lt;strong&gt;Protezione &lt;/strong&gt;durante il viaggio:&lt;/p&gt;&lt;/div&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;span style="margin-left: 20px;"&gt;?&lt;/span&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;100% del costo del volo di ritorno anticipato in caso di necessit¨¤&lt;/p&gt;&lt;/div&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;span style="margin-left: 20px;"&gt;?&lt;/span&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;Fino a € 50.000 per spese mediche d¡¯emergenza e altri costi ad esse associati&lt;/p&gt;&lt;/div&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;span style="margin-left: 20px;"&gt;?&lt;/span&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;Copertura di € 1.000 in caso di smarrimento, furto o danneggiamento dei bagagli&lt;/p&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;div style="margin-top:10px;"&gt;&lt;img src="//media.expedia.com/tshops/media/berkely/check_20x20.gif" height="14px" /&gt;&lt;p style="display:inline-block;margin-left:6px;vertical-align:top;width:250px;"&gt;&lt;strong&gt;Assistenza per emergenze 24 ore su 24, 7 giorni su 7&lt;/strong&gt;&lt;/p&gt;&lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;

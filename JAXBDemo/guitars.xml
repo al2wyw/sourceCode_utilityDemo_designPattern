@@ -1,4 +1,8 @@
-<guitars>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<guitars xmlns="http://www.mytest.com"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.mytest.com guitars.xsd">
   <guitar id="10021">
     <builder luthier="true">Ryan</builder>
     <model>Mission Grand Concert</model>
@@ -12,14 +16,14 @@
       ]]>
     </notes>
   </guitar>
-  <guitar id="0923">
+  <guitar id="0923" test="3">
     <builder smallShop="true">Bourgeois</builder>
     <model>OMC</model>
     <back-sides>Bubinga</back-sides>
     <top>Adirondack Spruce</top>
   </guitar>
   <guitar id="11091">
-    <builder>Martin & Company</builder>
+    <builder>Martin &amp; Company</builder>
     <model>OM-28VR</model>
     <back-sides>Indian Rosewood</back-sides>
     <top bearclaw="true">Sitka Spruce</top>

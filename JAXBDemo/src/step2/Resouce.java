@@ -36,29 +36,4 @@ public class Resouce {
 		Properties = properties;
 	}
 
-	public static void main(String[] args) {
-		Property property = new Property();
-		property.setElementName("elementName");
-		property.setEntityField("entityField");
-		property.setSequence("sequence");
-		property.setStyleId(11111);
-
-		Property property1 = new Property();
-		property1.setElementName("elementName111");
-		property1.setEntityField("entityField111");
-		property1.setSequence("sequence1111");
-		property1.setStyleId(22222);
-
-		List<Property> list = new ArrayList<Property>();
-		list.add(property);
-		list.add(property1);
-
-		Resouce resouce = new Resouce();
-		resouce.setPicLarge("picLarge");
-		resouce.setProperties(list);
-
-		JAXB2Tester.bean2Xml(resouce);
-
-	}
-
 }

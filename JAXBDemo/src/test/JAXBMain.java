@@ -51,7 +51,7 @@ public class JAXBMain {
 		guitar1.setBackSides("back sides 1");
 		guitar1.setId("test1");
 		guitar1.setModel("model 1");
-		guitar1.setNotes("this is the note 1");
+		guitar1.setNotes("this is the note 1 <test>");
 		Builder builder1 = new Builder();
 //		builder1.setLuthier("luthier 1");
 		builder1.setSmallShop("small shop 1");
@@ -79,6 +79,12 @@ public class JAXBMain {
 		guitarList.add(guitar1);
 		guitarList.add(guitar2);
 		JAXB2Tester.bean2Xml(guitars);
+		
+		Guitars o = (Guitars)JAXB2Tester.xml2Bean(Guitars.class, "test.xml");
+		for(Guitar g:o.getGuitar()){
+			System.out.println(g.getModel());
+			System.out.println(g.getNotes());
+		}
 	}
 
 }
