@@ -35,7 +35,19 @@ div{
 	border-style:solid;
 	border-color:rgb(255,200,100);
 }
+.margin_test{
+	margin: 10px 10px 10px 10px; 
+	border: 10px solid black;
+}
 </style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+	$(function(){
+		var height=$("#margin").height();
+		console.log(height);
+		}
+	);
+</script>
 <meta charset="UTF-8">
 <title>Insert title here</title>
 </head>
@@ -56,6 +68,15 @@ test
 </div>
 <div class="second">
 <p>test</p>
+</div>
+</div>
+<!-- two sibling will collapse the margin, no border parent will make the margin(no effect) of first child outside the parent -->
+<div id="margin" style="border: 1px solid transparent;"><!-- use border to include the margin of first child, the first two property should be set as 1px solid  -->
+<div class="margin_test">
+test
+</div>
+<div class="margin_test">
+test
 </div>
 </div>
 </body>

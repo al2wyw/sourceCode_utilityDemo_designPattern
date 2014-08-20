@@ -3,6 +3,12 @@
 <head>
 <title>三角形对话框测试</title>
 <style type="text/css"> 
+	div, p{
+		border: 0px none transparent;
+		margin: 0px;
+		padding: 0px;
+		overflow: hidden;
+	}
     div.dialog-box {
         width: 200px;
         height: 100px;
@@ -102,6 +108,19 @@
 <div class="left">
 </div>
 <div class="stop">
+</div>
+<div style="float:left">test</div><div style="float:left"><p>
+test <!-- if the p is to long , the whole div will start from next line -->
+</p></div><div style="float:left">test</div>
+<div style="height:100px">
+</div>
+<div style="height:50px;background-color:green;border:1px solid black;margin: 0px;padding: 0px;">
+<div style="border:1px solid black;margin:10px;font-size:20px;line-height:25px;">
+<p>
+test test test test test test test test test test test test test test test test test test test test test test 
+test test test test test test test test test test test test test test test test test test test test
+</p>
+</div> 
 </div>
 </body>
 </html>
