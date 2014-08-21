@@ -8,7 +8,6 @@ body,div,p{
 	padding:0px;
 }
 div{
-	border: 1px solid red;
 	background-color:rgba(0,255,0,0.3);
 }
 .container{
@@ -40,7 +39,7 @@ div{
 	border: 10px solid black;
 }
 </style>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="jquery-1.11.1.js"></script>
 <script>
 	$(function(){
 		var height=$("#margin").height();
@@ -71,13 +70,75 @@ test
 </div>
 </div>
 <!-- two sibling will collapse the margin, no border parent will make the margin(no effect) of first child outside the parent -->
-<div id="margin" style="border: 1px solid transparent;"><!-- use border to include the margin of first child, the first two property should be set as 1px solid  -->
+<div id="margin" style="border: 1px solid transparent;background-color:grey;">
+<!-- use border to include the margin of first 
+child, the first two property should be set as 1px solid  
+the transparent is the same as visiblity:none-->
 <div class="margin_test">
 test
 </div>
 <div class="margin_test">
 test
 </div>
+
+<style>
+.float-container{
+	background-color: orange;
+	border: 1px solid transparent;
+}
+.float{
+	float:left;
+	width:100px;	
+}
+.footer{
+	margin:10px;
+}
+</style>
+<div class="float-container">
+<div class="float">
+test
 </div>
+<div class="float">
+test
+</div>
+<div class="float">
+test
+</div>
+<div style="clear:both"></div>
+<!-- here must have a clear div(can not clear in the next div) otherwise 
+the margin of the next div will not take effect ,
+the float whole should end with clear otherwise
+the float whole does not take space-->
+<div class="footer">
+test
+</div>
+</div>
+
+<!-- div is inline, if it has another div inside it, it will be strange  -->
+<!-- inline-block should define the width, otherwise it is depended on its content -->
+<div style="display:inline-block;"><!-- inline and inline-block will have default margin font-size 0px will help-->
+test
+</div>
+<div style="height:100px;width:200px;display:inline-block;">
+test
+</div>
+<div style="height:100px;width:200px;display:inline-block;">
+test
+</div>
+<div style="height:100px;width:200px;display:none;"><!-- none will not be calculated into total height -->
+test
+</div>
+</div>
+<style>
+li{
+	display:inline;
+	list-style:none;
+}
+</style>
+<ul style="height:100px;width:800px;">
+<li><div style="height:100px;width:200px;">test1</div></li>
+<li>test2</li>
+<li>test3</li>
+</ul>
 </body>
 </html>
