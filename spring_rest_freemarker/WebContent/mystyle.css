@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+
+.float-container{
+	background-color: orange;
+	border: 1px solid transparent;
+}
+.float{
+	float:left;
+	width:100px;	
+}
+.footer{
+	margin:10px;
+}

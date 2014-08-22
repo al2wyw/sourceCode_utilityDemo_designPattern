@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.util.ValidationEventCollector;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -43,6 +44,8 @@ public class JAXB2Tester {
 			// if the file is encoded in utf8? will this still work fine?
 			InputStream iStream = new FileInputStream(xmlFile);
 			Unmarshaller um = context.createUnmarshaller();
+			ValidationEventCollector vec = new  ValidationEventCollector(); 
+			um.setEventHandler(vec);
 			if(s != null){
 			Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(s));//"http://www.w3.org/2001/XMLSchema"
 	        um.setSchema(schema);
