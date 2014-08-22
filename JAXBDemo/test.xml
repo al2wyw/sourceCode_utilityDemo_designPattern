@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<guitars>
+<guitars xsi:schemaLocation="http://www.mytest.com guitars.xsd" xmlns="http://www.mytest.com" xmlns:test="http://www.another.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <guitar id="test1">
-        <builder smallShop="small shop 1">1000</builder>
+        <builder smallShop="true">1000</builder>
         <model>model 1</model>
         <back-sides>back sides 1</back-sides>
-        <top bearclaw="bear claw 1">10001</top>
+        <top bearclaw="true">10001</top>
         <notes><![CDATA[this is the note 1 <test>]]></notes>
     </guitar>
     <guitar id="test2">
-        <builder luthier="luthier 2">2000</builder>
+        <builder luthier="true">2000</builder>
         <model>model 2</model>
         <back-sides>back sides 2</back-sides>
-        <top bearclaw="bear claw 2">20001</top>
+        <top bearclaw="true">20001</top>
     </guitar>
 </guitars>

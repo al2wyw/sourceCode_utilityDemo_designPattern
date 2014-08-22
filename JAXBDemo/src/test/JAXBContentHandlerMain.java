@@ -65,7 +65,7 @@ public class JAXBContentHandlerMain {
 			e.printStackTrace();
 		}
 		
-		Resouce o = (Resouce)JAXB2Tester.xml2Bean(Resouce.class, "test.xml");
+		Resouce o = (Resouce)JAXB2Tester.xml2Bean(Resouce.class, "test.xml", null);
 		for(Property p:o.getProperties()){
 			System.out.println(p.getElementName());
 			System.out.println(p.getEntityField());

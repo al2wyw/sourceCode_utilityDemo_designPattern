@@ -54,11 +54,11 @@ public class JAXBMain {
 		guitar1.setNotes("this is the note 1 <test>");
 		Builder builder1 = new Builder();
 //		builder1.setLuthier("luthier 1");
-		builder1.setSmallShop("small shop 1");
+		builder1.setSmallShop("true");
 		builder1.setValue("1000");
 		guitar1.setBuilder(builder1);
 		Top top1 = new Top();
-		top1.setBearclaw("bear claw 1");
+		top1.setBearclaw("true");
 		top1.setValue("10001");
 		guitar1.setTop(top1);
 		
@@ -67,20 +67,20 @@ public class JAXBMain {
 		guitar2.setId("test2");
 		guitar2.setModel("model 2");
 		Builder builder2 = new Builder();
-		builder2.setLuthier("luthier 2");
+		builder2.setLuthier("true");
 //		builder2.setSmallShop("small shop 2");
 		builder2.setValue("2000");
 		guitar2.setBuilder(builder2);
 		Top top2 = new Top();
-		top2.setBearclaw("bear claw 2");
+		top2.setBearclaw("true");
 		top2.setValue("20001");
 		guitar2.setTop(top2);
 		
 		guitarList.add(guitar1);
 		guitarList.add(guitar2);
-		JAXB2Tester.bean2Xml(guitars);
+		JAXB2Tester.bean2Xml(guitars,"http://www.mytest.com guitars.xsd");
 		
-		Guitars o = (Guitars)JAXB2Tester.xml2Bean(Guitars.class, "test.xml");
+		Guitars o = (Guitars)JAXB2Tester.xml2Bean(Guitars.class, "test.xml", "guitars.xsd");
 		for(Guitar g:o.getGuitar()){
 			System.out.println(g.getModel());
 			System.out.println(g.getNotes());

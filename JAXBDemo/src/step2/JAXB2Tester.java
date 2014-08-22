@@ -8,10 +8,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
+import org.xml.sax.SAXException;
 
 import com.sun.xml.bind.marshaller.CharacterEscapeHandler;
 
@@ -28,7 +33,7 @@ public class JAXB2Tester {
 	 * @param xmlPath
 	 *            需要转换的xml路径
 	 */
-	public static Object xml2Bean(Class<?> zClass, String xmlFile) {
+	public static Object xml2Bean(Class<?> zClass, String xmlFile, String s) {
 		Object obj = null;
 		JAXBContext context = null;
 		if (null == xmlFile || "".equals(xmlFile))
@@ -38,17 +43,23 @@ public class JAXB2Tester {
 			// if the file is encoded in utf8? will this still work fine?
 			InputStream iStream = new FileInputStream(xmlFile);
 			Unmarshaller um = context.createUnmarshaller();
+			if(s != null){
+			Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(s));//"http://www.w3.org/2001/XMLSchema"
+	        um.setSchema(schema);
+			}
 			obj = (Object) um.unmarshal(iStream);
 			return obj;
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch(SAXException e){
+			e.printStackTrace();
 		}
 		return obj;
 	}
 
-	public static String bean2Xml(Object bean) {
+	public static String bean2Xml(Object bean,String s) {
 		String xmlString = null;
 		JAXBContext context;
 		FileWriter writer;
@@ -59,6 +70,8 @@ public class JAXB2Tester {
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            if(s!=null)
+            m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,s);
             m.setProperty(CharacterEscapeHandler.class.getName(), new CharacterEscapeHandler(){
             	
 				@Override
@@ -69,6 +82,9 @@ public class JAXB2Tester {
 				}
             	
             });
+            String file = s.split(" ")[1];
+            Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(file));//"http://www.w3.org/2001/XMLSchema"
+            m.setSchema(schema);
 			writer = new FileWriter(new File("test.xml"));
 			m.marshal(bean, writer);
 			xmlString = writer.toString();
