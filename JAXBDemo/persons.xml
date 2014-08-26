@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persons xmlns="http://www.example.org/person"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns:address="http://www.example.org/address"
+		 xsi:schemaLocation="http://www.example.org/person person.xsd
+		 					 http://www.example.org/address address.xsd
+		 					">
+	<person>
+		<firstname>Hege</firstname>
+  		<lastname>Refsnes</lastname>
+  		<address:address>
+  			<address:city>test</address:city>
+  			<address:street>test2</address:street>
+  		</address:address>
+	</person>
+	<person>
+		<firstname>Hege</firstname>
+  		<lastname>Refsnes</lastname>
+  		<address>
+  		test
+  		</address>
+	</person>
+</persons>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		targetNamespace="http://www.example.org/address" 
+		xmlns:address="http://www.example.org/address"
+		xmlns:person="http://www.example.org/person" 
+		elementFormDefault="qualified">
+<xs:import namespace="http://www.example.org/person" schemaLocation="person.xsd"/>
+<xs:element name="address">
+  <xs:complexType>
+    <xs:sequence>
+      <xs:element name="city" type="xs:string"/>
+      <xs:element name="street" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<!--  
+<xs:element name="test">
+	<xs:complexType>
+		<xs:complexContent>
+			<xs:extension base="person:person_type">
+				<xs:sequence>
+					<xs:element name="sex" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:element>
+-->
+</xs:schema>
