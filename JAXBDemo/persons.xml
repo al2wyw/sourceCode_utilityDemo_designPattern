@@ -16,8 +16,10 @@
 	<person>
 		<firstname>Hege</firstname>
   		<lastname>Refsnes</lastname>
-  		<address>
+	 <!--  
+	   <address>
   		test
   		</address>
+	-->
 	</person>
 </persons>
