@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<guitar xmlns:test="http://www.another.com" xmlns="http://www.mytest.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="test3" xsi:schemaLocation="http://www.mytest.com guitars.xsd">
+    <builder smallShop="true">10003</builder>
+    <model>model 3</model>
+    <back-sides>back sides 3</back-sides>
+    <top bearclaw="true">10003</top>
+    <notes><![CDATA[this is the note 3 <test>]]></notes>
+</guitar>

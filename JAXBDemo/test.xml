@@ -7,4 +7,10 @@
         <top bearclaw="true">10001</top>
         <notes><![CDATA[this is the note 1 <test>]]></notes>
     </guitar>
-    <guitar id="test2"
+    <guitar id="test2">
+        <builder luthier="true">2000</builder>
+        <model>model 2</model>
+        <back-sides>back sides 2</back-sides>
+        <top bearclaw="true">20001</top>
+    </guitar>
+</guitars>

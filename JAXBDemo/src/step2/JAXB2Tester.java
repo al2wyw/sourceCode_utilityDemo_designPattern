@@ -13,6 +13,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.util.ValidationEventCollector;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -24,6 +26,7 @@ import com.sun.xml.bind.marshaller.CharacterEscapeHandler;
 //by default, marshaller will change <&> to &gt; &lt; &amp;
 //by default, unmarshaller will change &gt; &lt; &amp; to <&>
 //by default, unmarshaller will remove <![CDATA[]]>, but will not reomve &lt;![CDATA[]]&gt;
+//commonly, marshaller need to set up property while unmarshaller does not need
 public class JAXB2Tester {
 
 	/**
@@ -88,6 +91,15 @@ public class JAXB2Tester {
             String file = s.split(" ")[1];
             Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(file));//"http://www.w3.org/2001/XMLSchema"
             m.setSchema(schema);
+//            m.setEventHandler(new ValidationEventHandler(){
+//
+//				@Override
+//				public boolean handleEvent(ValidationEvent arg0) {
+//					
+//					return true;//true will keep going
+//				}
+//            		
+//            });
 			writer = new FileWriter(new File("test.xml"));
 			m.marshal(bean, writer);
 			xmlString = writer.toString();
