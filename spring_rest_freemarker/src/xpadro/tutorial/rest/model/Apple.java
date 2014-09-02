@@ -8,7 +8,7 @@ public class Apple implements Fruit{
     @FruitColor
     private String appleColor;
     
-    @FruitProvider(id=1,name="ÉÂÎ÷ºì¸»Ê¿¼¯ÍÅ",address="ÉÂÎ÷Ê¡Î÷°²ÊĞÑÓ°²Â·89ºÅºì¸»Ê¿´óÏÃ")
+    @FruitProvider(id=1,name="é™•è¥¿çº¢å¯Œå£«é›†å›¢",address="é™•è¥¿çœè¥¿å®‰å¸‚å»¶å®‰è·¯89å·çº¢å¯Œå£«å¤§å¦")
     private String appleProvider;
     
     public void setColor(String appleColor) {
@@ -33,14 +33,14 @@ public class Apple implements Fruit{
     }
     
     public void displayName(){
-        System.out.println("fruit's name is£º"+getName());
+        System.out.println("fruit's name is "+getName());
     }
     
     public void displayColor(){
-        System.out.println("fruit's color is£º"+getColor());
+        System.out.println("fruit's color is "+getColor());
     }
     
     public void displayProvider(){
-    	System.out.println("fruit's providor is£º"+getProvider());
+    	System.out.println("fruit's providor is "+getProvider());
     }
 }

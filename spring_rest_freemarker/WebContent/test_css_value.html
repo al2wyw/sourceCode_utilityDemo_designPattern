@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.11.1.js"></script>
+<script>
+	$(function(){
+		var test=$("#test");
+		console.log(test.css("display"));
+		console.log(test.css("width"));
+		console.log(test.css("height"));
+		if(test.css("display")!= "none")
+			console.log("good");
+	});
+</script>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<div id="test" style="display:none;width:100px;height:100px">
+</div>
+</body>
+</html>
