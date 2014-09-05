@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>after</title>
+<style type="text/css">
+.test{border:1px solid blue;}
+.test:after{content:"";display:block;clear:both; height:0;}
+.a1,.a2{ width:200px; height:200px; border:1px solid red; float:left;}
+.red{ width:600px; height:100px; background:#f00;}
+.after{position:relative;border:1px solid black;width:200px; height:200px}
+.after:after{BORDER-BOTTOM: 10px solid; POSITION: absolute; BORDER-LEFT: 10px solid; WIDTH: 0px; DISPLAY: block; HEIGHT: 0px; BORDER-TOP: 10px solid; CONTENT: ''; BORDER-RIGHT: 10px solid; left:10px; top:-20px;}
+</style>
+</head>
+<body>
+<div class="test">
+	<div class="a1"></div>
+    <div class="a2"></div>
+</div>
+<div class="red"></div>
+<div class="after">
+	<div class="inner">test log</div>
+</div>
+</body>
+</html>

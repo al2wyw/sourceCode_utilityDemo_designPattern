@@ -8,8 +8,13 @@
 		console.log(test.css("display"));
 		console.log(test.css("width"));
 		console.log(test.css("height"));
-		if(test.css("display")!= "none")
+		if(test.css("display") == "none")
 			console.log("good");
+		test.css("height",function(i,t){
+			console.log(i + " : "+ t);
+			return parseInt(t)*2;
+		});
+		console.log(test.css("height"));
 	});
 </script>
 <meta charset="UTF-8">

@@ -1,0 +1,1 @@
+xjc file.xsd -d generatedir -p packagename

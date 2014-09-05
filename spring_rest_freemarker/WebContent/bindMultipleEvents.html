@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.11.1.js"></script>
+<script>
+	var fun1 = function(){
+		alert("fun 1");
+	}
+	var fun2 = function(){
+		alert("fun 2");
+	}
+	$(function(){
+		$("#test").click(fun1);
+		$("#test").click(fun2);
+		$("#remove").click(function(){
+			$("#test").off("click",fun2);
+		});
+	});
+</script>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<button id="test">click me</button>
+<button id="remove">remove</button>
+</body>
+</html>
