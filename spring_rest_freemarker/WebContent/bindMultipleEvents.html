@@ -15,6 +15,23 @@
 		$("#remove").click(function(){
 			$("#test").off("click",fun2);
 		});
+		$("#noid").click(function(){alert("no id found!");});
+		
+		//for each button to add click function
+		$.each($(".button"),function(index,value){
+			$(this).click(function(){
+				alert("button "+(++index));
+			});
+		});
+		
+		/*
+		var test = $(".button").attr("test");
+		alert(test);
+		$(".button").attr("test","same");
+		*/
+		$(".button").each(function(index){
+			alert($(this).attr("test"));
+		});
 	});
 </script>
 <meta charset="UTF-8">
@@ -23,5 +40,9 @@
 <body>
 <button id="test">click me</button>
 <button id="remove">remove</button>
+<br/>
+<button class="button" test="123">button1</button>
+<button class="button" test="345">button2</button>
+<button class="button" test="678">button3</button>
 </body>
 </html>

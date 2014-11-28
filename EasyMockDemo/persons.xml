@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persons xmlns="http://www.example.org/person"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://www.example.org/person person.xsd
+		 					">
+	<person>test
+		<firstname>Hege</firstname>
+  		<lastname>Refsnes</lastname>
+	</person>
+	<person>
+		<firstname>Hege</firstname>
+  		<lastname>Refsnes</lastname>
+	</person>
+	<person/>
+</persons>

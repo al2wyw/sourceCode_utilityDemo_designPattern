@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.11.1.js"></script>
+<script type="text/javascript">
+$(function(){
+	$(".car").each(function(){
+		$(this).click(function(){
+			var carid = "#"+$(this).text();
+			var carArray=[];
+			var tdArray=$(carid+" td");
+			tdArray.each(function(i){
+				var car={};
+				car.index=i;
+				car.price=$(this).text();
+				carArray.push(car);
+			});
+			carArray.sort(function(a,b){if(a.price>b.price)return true});
+			var index=carArray[carArray.length-1].index;
+			var last=tdArray[index];
+			for(var i=0;i<carArray.length-1;i++){
+				$(tdArray[carArray[i].index]).insertBefore($(last));
+			}
+		});
+	});
+	$("#test").click(function(){
+		$("p").insertAfter("div");
+	});
+});
+</script>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<button class="car">car1</button>
+<button class="car">car2</button>
+<button class="car">car3</button>
+<table>
+<thead>
+<tr>
+<td>test1</td><td>test2</td><td>test3</td>
+</tr>
+</thead>
+<tr id="car1">
+<td>12</td><td>15</td><td>10</td>
+</tr>
+<tr id="car2">
+<td>16</td><td>13</td><td>11</td>
+</tr>
+<tr id="car3">
+<td>11</td><td>15</td><td>19</td>
+</tr>
+</table>
+<button id="test">test</button>
+<p>who</p>
+<div>test</div>
+</body>
+</html>
