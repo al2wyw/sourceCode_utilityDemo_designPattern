@@ -1,0 +1,33 @@
+package visitor;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public abstract class AbstractVisitor implements Visitor {
+
+	@Override
+	public void visit(Tester t){
+		Class<?> klass = t.getClass();
+		String name = klass.getName();
+		name = name.split("\\.")[1];
+		String method = "visit"+name;
+		try {
+			Class<?>[] args = new Class<?>[0];
+			Method visit = klass.getMethod(method, args);
+			if(visit!=null){
+				try {
+					Object[] objs = new Object[0];
+					visit.invoke(this, objs);
+				} catch (IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}
