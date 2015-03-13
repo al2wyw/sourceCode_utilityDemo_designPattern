@@ -12,11 +12,11 @@ public abstract class AbstractVisitor implements Visitor {
 		name = name.split("\\.")[1];
 		String method = "visit"+name;
 		try {
-			Class<?>[] args = new Class<?>[0];
-			Method visit = klass.getMethod(method, args);
+			Class<?>[] args = new Class<?>[]{Tester.class};
+			Method visit = this.getClass().getMethod(method, args);
 			if(visit!=null){
 				try {
-					Object[] objs = new Object[0];
+					Object[] objs = new Object[]{t};
 					visit.invoke(this, objs);
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
@@ -24,10 +24,14 @@ public abstract class AbstractVisitor implements Visitor {
 					e.printStackTrace();
 				}
 			}
-		} catch (NoSuchMethodException | SecurityException e) {
+		} catch (NoSuchMethodException e) {
+			
+			revisit(t);
+		} catch ( SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
+	} 
 
+	
 }
