@@ -1,8 +1,14 @@
 package state;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 public class context {
 	private state usersttate;
 	private int count;
+	private Properties stateMap;
+	private final String STATEMAPFILENAME = "statemap";
 	public int getCount() {
 		return count;
 	}
@@ -18,22 +24,46 @@ public class context {
 	public void setUsersttate(state usersttate) {
 		this.usersttate = usersttate;
 	}
+	
 	public void action(){//for decoration to add more state
-		if(count>3){
-			if(!(usersttate instanceof user2))
-				usersttate=new user2();
-			System.out.println(usersttate);
+		if(stateMap == null){
+			//should change to resource implementation of spring
+			InputStream is = this.getClass().getResourceAsStream(STATEMAPFILENAME);
+			stateMap = new Properties();
+			try {
+				stateMap.load(is);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		usersttate.action();
-		count++;
+		String classname = stateMap.getProperty(String.valueOf(count));
+		if(classname!=null && !classname.equals(""))
+			getStateFromMap();
+		if(usersttate!=null){
+			usersttate.action();
+			count++;
+		}
+	}
+	
+	private void getStateFromMap(){
+		String classname = stateMap.getProperty(String.valueOf(count));
+		try {
+			usersttate = (state)Class.forName(classname).newInstance();
+		} catch (InstantiationException | IllegalAccessException
+				| ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
 
 class test{
 	public static void main(String[] args){
 		context test=new context();
-		state st=new user1();
-		test.setUsersttate(st);
+		test.action();
+		test.action();
+		test.action();
+		test.action();
 		test.action();
 		test.action();
 		test.action();

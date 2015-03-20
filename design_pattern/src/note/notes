@@ -1,0 +1,5 @@
+bridge and strategy are the same in the structure, but IoC can provide the same functionality
+state and strategy are similar in the structure, except for state should change the stateImpl via if-else in context class
+observer and proxy depends on the concrete object not the abstract object/interface
+
+observer listener event in jase
