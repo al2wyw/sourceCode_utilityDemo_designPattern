@@ -1,0 +1,14 @@
+<!DOCTYPE aspectj PUBLIC
+        "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+       <weaver options="-showWeaveInfo">
+              <!-- only weave classes in our application-specific packages -->
+              <include within="com.test.test_aspectj_ltw"/>
+              <!-- put aspect here in case of no method found: aspectOf -->
+              <include within="com.aop.aspectj_ltw_aspect"/>
+       </weaver>
+       <aspects>
+              <!-- weave in just this aspect -->
+              <aspect name="com.aop.aspectj_ltw_aspect"/> </aspects>
+
+</aspectj>

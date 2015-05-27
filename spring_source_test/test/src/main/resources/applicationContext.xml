@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
+>
+	<!-- used for generate cglib class files, make it parent's beanfactorypostprocessor -->
+	<!--<bean class="com.cglib.CGLIB_Generated_Class_Setting"/> does not work -->
+
+	<bean id="test1" class="com.test.test1">
+		<property name="test2" ref="test2"/>
+	</bean>
+	
+	<bean id="test2" class="com.test.test2">
+		<property name="test3" ref="test3"/>
+	</bean>
+	
+	<bean id="test3" class="com.test.test3">
+		<property name="test1" ref="test1"/>
+	</bean>
+	
+	<bean id="test" class="com.test.test_factorybean">
+		
+	</bean>
+	
+	<bean id="test123" class="com.test.test_lazy" lazy-init="true">
+
+	</bean>
+	
+	<util:list id="list_value">
+		<value>test!</value>
+		<value>#{props['abc']}</value>
+		<value>test b!</value>
+	</util:list>
+	
+	<bean id="eles" class="com.test.test">
+		<constructor-arg index="0">
+			<list>
+				<value>Hello World!</value>
+				<value>Hello World a!</value>
+				<value>Hello World b!</value>
+			</list>
+		</constructor-arg>
+		<property name="eles" ref="list_value">
+		</property>
+	</bean>
+	
+	<bean id="test_strong_type_conversion" class="com.test.test_strong_type_conversion">
+		<property name="floatValueList">
+			<list>
+				<value>34.54</value>
+				<value>67.45</value>
+				<value>99.99</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 	this does not work but the following hashmap works! -->
+	<!-- reasons found written on spring source note -->
+	<bean id="prop" class="java.util.Properties">  
+	    <constructor-arg index="0">  
+	       <props>  
+	          <prop key="abc">123</prop>  
+	       </props>  
+	    </constructor-arg>  
+	</bean> 
+	
+	
+	<bean id="props" class="java.util.HashMap">  
+	    <constructor-arg index="0">  
+	       <map>  
+	          <entry key="abc" value="234"/>  
+	       </map>  
+	    </constructor-arg>  
+	</bean> 
+	
+</beans>

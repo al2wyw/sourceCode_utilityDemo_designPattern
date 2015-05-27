@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.transaction.InformationDao" >
+  <resultMap id="InformationResultMap" type="com.model.Information" >
+  	<id column="IID" property="iid" jdbcType="VARCHAR" />
+    <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+    <result column="CID" property="cid" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    IID, DESCRIPTION, CID
+  </sql>
+  <select id="getInformationById" resultMap="InformationResultMap" parameterType="string" >
+    select 
+    <include refid="Base_Column_List" />
+    from INFORMATION
+    where IID = #{iid,jdbcType=VARCHAR}
+  </select>
+  <insert id="insertInformation" parameterType="com.model.Information" >
+    insert into INFORMATION
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="iid != null" >
+        IID,
+      </if>
+      <if test="description != null" >
+        DESCRIPTION,
+      </if>
+      <if test="cid != null" >
+        CID
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="iid != null" >
+        #{iid,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR}
+      </if>
+    </trim>
+  </insert>
+  <delete id="clearTable">
+  	delete from INFORMATION
+  </delete>
+  <select id="selectInformationByLimit" resultMap="InformationResultMap">
+  	select * from INFORMATION limit #{offset,jdbcType=INTEGER},#{limit,jdbcType=INTEGER}
+  </select>
+  <select id="createTable"> <!-- can not have two statements -->
+  	create table if not exists INFORMATION(
+  		IID VARCHAR(20) primary key,
+  		DESCRIPTION VARCHAR(50) not null,
+  		CID VARCHAR(20) not null
+  	)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+  </select>
+  <select id="dropTable">
+  	drop table if exists INFORMATION
+  </select>
+</mapper>

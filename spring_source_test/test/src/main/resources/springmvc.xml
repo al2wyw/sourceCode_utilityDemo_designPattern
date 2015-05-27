@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+	   http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"
+>
+	<context:component-scan base-package="com.test,com.aop,com.transaction"/>
+	<context:load-time-weaver/>
+
+	<bean id="autowireByNameTester" class="com.test.autowireByNameTester" autowire="byName">
+		<!-- <property name="autowire" ref="autoproperty"/> -->
+	</bean>
+
+	<bean id="autowire" class="com.test.testAutowireByNameWire"/>
+	<bean id="autoproperty" class="com.test.testAutowireByNameProptery"/>
+	
+	<bean id="testScopedProxy" class="com.test.testScopedProxy" scope="request">
+	<aop:scoped-proxy/>
+	</bean>
+	
+	<bean id="customAutowireConfigurer"
+class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
+		<property name="customQualifierTypes">
+			<set>
+				<value>com.qualifier.customQ</value>
+			</set>
+	</property>
+	</bean> 
+	<bean id="com.qualifier.testee" class="com.qualifier.testee">
+		<qualifier type="com.qualifier.customQ" value="test_custom_qualifier"/>
+		<qualifier type="com.qualifier.anotherCustomQ" value="test_custom_qualifier"/>
+	</bean>
+	
+	<bean id="com.qualifier.tester" class="com.qualifier.tester">
+	</bean> 
+	
+	<!-- context setup start  -->
+	<bean class="com.context.MyBeanFactoryPostProcessorForProxyFactoryContainer"/>
+	<!-- <bean id="proxyAutoCreator" class="com.context.MyProxyAutoCreator"/> 
+	should modify ConfigBeanDefinitionParser to disable default proxy creator, not finished yet
+	-->
+	
+	<!-- aop test start  -->
+	<aop:aspectj-autoproxy/>
+	
+	<bean id="testService" class="com.aop.TestService">
+		<property name="test" ref="testProtected"/>
+	</bean>
+	<bean id="testProtected" class="com.aop.testProtected"/>
+	<bean id="myReturnAdvice" class="com.aop.myReturnAdvice"/>
+	<bean id="aop_with_flag" class="com.aop.aop_with_flag"/>
+	<bean id="myAspect" class="com.aop.myAspect"/>
+	
+	<aop:config>
+		<aop:pointcut expression="execution(java.lang.String changeValue(int))" id="print"/>
+		<aop:pointcut expression="execution(* testProtect(int))" id="protect"/>
+		<aop:advisor advice-ref="myReturnAdvice" pointcut-ref="print"/><!-- DefaultBeanFactoryPointcutAdvisor -->
+		<aop:advisor advice-ref="aop_with_flag" pointcut-ref="print"/>
+		<aop:aspect ref="myAspect">
+			<aop:before method="show" pointcut-ref="print"/>
+			<aop:before method="interceptProtected" pointcut-ref="protect"/>
+			<aop:around method="showAgain" pointcut="execution(java.lang.String changeValue(int))"/>
+			<aop:after-returning method="showEarlyReferencedProxy" pointcut="execution(void testForEarlyReferencedWithProxied())"/>
+			<aop:after-returning method="lazyInterceptor" pointcut="execution(void lazyIntercept())"/>
+			<aop:after-returning method="lazyAutowiredInterceptor" pointcut="execution(void *..lazyAutowiredIntercept())"/>
+			<aop:before method="beforeInsertPerson" pointcut="execution(void com.test.test_transactional_Person.insertPerson(com.model.Person))"/>
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- spring mvc setting -->
+	<mvc:annotation-driven/>
+	
+	<bean id="internalview" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+	<property name="prefix" value="/"/>
+	<property name="suffix" value=".jsp"/>
+	<property name="contentType" value="text/html;charset=UTF-8" />
+	</bean>
+	
+	<!-- database setting -->
+	 <bean id="dbcpDataSource" abstract="true">
+             <property name="maxActive" value="100" />
+             <property name="initialSize" value="1" />
+             <property name="maxWait" value="60000" />
+             <property name="maxIdle" value="100" />
+             <property name="minIdle" value="3" />
+             <property name="removeAbandoned" value="true" />
+             <property name="removeAbandonedTimeout" value="180" />
+             
+             <!-- validation query to validate the connection -->
+             <property name="validationQuery" value="select 1"/>
+             <property name="validationQueryTimeout" value="10"/>
+             
+             <!-- test the idle connection with the evictors, the start time and the interval -->
+             <property name="testWhileIdle" value="true"/>
+             <property name="minEvictableIdleTimeMillis" value="60000"/>
+             <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+     </bean>
+     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" parent="dbcpDataSource">
+         <property name="driverClassName" value="${jdbc.class}" />
+         <property name="url" value="${jdbc.url}" />
+         <property name="username" value="${jdbc.username}" />
+         <property name="password" value="${jdbc.password}" />
+    </bean>
+	
+	<!-- transaction manager -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<tx:annotation-driven/> <!-- internalTransactionAdvisor -->
+
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="append*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="modify*" propagation="REQUIRED" />
+			<tx:method name="edit*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="repair" propagation="REQUIRED" />
+			<tx:method name="delAndRepair" propagation="REQUIRED" />
+
+			<tx:method name="get*" propagation="SUPPORTS" />
+			<tx:method name="find*" propagation="SUPPORTS" />
+			<tx:method name="load*" propagation="SUPPORTS" />
+			<tx:method name="search*" propagation="SUPPORTS" />
+			<tx:method name="datagrid*" propagation="SUPPORTS" />
+
+			<tx:method name="*" propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice> 
+	<aop:config>
+		<aop:pointcut id="transactionPointcut" expression="execution(void com.test.test_Resource_PropertyEditor.call())" />
+		<aop:advisor pointcut-ref="transactionPointcut" advice-ref="transactionAdvice" /><!-- DefaultBeanFactoryPointcutAdvisor -->
+	</aop:config>
+
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath*:com/transaction/*Mapper.xml" />
+	</bean>
+	<!-- alternative to use  MapperFactoryBean to generate the mapper bean -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.transaction" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+</beans>

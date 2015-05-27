@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.transaction.PersonDao" >
+  <resultMap id="PersonResultMap" type="com.model.Person" >
+    <id column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="NAME" property="name" jdbcType="VARCHAR" />
+    <result column="SEX" property="sex" jdbcType="VARCHAR" />
+    <result column="SALARY" property="salary" jdbcType="DOUBLE" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    ID, NAME, SEX, SALARY
+  </sql>
+  <select id="getPersonById" resultMap="PersonResultMap" parameterType="string" >
+    select 
+    <include refid="Base_Column_List" />
+    from PERSON
+    where ID = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="removePersonById" parameterType="string" >
+    delete from PERSON
+    where ID = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insertPerson" parameterType="com.model.Person" >
+    insert into PERSON
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="name != null" >
+        NAME,
+      </if>
+      <if test="sex != null" >
+        SEX,
+      </if>
+      <if test="salary != null" >
+        SALARY,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="salary != null" >
+        #{salary,jdbcType=DOUBLE},
+      </if>
+    </trim>
+  </insert>
+  <delete id="clearTable">
+  	delete from PERSON
+  </delete>
+  <update id="updatePersonById" parameterType="com.model.Person" >
+    update PERSON
+    <set>
+      <if test="name != null" >
+        NAME = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        SEX = #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="salary != null" >
+        SALARY = #{salary,jdbcType=DOUBLE},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+  <select id="createTable"> <!-- can not have two statements -->
+  	create table if not exists PERSON(
+  		ID VARCHAR(10) primary key,
+  		NAME VARCHAR(50) not null,
+  		SEX VARCHAR(10) not null,
+  		SALARY DOUBLE
+  	)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+  </select>
+  <select id="dropTable">
+  	drop table if exists PERSON
+  </select>
+</mapper>
