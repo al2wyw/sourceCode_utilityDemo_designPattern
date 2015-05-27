@@ -49,9 +49,12 @@ public class context {
 		String classname = stateMap.getProperty(String.valueOf(count));
 		try {
 			usersttate = (state)Class.forName(classname).newInstance();
-		} catch (InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+		} catch (InstantiationException e){
+			e.printStackTrace();
+		} catch (IllegalAccessException e){
+			e.printStackTrace();
+		}catch(ClassNotFoundException e) {
+
 			e.printStackTrace();
 		}
 	}

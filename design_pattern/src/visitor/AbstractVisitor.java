@@ -18,9 +18,14 @@ public abstract class AbstractVisitor implements Visitor {
 				try {
 					Object[] objs = new Object[]{t};
 					visit.invoke(this, objs);
-				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
-					// TODO Auto-generated catch block
+				} catch (IllegalAccessException e){
+					e.printStackTrace();
+				}
+				catch (IllegalArgumentException e){
+					e.printStackTrace();
+				}
+				catch(InvocationTargetException e) {
+
 					e.printStackTrace();
 				}
 			}
