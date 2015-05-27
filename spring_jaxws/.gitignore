@@ -1,4 +1,0 @@
-/build
-/target
-*.class
-/WebContent/WEB-INF/lib/*.jar

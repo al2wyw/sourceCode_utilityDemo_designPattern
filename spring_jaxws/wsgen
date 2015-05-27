@@ -1,1 +1,0 @@
-wsgen -cp build/classes/ myws.helloPerson -wsdl -s wssrc -r wsdl
