@@ -1,0 +1,262 @@
+http://www.codedata.com.tw/java/java-restful-2-jersey-and-jax-rs/
+
+HTTP HEAD會去呼叫有定義@GET的resource method，但是不會回傳內容到client。而HTTP OPTIONS預設則會回傳一個WADL格式的描述語言
+
+@Path("/{name: [a-zA-Z][a-zA-Z0-9]*}") //regular expression
+
+@Consume是用來描述可以接收的Request body(entity)，通常是用來處理POST或是PUT帶過來的request資料。
+@Produces比較常用，它會用來判斷Http Header中的Accept，是否有符合@Produces中描述的MIME type。
+@Consumes跟@Produces都可以放在Class跟Method。Class定義的會直接變成method的預設值，而method本身也可以override掉Class的定義。
+
+JAX-RS還提供一個比較泛用的回傳型態，那就是Response。Response通常是用一個Response.ResponseBuilder建立，可以用Response.ok()或是Response.statue()來產生一個ResponseBuilder,另外一種比較特殊的回傳方法是透過Exception.
+
+    All media types (*/*)
+        byte[]
+        java.lang.String
+        java.io.Reader (inbound only)
+        java.io.File
+        javax.activation.DataSource
+        javax.ws.rs.core.StreamingOutput (outbound only)
+    XML media types (text/xml, application/xml and application/…+xml)
+        javax.xml.transform.Source
+        javax.xml.bind.JAXBElement
+        Application supplied JAXB classes (types annotated with @XmlRootElement or @XmlType)
+    Form content (application/x-www-form-urlencoded)
+        MultivaluedMap<String,String>
+    Plain text (text/plain)
+        java.lang.Boolean
+        java.lang.Character
+        java.lang.Number
+這在處理request及response body(entity)時，唯有符合上面的對應才可以正確使用。也就是@Consumes要跟request body parameter符合上面的對應，而@Produces要跟return type或是Response.entity()的形態要正確對應。
+
+
+Resource
+3.1.1 Lifecycle and Environment
+By default a new resource class instance is created for each request to that resource. First the constructor (see
+section 3.1.2) is called, then any requested dependencies are injected (see section 3.2), then the appropriate
+method (see section 3.3) is invoked and finally the object is made available for garbage collection.
+
+3.1.2 Constructors
+Root resource classes are instantiated by the JAX-RS runtime and MUST have a public constructor for which
+the JAX-RS runtime can provide all parameter values.
+If more than one public constructor is suitable then an implementation MUST use the one with the most
+parameters.
+Non-root resource classes are instantiated by an application and do not require the above-described public constructor.
+
+3.2 Fields and Bean Properties
+@MatrixParam Extracts the value of a URI matrix parameter.
+@QueryParam Extracts the value of a URI query parameter.
+@PathParam Extracts the value of a URI template parameter.
+@CookieParam Extracts the value of a cookie.
+@HeaderParam Extracts the value of a header.
+@Context Injects an instance of a supported resource
+Because injection occurs at object creation time, use of these annotations (with the exception of @Context)
+on resource class fields and bean properties is only supported for the default per-request resource class
+lifecycle !!!!!
+
+Valid parameter types for each of the above annotations are listed in the corresponding Javadoc, however in
+general (excluding @Context) the following types are supported:
+1. Primitive types.
+2. Types that have a constructor that accepts a single String argument.
+3. Types that have a static method named valueOf or fromString with a single String argument
+that return an instance of the type. If both methods are present then valueOf MUST be used unless
+the type is an enum in which case fromStringMUST be used.
+4. List<T>, Set<T>, or SortedSet<T>, where T satisfies 2 or 3 above.
+
+A WebApplicationException thrown during construction of field or property values  using 2 or 3 above
+is processed directly as described in section 3.3.4. Other exceptions thrown during construction of field
+or property values using 2 or 3 above are treated as client errors: ??????
+if the field or property is annotated with
+@MatrixParam, @QueryParam or @PathParam then an implementation MUST generate an instance of 
+NotFoundException (404 status) that wraps the thrown exception and no entity; 
+if the field or property is
+annotated with @HeaderParam or @CookieParam then an implementation MUST generate an instance of
+BadRequestException (400 status) that wraps the thrown exception and no entity.
+
+3.3 Resource Methods
+A request method designator is a runtime annotation that is annotated with the @HttpMethod annotation.
+JAX-RS defines a set of request method designators for the common HTTP methods: @GET, @POST, @PUT,
+@DELETE, @HEAD.
+Resource methods are methods of a resource class annotated with a request method designator. They are
+used to handle requests and MUST conform to certain restrictions:
+
+1.Visibility
+Only public methods may be exposed as resource methods
+
+2.Parameters
+• The DefaultValue annotation may be used to supply a default value for parameters
+• The Encoded annotation may be used to disable automatic URI decoding of parameter values
+• Exceptions thrown during construction of parameter values are treated the same as exceptions thrown
+during construction of field or bean property values, see section 3.2. Exceptions thrown during construction
+of @FormParam annotated parameter values are treated the same as if the parameter were annotated with @HeaderParam.
+Resource methods MUST NOT have more than one parameter that is not annotated with one of the abovelisted annotations.
+
+3.Return Type
+Resource methods MAY return void, Response, GenericEntity, or another Java type, these return types
+are mapped to a response entity body as follows:
+
+void Results in an empty entity body with a 204 status code.
+
+Response Results in an entity body mapped from the entity property of the Response with the status code
+specified by the status property of the Response. A null return value results in a 204 status code.
+If the status property of the Response is not set: a 200 status code is used for a non-null entity
+property and a 204 status code is used if the entity property is null.
+
+GenericEntity Results in an entity body mapped from the Entity property of the GenericEntity. If
+the return value is not null a 200 status code is used, a null return value results in a 204 status code.
+
+Other Results in an entity body mapped from the class of the returned instance. If the return value is not
+null a 200 status code is used, a null return value results in a 204 status code.
+
+3.3.4 Exceptions (just get to understand the mechanism)
+A resource method, sub-resource method or sub-resource locator may throw any checked or unchecked
+exception. An implementation MUST catch all exceptions and process them as follows:
+1.Instances of WebApplicationException and its subclasses MUST be mapped to a response as follows.
+If the response property of the exception does not contain an entity and an exception mapping
+provider (see Section 4.4) is available for WebApplicationException or the corresponding subclass,
+an implementation MUST use the provider to create a new Response instance, otherwise the
+response property is used directly.
+2.If an exception mapping provider (see Section 4.4) is available for the exception or one of its superclasses,
+an implementation MUST use the provider whose generic type is the nearest superclass of
+the exception to create a Response instance that is then processed according to Section 3.3.3. If the
+exception mapping provider throws an exception while creating a Response then return a server error
+(status code 500) response to the client.
+3. Unchecked exceptions and errors MUST be re-thrown and allowed to propagate to the underlying
+container.
+4. Checked exceptions and throwables that cannot be thrown directly MUST be wrapped in a containerspecific
+exception that is then thrown and allowed to propagate to the underlying container. Servletbased
+implementations MUST use ServletException as the wrapper. JAX-WS Provider-based
+implementations MUST use WebServiceException as the wrapper.
+Note: Items 3 and 4 allow existing container facilities (e.g. a Servlet filter or error pages) to be used to
+handle the error if desired.
+
+HEAD and OPTIONS
+On receipt of a HEAD request an implementation MUST either:
+1. Call a method annotated with a request method designator for HEAD or, if none present,
+2. Call a method annotated with a request method designator for GET and discard any returned entity.
+Note that option 2 may result in reduced performance where entity creation is significant.
+
+On receipt of an OPTIONS request an implementation MUST either:
+1. Call a method annotated with a request method designator for OPTIONS or, if none present,
+2. Generate an automatic response using the metadata provided by the JAX-RS annotations on the matching
+class and its methods.
+
+3.4 URI Templates
+A root resource class is anchored in URI space using the @Path annotation.The value of the annotation is
+a relative URI path template
+The same:
+@Path("widget list/{id}")
+@Path("widget%20list/{id}")
+
+3.4.1 Sub Resources
+Methods of a resource class that are annotated with @Path are either sub-resource methods or sub-resource
+locators.
+Sub-resource methods handle a HTTP request directly whilst sub-resource locators return an object
+that will handle a HTTP request. The presence or absence of a request method designator:
+1.Present Such methods, known as sub-resource methods, are treated like a normal resource method.
+2.Absent Such methods, known as sub-resource locators, are used to dynamically resolve the object that will
+handle the request.Any returned object is treated as a resource class instance and used to either handle
+the request or to further resolve the object that will handle the request
+
+3.5 Declaring Media Type Capabilities
+@Consumes and @Produces MAY be applied to a resource method, a resource class, or to an entity provider
+Use of these annotations on a resource method overrides any on the resource class
+In the absence of either of these annotations, support for any media type (“*/*”) is assumed.
+
+An implementation MUST NOT invoke a method whose effective value of @Produces does not match
+the request Accept header. An implementation MUST NOT invoke a method whose effective value of
+@Consumes does not match the request Content-Type header.
+
+Annotation Inheritance
+JAX-RS annotations MAY be used on the methods and method parameters of a super-class or an implemented interface.
+Annotations on a super-class take precedence over those on an implemented interface.
+If a subclass or implementation method has any JAX-RS annotations then all of the annotations on the super class or interface method
+are ignored.
+
+3.7 Matching Requests to Resource Methods ???
+
+3.8 Determining the MediaType of Responses ???
+
+(skip this chapter)
+4 Provider
+The JAX-RS runtime is extended using application-supplied provider classes. A provider is annotated with
+@Provider and implements one or more interfaces defined by JAX-RS.
+
+4.1 Lifecycle and Environment (same as 3.1.1)
+4.1.2 Constructors (same as 3.1.2)
+
+4.2 Entity Providers
+Entity providers supply mapping services between representations and their associated Java types. Entity
+providers come in two flavors: MessageBodyReader and MessageBodyWriter:
+
+4.2.1 Message Body Reader
+1. Obtain the media type of the request. If the request does not contain a Content-Type header then
+use application/octet-stream.
+2. Identify the Java type of the parameter whose value will be mapped from the entity body. Section 3.7
+describes how the Java method is chosen.
+3. Select the set of MessageBodyReader classes that support the media type of the request, see Section 4.2.3.
+4. Iterate through the selected MessageBodyReader classes and, utilizing the isReadable method of
+each, choose a MessageBodyReader provider that supports the desired Java type.
+5. If step 4 locates a suitable MessageBodyReader then use its readFrom method to map the entity
+body to the desired Java type.
+6. Otherwise, the server runtime MUST generate a NotSupportedException (415 status) and no entity
+(to be processed as described in Section 3.3.4) and the client runtime MUST generate an instance
+of ProcessingException.
+
+4.2.2 Message Body Writer
+1. Obtain the object that will be mapped to the message entity body. For a return type of Response
+or subclasses, the object is the value of the entity property, for other return types it is the returned
+object.
+2. Determine the media type of the response, see Section 3.8.
+3. Select the set of MessageBodyWriter providers that support (see Section 4.2.3) the object and media
+type of the message entity body.
+4. Sort the selected MessageBodyWriter providers with a primary key of generic type where providers
+whose generic type is the nearest superclass of the object class are sorted first and a secondary key of
+media type (see Section 4.2.3).
+5. Iterate through the sorted MessageBodyWriter providers and, utilizing the isWriteable method
+of each, choose an MessageBodyWriter that supports the object that will be mapped to the entity
+body.
+6. If step 5 locates a suitable MessageBodyWriter then use its writeTo method to map the object to
+the entity body.
+7. Otherwise, the server runtime MUST generate a generate an InternalServerErrorException,
+a subclass of WebApplicationException with its status set to 500, and no entity (to be processed
+as described in Section 3.3.4) and the client runtime MUST generate a ProcessingException.
+
+4.2.3 Declaring Media Type Capabilities
+When choosing an entity provider an implementation sorts the available providers according to the media
+types they declare support for. Sorting of media types follows the general rule: x/y < x/* < */*. a
+provider that explicitly lists a media types is sorted before a provider that lists */*.
+
+4.2.4 Standard Entity Providers
+When reading zero-length message entities all pre-packaged MessageBodyReader implementations, except
+the JAXB one and those for the primitive types above, MUST create a corresponding Java
+object that represents zero-length data. The pre-packaged JAXB and the pre-packaged primitive type
+MessageBodyReader implementations MUST throw a NoContentException for zero-length message
+entities.
+......
+
+4.3 Context Providers
+Context providers supply context to resource classes and other providers. A context provider class implements
+the ContextResolver<T> interface and may be annotated with @Provider for automatic discovery.
+E.g., an application wishing to provide a customized JAXBContext to the default JAXB entity
+providers would supply a class implementing ContextResolver<JAXBContext>.
+
+......
+......
+......
+
+Context
+5.2 Context Types
+	@Context HttpServletRequest request;
+    @Context HttpServletResponse response;
+    @Context ServletContext context;
+	@Context ServletConfig config;
+	@Context UriInfo uri
+	@Context HttpHeaders headers
+	@Context SecurityContext security
+	@Context Provider provider
+Content Negotiation and Preconditions (context request)
+JAX-RS simplifies support for content negotiation and preconditions using the Request interface.The application could also set the content location, expiry date and cache control information into the returned ResponseBuilder before building the response.
+
+6. Filters and Interceptors ???
+7. Validation ???
