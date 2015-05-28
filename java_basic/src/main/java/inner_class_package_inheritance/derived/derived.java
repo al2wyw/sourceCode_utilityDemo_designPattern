@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 package inner_class_package_inheritance.derived;
-import base.base;
+import inner_class_package_inheritance.base.base;
 
 class der extends base{
     //public int pronum; //pronum will hide the pronum from base, print() of base will act differently

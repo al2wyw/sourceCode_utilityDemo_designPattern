@@ -4,8 +4,8 @@
  */
 package inner_class_package_inheritance.innerclass;
 
-import innerclass.Parcel3.PDestination;
-import innerclass.Parcel4.PDestination4;
+import inner_class_package_inheritance.innerclass.Parcel3.PDestination;
+import inner_class_package_inheritance.innerclass.Parcel4.PDestination4;
 
 abstract class Contents {
 

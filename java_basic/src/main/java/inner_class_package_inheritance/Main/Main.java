@@ -3,8 +3,10 @@
  * and open the template in the editor.
  */
 package inner_class_package_inheritance.Main;
+import inner_class_package_inheritance.Main.Student.Stest;
+
 import java.util.Arrays;
-import Main.Student.*;
+
 class Professor{//it is ok!
         private String name="norm pro";
         public String toString(){
@@ -15,7 +17,7 @@ class Professor{//it is ok!
             public abstract void cando();
         }
         public interface test1{
-            //interface 的全部成员必须是 public
+            //interface 鐨勫叏閮ㄦ垚鍛樺繀椤绘槸 public
             int count=10;
             void dojob();
         }
@@ -159,7 +161,7 @@ public class Main {
         System.out.println(index);
         System.out.println(bs.length);
         Integer ing = new Integer(143256);
-        System.out.println(ing);//隐性调用toString()
+        System.out.println(ing);//闅愭�ц皟鐢╰oString()
         MyString string = new MyString("asdzxc");
         System.out.println(string);
         string.setString("qwerty");
@@ -187,7 +189,7 @@ public class Main {
          MyString2 mystring2=new MyString2("df",3);
          //mystring2=(MyString2)mystring;//no error but exception!
          mystring2.setString("vb");
-         //(MyString)mystring2=mystring//在c++可以，为什么这里不行？
+         //(MyString)mystring2=mystring//鍦╟++鍙互锛屼负浠�涔堣繖閲屼笉琛岋紵
          int i=10000; byte b=1;
          //(int)b=i;//wrong!
          b=(byte)i;
@@ -277,7 +279,7 @@ class DepthReading implements Cloneable {
     }
 }
 
-class TemperatureReading implements Cloneable {//复合类的cloneable！
+class TemperatureReading implements Cloneable {//澶嶅悎绫荤殑cloneable锛�
 
     private long time;
     private double temperature;

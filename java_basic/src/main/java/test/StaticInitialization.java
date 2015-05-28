@@ -57,10 +57,10 @@ class base{
         b2 = new Bowl(3);
     }
 }
-class derived extends base{
+class derive extends base{
     private static Bowl b4=new Bowl(4);
     private Bowl b5=new Bowl(5);
-    public derived(){
+    public derive(){
         super();
         b5 = new Bowl(6);
     }
@@ -69,7 +69,7 @@ class derived extends base{
     }
 }
 
-class der extends derived {
+class der extends derive {
     private static Bowl b8=new Bowl(8);
     public der(){
         super();
