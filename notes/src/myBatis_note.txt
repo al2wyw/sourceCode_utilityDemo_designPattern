@@ -1,7 +1,7 @@
 ﻿Namespaces enable the interface bindings
 Name Resolution:
-Fully qualified names (e.g. ※com.mypackage.MyMapper.selectAllThings§) are looked up directly and used if found.
-Short names (e.g. ※selectAllThings§) can be used to reference any unambiguous entry.
+Fully qualified names (e.g. “com.mypackage.MyMapper.selectAllThings”) are looked up directly and used if found.
+Short names (e.g. “selectAllThings”) can be used to reference any unambiguous entry.
 
 Scope and LifeCycle
 SqlSessionFactoryBuilder
@@ -65,14 +65,14 @@ mappers
 
 Mapper XML Files
 The Mapper XML files have only a few first class elements (in the order that they should be defined):
-cache 每 Configuration of the cache for a given namespace.
-cache-ref 每 Reference to a cache configuration from another namespace.
-resultMap 每 The most complicated and powerful element that describes how to load your objects from the database result sets.
-sql 每 A reusable chunk of SQL that can be referenced by other statements.
-insert 每 A mapped INSERT statement.
-update 每 A mapped UPDATE statement.
-delete 每 A mapped DELETE statement.
-select 每 A mapped SELECT statement.
+cache – Configuration of the cache for a given namespace.
+cache-ref – Reference to a cache configuration from another namespace.
+resultMap – The most complicated and powerful element that describes how to load your objects from the database result sets.
+sql – A reusable chunk of SQL that can be referenced by other statements.
+insert – A mapped INSERT statement.
+update – A mapped UPDATE statement.
+delete – A mapped DELETE statement.
+select – A mapped SELECT statement.
 
 select:
 <select
@@ -219,15 +219,15 @@ elements:
 constructor - used for injecting results into the constructor of a class upon instantiation
 	idArg - ID argument; flagging results as ID will help improve overall performance
 	arg - a normal result injected into the constructor
-id 每 an ID result; flagging results as ID will help improve overall performance(the difference from result)
-result 每 a normal result injected into a field or JavaBean property
-association 每 a complex type association; many results will roll up into this type
-	nested result mappings 每 associations are resultMaps themselves, or can refer to one
-collection 每 a collection of complex types
-	nested result mappings 每 collections are resultMaps themselves, or can refer to one
-discriminator 每 uses a result value to determine which resultMap to use
-	case 每 a case is a result map based on some value 
-		nested result mappings 每 a case is also a result map itself, and thus can contain many of these same elements
+id – an ID result; flagging results as ID will help improve overall performance(the difference from result)
+result – a normal result injected into a field or JavaBean property
+association – a complex type association; many results will roll up into this type
+	nested result mappings – associations are resultMaps themselves, or can refer to one
+collection – a collection of complex types
+	nested result mappings – collections are resultMaps themselves, or can refer to one
+discriminator – uses a result value to determine which resultMap to use
+	case – a case is a result map based on some value 
+		nested result mappings – a case is also a result map itself, and thus can contain many of these same elements
 
 Always build ResultMaps incrementally. Unit tests really help out here  !!!
 
@@ -338,10 +338,10 @@ The effect of this one simple statement is as follows:
     The cache will be treated as a read/write cache, meaning objects retrieved are not shared and can be safely modified by the caller, without interfering with other potential modifications by other callers or threads.
 
  The available eviction policies available are:
-    LRU 每 Least Recently Used: Removes objects that haven't been used for the longst period of time.
-    FIFO 每 First In First Out: Removes objects in the order that they entered the cache.
-    SOFT 每 Soft Reference: Removes objects based on the garbage collector state and the rules of Soft References.
-    WEAK 每 Weak Reference: More aggressively removes objects based on the garbage collector state and rules of Weak References.
+    LRU – Least Recently Used: Removes objects that haven't been used for the longst period of time.
+    FIFO – First In First Out: Removes objects in the order that they entered the cache.
+    SOFT – Soft Reference: Removes objects based on the garbage collector state and the rules of Soft References.
+    WEAK – Weak Reference: More aggressively removes objects based on the garbage collector state and rules of Weak References.
 
 A read-only cache will return the same instance of the cached object to all callers.
 A read-write cache will return a copy (via serialization) of the cached object.
