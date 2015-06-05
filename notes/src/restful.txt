@@ -29,6 +29,18 @@ JAX-RS還提供一個比較泛用的回傳型態，那就是Response。Response�
         java.lang.Number
 這在處理request及response body(entity)時，唯有符合上面的對應才可以正確使用。也就是@Consumes要跟request body parameter符合上面的對應，而@Produces要跟return type或是Response.entity()的形態要正確對應。
 
+Applications
+2.3 Publication
+2.3.1 Java SE
+2.3.2 Servlet (framework has different setup)
+<servlet>
+	<servlet-name>javax.ws.rs.core.Application</servlet-name>
+</servlet>
+<servlet-mapping>
+	<servlet-name>javax.ws.rs.core.Application</servlet-name>
+	<url-pattern>/myresources/*</url-pattern>
+</servlet-mapping>
+2.3.3 Other Container
 
 Resource
 3.1.1 Lifecycle and Environment
