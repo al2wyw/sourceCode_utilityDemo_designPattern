@@ -49,7 +49,7 @@ public class main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		m.marshal(bean, handler.asContentHandler());
+		//m.marshal(bean, handler.asContentHandler());
 		xmlString = writer.toString();
 		return xmlString;
 	}
