@@ -1,0 +1,45 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="student">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="nameType"/>
+                <xs:element ref="age"/>
+                <xs:element ref="sex"/>
+                <xs:element ref="phone"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="nameType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="4"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="age">
+        <xs:simpleType>
+            <xs:restriction base="xs:int">
+                <xs:minInclusive value="1"/>
+                <xs:maxInclusive value="100"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="sex">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="男"/>
+                <xs:enumeration value="女"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="phone">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="\d{3}-\d{8}"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+</xs:schema>
