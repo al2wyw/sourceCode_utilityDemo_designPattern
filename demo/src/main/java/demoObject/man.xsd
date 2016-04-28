@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="man" type="manType">
+
+
+    </xs:element>
+
+    <xs:complexType name="manType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" minOccurs="1"
+                        maxOccurs="1"/>
+            <xs:element name="sex" type="xs:string" minOccurs="1"
+                        maxOccurs="1"/>
+            <xs:element name="id" type="xs:int" minOccurs="1"
+                        maxOccurs="1"/>
+            <xs:element name="address" type="addressType" minOccurs="1"
+                        maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="addressType">
+        <xs:sequence>
+            <xs:element name="street" type="xs:string" minOccurs="1"
+                        maxOccurs="1"/>
+            <xs:element name="block" type="xs:int" minOccurs="1"
+                        maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>
