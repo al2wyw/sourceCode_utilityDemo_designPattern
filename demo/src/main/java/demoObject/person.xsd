@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-<!--the outest element must has complexType inside the definition body rather then has type="...", otherwise, no XmlRootElement generated-->
-<!--  <xs:element name="person" type="personType"> no XmlRootElement generated-->
+<!--the element must has complexType inside the definition body rather then has type="...", otherwise, no XmlRootElement generated-->
+<!--  <xs:element name="person" type="personType"/> no XmlRootElement generated-->
 <!--complexType with name will generate a class file-->
 <xs:element name="person">
 
