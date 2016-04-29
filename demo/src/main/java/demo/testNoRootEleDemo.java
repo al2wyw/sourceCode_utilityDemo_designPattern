@@ -43,4 +43,9 @@ public class testNoRootEleDemo {
 /**
  * jaxbcontext newInstance no objectFactory with an @XmlElementDecl
  * marshaller marshall no @XmlRootElement
+ *
+ * @XmlElementDecl
+ * @XmlRootElement
+ * @XmlElement
+ * @XmlElementRef
 */
