@@ -6,6 +6,8 @@ import man.ManType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import java.io.StringReader;
 
 /**
@@ -23,6 +25,11 @@ public class testNoRootEleDemo {
             "\t</address>\n" +
             "</man>";
 
+    private static final String frag="<address>\n" +
+            "    <street>test test a</street>\n" +
+            "    <block>170</block>\n" +
+            "</address>";
+
     public static void main(String[] args) throws  Exception{
 
         //JAXBContext.newInstance() if class has rootxmlelement, can pass class only, otherwise pass class with objectfactory or package name
@@ -35,17 +42,23 @@ public class testNoRootEleDemo {
         addressType.setBlock(17);
         addressType.setStreet("test a test gl");
         t.setAddress(addressType);
-        context.createMarshaller().marshal(new JAXBElement<ManType>(new QName("man"),ManType.class,t),System.out);
+        context.createMarshaller().marshal(new JAXBElement<ManType>(new QName("man"), ManType.class, t), System.out);
+        System.out.println();
+
         Object c = context.createUnmarshaller().unmarshal(new StringReader(target));
-        System.out.print(c);
+        System.out.println(c);
+        XMLStreamReader reader = XMLInputFactory.newFactory().createXMLStreamReader(new StringReader(frag));
+        //Object f = context.createUnmarshaller().unmarshal(reader);//no root no decl will be error
+        Object f = context.createUnmarshaller().unmarshal(reader,AddressType.class);
+        String street = ((JAXBElement<AddressType>)f).getValue().getStreet();
+        System.out.println(street);
     }
 }
 /**
  * jaxbcontext newInstance no objectFactory with an @XmlElementDecl
  * marshaller marshall no @XmlRootElement
  *
- * @XmlElementDecl
- * @XmlRootElement
+ * @XmlElementDecl  ==  @XmlRootElement
  * @XmlElement
  * @XmlElementRef
 */
