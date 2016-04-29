@@ -25,6 +25,7 @@ public class testNoRootEleDemo {
 
     public static void main(String[] args) throws  Exception{
 
+        //JAXBContext.newInstance() if class has rootxmlelement, can pass class only, otherwise pass class with objectfactory or package name
         JAXBContext context = JAXBContext.newInstance("man");//JAXBContext.newInstance(ManType.class); will make unmarshal error, beacause ManType is not jaxb element, it is a type
         ManType t = new ManType();
         t.setName("peter");
