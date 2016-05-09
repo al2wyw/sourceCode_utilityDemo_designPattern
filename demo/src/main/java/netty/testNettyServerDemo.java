@@ -43,3 +43,8 @@ public class testNettyServerDemo {
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
     }
 }
+
+/**
+ *  inbound, outbound use nio group thread(io thread)
+ *
+* */
