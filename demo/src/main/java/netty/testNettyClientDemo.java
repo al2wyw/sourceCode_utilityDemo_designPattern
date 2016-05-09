@@ -13,11 +13,11 @@ import java.net.InetSocketAddress;
  * Created by johnny.ly on 2016/4/27.
  */
 public class testNettyClientDemo {
-    public static void main() throws Exception{
+    public static void main(String args[]) throws Exception{
         Bootstrap bootstrap = new Bootstrap();
         NioEventLoopGroup workerGroup =
                 new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,
-                    new NamedThreadFactory("Client-Worker-Thread"));
+                    new NamedThreadFactory("Client-Worker-Thread",false));
         bootstrap.group(workerGroup)//
                 .option(ChannelOption.TCP_NODELAY, true)//
                 .option(ChannelOption.SO_REUSEADDR, true)//

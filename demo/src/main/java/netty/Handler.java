@@ -14,6 +14,9 @@ public class Handler extends SimpleChannelInboundHandler<String> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
         ThreadUtils.printThreadName("in", s);
+        if(s==null){
+            s="";
+        }
         final String t = s;
         Future future = pool.submit(new FutureTask<String>(new Callable<String>() {
             public String call() throws Exception {

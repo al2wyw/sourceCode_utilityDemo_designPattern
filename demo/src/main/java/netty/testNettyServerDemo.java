@@ -18,8 +18,8 @@ import java.net.InetSocketAddress;
  * Created by johnny.ly on 2016/4/25.
  */
 public class testNettyServerDemo {
-    public static void main() throws Exception{
-        NioEventLoopGroup boss = new NioEventLoopGroup(0,new NamedThreadFactory("BOSS-THREAD"));
+    public static void main(String args[]) throws Exception{
+        NioEventLoopGroup boss = new NioEventLoopGroup(0,new NamedThreadFactory("BOSS-THREAD",false));
         NioEventLoopGroup work = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,
                 new NamedThreadFactory("WORK-THREAD"));
         ServerBootstrap server = new ServerBootstrap();
@@ -41,6 +41,10 @@ public class testNettyServerDemo {
                     }
                 });
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
+        if (cf.isSuccess()) {
+            System.out.println("Server started http transport, while listen at: " + 8088);
+            return;
+        }
     }
 }
 
