@@ -29,7 +29,7 @@ public class testNettyClientDemo {
                         ChannelPipeline channelPipeline = channel.pipeline();
                         channelPipeline.addLast("encode",new StringEncoder());
                         channelPipeline.addLast("decode",new StringDecoder());
-                        channelPipeline.addLast("handler",new Handler());
+                        channelPipeline.addLast("handler",new ClientHandler());
                     }
                 });
         ChannelFuture connect = bootstrap.connect(new InetSocketAddress(8088)).sync();

@@ -37,7 +37,7 @@ public class testNettyServerDemo {
                         ChannelPipeline channelPipeline = ch.pipeline();
                         channelPipeline.addLast("encode",new StringEncoder());
                         channelPipeline.addLast("decode",new StringDecoder());
-                        channelPipeline.addLast("handler", new Handler());
+                        channelPipeline.addLast("handler", new ServerHandler());
                     }
                 });
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
