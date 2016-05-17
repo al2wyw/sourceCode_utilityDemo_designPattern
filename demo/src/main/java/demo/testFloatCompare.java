@@ -1,5 +1,7 @@
 package demo;
 
+import java.math.BigDecimal;
+
 /**
  * Created by johnny.ly on 2016/5/17.
  */
@@ -54,5 +56,10 @@ public class testFloatCompare {
          * 但是它实际上等于 0.1000000000000000055511151231257827021181583404541015625
          * 谨慎使用这种构造函数
         * */
+        BigDecimal big = new BigDecimal(0.1);
+        System.out.println(big.subtract(new BigDecimal("0.1")).multiply(new BigDecimal(100000000000000000L)).doubleValue());//not 0
+        BigDecimal big1 = new BigDecimal(String.valueOf(0.1d));
+        System.out.println(big1.subtract(new BigDecimal("0.1")).multiply(new BigDecimal(100000000000000000L)).doubleValue());//0
+
     }
 }
