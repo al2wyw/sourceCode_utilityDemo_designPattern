@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class testDeadLock {
     public static void main(String[] args) throws Exception{
+        System.out.println(Runtime.getRuntime().availableProcessors() * 2);
         ExecutorService service = Executors.newFixedThreadPool(10, new NamedThreadFactory("Johnny", false));
         /*
         final Object lock = new Object();
