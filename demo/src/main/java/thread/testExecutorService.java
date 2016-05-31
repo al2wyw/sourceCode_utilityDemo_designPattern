@@ -35,3 +35,32 @@ public class testExecutorService {
         System.out.println("test");
     }
 }
+/*
+Future state:
+	NEW -> COMPLETING -> NORMAL
+    NEW -> COMPLETING -> EXCEPTIONAL
+    NEW -> CANCELLED
+    NEW -> INTERRUPTING -> INTERRUPTED
+
+	!NEW -> isDone
+
+Thread state:
+	NEW,
+    RUNNABLE,
+	BLOCKED,
+	WAITING,
+	TIMED_WAITING,
+	TERMINATED
+
+ThreadPoolExecutor state:
+    RUNNING -> SHUTDOWN
+       On invocation of shutdown(), perhaps implicitly in finalize()
+    (RUNNING or SHUTDOWN) -> STOP
+       On invocation of shutdownNow()
+    SHUTDOWN -> TIDYING
+       When both queue and pool are empty
+    STOP -> TIDYING
+       When pool is empty
+    TIDYING -> TERMINATED
+       When the terminated() hook method has completed
+*/
