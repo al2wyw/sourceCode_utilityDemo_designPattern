@@ -1,4 +1,4 @@
-package demo;
+package thread;
 
 import java.util.concurrent.*;
 
@@ -72,5 +72,41 @@ public class testTransferQueue {
         if(!executorService.awaitTermination(3,TimeUnit.SECONDS)){
             executorService.shutdownNow();
         }
+        /**
+        add
+        if (!offerLast(e))
+            throw new IllegalStateException("Deque full");
+
+        offer
+        lock.lock();
+        try {
+            return linkLast(node);
+        } finally {
+            lock.unlock();
+        }
+
+        put
+        lock.lock();
+        try {
+            while (!linkLast(node))
+                notFull.await();
+        } finally {
+            lock.unlock();
+        }
+
+        offer timeout
+        lock.lockInterruptibly();
+        try {
+            while (!linkLast(node)) {
+                if (nanos <= 0)
+                    return false;
+                nanos = notFull.awaitNanos(nanos);
+            }
+            return true;
+        } finally {
+            lock.unlock();
+        }
+         */
     }
 }
+
