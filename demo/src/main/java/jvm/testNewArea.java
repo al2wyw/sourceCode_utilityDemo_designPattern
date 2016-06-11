@@ -25,9 +25,10 @@ public class testNewArea {
 
         for(int i=0;i<1000;i++){
             MyObject o = new MyObject();
-            //System.out.println(o);
+            System.out.println(o);
+            o = null;
             //ThreadUtils.sleep(3000);
-            LockSupport.parkNanos(3000000L);
+            LockSupport.parkNanos(3000000000L);
         }
     }
 }

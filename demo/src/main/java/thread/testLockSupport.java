@@ -1,5 +1,7 @@
 package thread;
 
+import utils.ThreadUtils;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.LockSupport;
@@ -11,7 +13,8 @@ public class testLockSupport {
     //lockSupport park will be interrupt and not throw interrupted exception
     public static void main(String[] args) throws Exception{
         //testPark();
-        testInterruptPark();
+        //testInterruptPark();
+        testSpuriousPark();
     }
 
     private static void testPark(){
@@ -68,10 +71,33 @@ public class testLockSupport {
             System.out.println("main thread interrupted" + System.currentTimeMillis());
         }
     }
+
+    private static void testSpuriousPark(){
+        Object lock = new Object();
+        /*ExecutorService executorService = Executors.newFixedThreadPool(10);
+        final Thread t = Thread.currentThread();
+        executorService.submit(new Runnable() {
+            public void run() {
+                while(true) {
+                    ThreadUtils.sleep(1000);
+                    LockSupport.unpark(t);
+                }
+            }
+        });*/
+        while(true) {
+            System.out.println("main thread sleep" + System.currentTimeMillis());
+            LockSupport.parkNanos(lock, 3000000000L);//3 seconds
+            System.out.println("main thread wake up" + System.currentTimeMillis());
+        }
+    }
 }
 
 /**
  * 由于每个jvm的实现可以自己安排字段的存储顺序，对字段的访问可以使用offset抽象出来，统一接口，解耦实现
  * unsafe.putObject(t, parkBlockerOffset, arg);
- *
+ * */
+
+/**
+ *  由于park会因为未知原因返回，所以要用一下模式
+ *  while (!canProceed()) { ... LockSupport.park(this); }
  * */
