@@ -1,4 +1,4 @@
-package demo;
+package reflection;
 
 import annotation.Test;
 

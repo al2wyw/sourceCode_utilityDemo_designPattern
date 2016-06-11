@@ -62,10 +62,16 @@ public class testLockSupport {
             }
         });
         System.out.println("main thread park" + System.currentTimeMillis());
-        LockSupport.park(lock);
+        LockSupport.park(lock); //lock is parkBlocker for a thread, which is used for thread diagnostic tool to get the reason why the thread is blocked
         System.out.println("main thread wake up" + System.currentTimeMillis());
         if(t.isInterrupted()){
             System.out.println("main thread interrupted" + System.currentTimeMillis());
         }
     }
 }
+
+/**
+ * 由于每个jvm的实现可以自己安排字段的存储顺序，对字段的访问可以使用offset抽象出来，统一接口，解耦实现
+ * unsafe.putObject(t, parkBlockerOffset, arg);
+ *
+ * */
