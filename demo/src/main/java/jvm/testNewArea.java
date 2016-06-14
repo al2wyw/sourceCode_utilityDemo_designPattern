@@ -33,6 +33,15 @@ public class testNewArea {
     }
 }
 
+/**
+ * -Xms12M
+ * -Xmx12M
+ * -Xmn6M
+ * -XX:SurvivorRatio=2
+ * -XX:MaxTenuringThreshold=5
+ * */
+
+
 class MyObject{
     private byte[] value = new byte[1024*1024]; //1 mb
 
