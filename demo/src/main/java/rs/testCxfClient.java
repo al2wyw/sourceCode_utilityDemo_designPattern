@@ -1,4 +1,4 @@
-package demo;
+package rs;
 
 import demoObject.Person;
 import demoObject.Student;
@@ -6,7 +6,6 @@ import org.apache.cxf.jaxrs.client.Client;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
-import rs.FooBarRS;
 
 import javax.ws.rs.core.MediaType;
 import java.io.File;

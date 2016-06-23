@@ -1,7 +1,7 @@
-package demo;
+package jaxb;
 
-import man.AddressType;
-import man.ManType;
+import jaxb.man.AddressType;
+import jaxb.man.ManType;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -33,7 +33,7 @@ public class testNoRootEleDemo {
     public static void main(String[] args) throws  Exception{
 
         //JAXBContext.newInstance() if class has rootxmlelement, can pass class only, otherwise pass class with objectfactory or package name
-        JAXBContext context = JAXBContext.newInstance("man");//JAXBContext.newInstance(ManType.class); will make unmarshal error, beacause ManType is not jaxb element, it is a type
+        JAXBContext context = JAXBContext.newInstance("jaxb/man");//JAXBContext.newInstance(ManType.class); will make unmarshal error, beacause ManType is not jaxb element, it is a type
         ManType t = new ManType();
         t.setName("peter");
         t.setId(110);
@@ -42,7 +42,7 @@ public class testNoRootEleDemo {
         addressType.setBlock(17);
         addressType.setStreet("test a test gl");
         t.setAddress(addressType);
-        context.createMarshaller().marshal(new JAXBElement<ManType>(new QName("man"), ManType.class, t), System.out);
+        context.createMarshaller().marshal(new JAXBElement<ManType>(new QName("jaxb/man"), ManType.class, t), System.out);
         System.out.println();
 
         Object c = context.createUnmarshaller().unmarshal(new StringReader(target));

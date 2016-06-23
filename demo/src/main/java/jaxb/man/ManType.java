@@ -1,5 +1,5 @@
 
-package man;
+package jaxb.man;
 
 import javax.xml.bind.annotation.*;
 

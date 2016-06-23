@@ -1,5 +1,5 @@
 
-package man;
+package jaxb.man;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Man_QNAME = new QName("", "man");
+    private final static QName _Man_QNAME = new QName("", "jaxb/man");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: man
@@ -53,7 +53,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link ManType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "", name = "man")
+    @XmlElementDecl(namespace = "", name = "jaxb/man")
     public JAXBElement<ManType> createMan(ManType value) {
         return new JAXBElement<ManType>(_Man_QNAME, ManType.class, null, value);
     }
