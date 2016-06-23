@@ -1,0 +1,21 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trip="http://www.trip.com/webservices/" xmlns:john="http://www.johnny.com/webservices/"
+           targetNamespace="http://www.trip.com/webservices/" elementFormDefault="qualified">
+<xs:import namespace="http://www.johnny.com/webservices/" schemaLocation="student.xsd"/>
+    <xs:element name="classroom">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="john:student"/>
+                <xs:element name="address" type="trip:addressType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="addressType">
+        <xs:sequence>
+            <xs:element name="street" type="xs:string" minOccurs="1"
+                        maxOccurs="1"/>
+            <xs:element name="block" type="xs:int" minOccurs="1"
+                        maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
