@@ -26,11 +26,11 @@ public class testNameSpaceDemo {
         Marshaller marshaller = context.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
-        marshaller.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(testNameSpaceDemo.class.getClassLoader().getResource("/jaxb/student/student.xsd")));
+        marshaller.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(testNameSpaceDemo.class.getClassLoader().getResource("student.xsd")));
         Student student = new Student();
         student.setAge(10);
         student.setName("peter");
-        student.setPhone("23432432432");
+        student.setPhone("234-32432432");
         student.setSex("男");
         marshaller.marshal(student, System.out);
     }
