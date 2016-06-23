@@ -1,8 +1,8 @@
 package rs;
 
 
-import demoObject.Person;
-import demoObject.Student;
+import rs.generated.Person;
+import rs.generated.Student;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

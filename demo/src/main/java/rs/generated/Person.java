@@ -1,5 +1,7 @@
 
-package demoObject;
+package rs.generated;
+
+import rs.generated.AddressType;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -18,10 +20,10 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="name" type="{}nameType"/>
- *         &lt;element ref="{}age"/>
- *         &lt;element ref="{}sex"/>
- *         &lt;element ref="{}phone"/>
+ *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="sex" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="id" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="address" type="{}addressType"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -33,20 +35,20 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
     "name",
-    "age",
     "sex",
-    "phone"
+    "id",
+    "address"
 })
-@XmlRootElement(name = "student")
-public class Student {
+@XmlRootElement(name = "person")
+public class Person {
 
     @XmlElement(required = true)
     protected String name;
-    protected int age;
     @XmlElement(required = true)
     protected String sex;
+    protected int id;
     @XmlElement(required = true)
-    protected String phone;
+    protected AddressType address;
 
     /**
      * Gets the value of the name property.
@@ -70,22 +72,6 @@ public class Student {
      */
     public void setName(String value) {
         this.name = value;
-    }
-
-    /**
-     * Gets the value of the age property.
-     * 
-     */
-    public int getAge() {
-        return age;
-    }
-
-    /**
-     * Sets the value of the age property.
-     * 
-     */
-    public void setAge(int value) {
-        this.age = value;
     }
 
     /**
@@ -113,27 +99,43 @@ public class Student {
     }
 
     /**
-     * Gets the value of the phone property.
+     * Gets the value of the id property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
      */
-    public String getPhone() {
-        return phone;
+    public int getId() {
+        return id;
     }
 
     /**
-     * Sets the value of the phone property.
+     * Sets the value of the id property.
+     * 
+     */
+    public void setId(int value) {
+        this.id = value;
+    }
+
+    /**
+     * Gets the value of the address property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link AddressType }
+     *     
+     */
+    public AddressType getAddress() {
+        return address;
+    }
+
+    /**
+     * Sets the value of the address property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link AddressType }
      *     
      */
-    public void setPhone(String value) {
-        this.phone = value;
+    public void setAddress(AddressType value) {
+        this.address = value;
     }
 
 }

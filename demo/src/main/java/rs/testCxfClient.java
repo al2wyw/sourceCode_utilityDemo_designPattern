@@ -1,7 +1,7 @@
 package rs;
 
-import demoObject.Person;
-import demoObject.Student;
+import rs.generated.Person;
+import rs.generated.Student;
 import org.apache.cxf.jaxrs.client.Client;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -37,7 +37,7 @@ public class testCxfClient {
         JAXBElementProvider<Student> provider = new JAXBElementProvider<Student>();
 
         URL url = testCxfClient.class.getResource("../");
-        String path = url.getPath()+"demoObject/student.xsd";
+        String path = url.getPath()+ "rs/generated/student.xsd";
         System.out.println(path);
         File fin = new File(path);
         System.out.println(fin.exists());
