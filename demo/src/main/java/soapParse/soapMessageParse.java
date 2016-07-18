@@ -25,7 +25,7 @@ public class soapMessageParse {
     private static final String BODY_END = "</soap:Body>";
 
     public static void main(String[] args) throws  Exception {
-        //testSOAPMessage();
+        testSOAPMessage();
         //testDOMMessage(true);
         //testDOMMessage(false);
 
@@ -80,14 +80,15 @@ public class soapMessageParse {
         Iterator iterator = message.getSOAPBody().getChildElements();
         while(iterator.hasNext()){
             SOAPElement element = (SOAPElement)iterator.next();
-            System.out.println(element.getNodeName());
+            System.out.println(element.getNodeName() + " " + element.getPrefix());
         }
         System.out.println("done");
     }
 
-    private static final String soap="<?xml version=\"1.0\" encoding=\"utf-8\"?><soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Header><LoginHeader xmlns=\"http://tourico.com/webservices/\"><username xmlns=\"http://tourico.com/travelservices/\">string</username><password xmlns=\"http://tourico.com/travelservices/\">string</password><culture xmlns=\"http://tourico.com/travelservices/\">None or en_US or zh_CN</culture><version xmlns=\"http://tourico.com/travelservices/\">string</version></LoginHeader></soap:Header><soap:Body><SearchHotels xmlns=\"http://tourico.com/webservices/\">"+"<sDestination>string</sDestination><sHotelCityName>string</sHotelCityName><sHotelLocationName>string</sHotelLocationName><sHotelName>string</sHotelName><dtCheckIn>date</dtCheckIn><dtCheckOut>date</dtCheckOut><roomsInformation><RoomInfo><AdultsNum>int</AdultsNum><ChildNum>int</ChildNum><ChildAges><ChildAge>int</ChildAge><ChildAge>int</ChildAge></ChildAges></RoomInfo><RoomInfo><AdultsNum>int</AdultsNum><ChildNum>int</ChildNum><ChildAges><ChildAge>int</ChildAge><ChildAge>int</ChildAge></ChildAges></RoomInfo></roomsInformation><maxPrice>decimal</maxPrice><starLevel>decimal</starLevel><fAvailableOnly>boolean</fAvailableOnly></SearchHotels></soap:Body></soap:Envelope>";
+    //soap 是没有<?xml version="1.0" encoding="utf-8"?>的
+    private static final String soap="<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Header><LoginHeader xmlns=\"http://tourico.com/webservices/\"><username xmlns=\"http://tourico.com/travelservices/\">string</username><password xmlns=\"http://tourico.com/travelservices/\">string</password><culture xmlns=\"http://tourico.com/travelservices/\">None or en_US or zh_CN</culture><version xmlns=\"http://tourico.com/travelservices/\">string</version></LoginHeader></soap:Header><soap:Body><SearchHotels xmlns=\"http://tourico.com/webservices/\">"+"<sDestination>string</sDestination><sHotelCityName>string</sHotelCityName><sHotelLocationName>string</sHotelLocationName><sHotelName>string</sHotelName><dtCheckIn>date</dtCheckIn><dtCheckOut>date</dtCheckOut><roomsInformation><RoomInfo><AdultsNum>int</AdultsNum><ChildNum>int</ChildNum><ChildAges><ChildAge>int</ChildAge><ChildAge>int</ChildAge></ChildAges></RoomInfo><RoomInfo><AdultsNum>int</AdultsNum><ChildNum>int</ChildNum><ChildAges><ChildAge>int</ChildAge><ChildAge>int</ChildAge></ChildAges></RoomInfo></roomsInformation><maxPrice>decimal</maxPrice><starLevel>decimal</starLevel><fAvailableOnly>boolean</fAvailableOnly></SearchHotels></soap:Body></soap:Envelope>";
 
-    private static final String soap2 = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    private static final String soap2 =
             "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
             "  <soap:Header>\n" +
             "    <LoginHeader xmlns=\"http://tourico.com/webservices/\">\n" +
