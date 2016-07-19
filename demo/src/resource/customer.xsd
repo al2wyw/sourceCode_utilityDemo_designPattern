@@ -1,0 +1,34 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.customer.com/webservices/"
+           targetNamespace="http://www.customer.com/webservices/" elementFormDefault="qualified">
+    <xs:element name="customer" type="customer"/>
+
+    <xs:complexType name="customer">
+        <xs:sequence>
+            <xs:element name="contactInfo" type="contactInfo" minOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="contactInfo" abstract="true">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string" minOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="address">
+        <xs:complexContent>
+            <xs:extension base="contactInfo">
+                <xs:sequence>
+                    <xs:element name="street" type="xs:string" minOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="phoneNumber">
+        <xs:complexContent>
+            <xs:extension base="contactInfo">
+                <xs:sequence/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

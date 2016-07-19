@@ -25,8 +25,8 @@ public class soapMessageParse {
     private static final String BODY_END = "</soap:Body>";
 
     public static void main(String[] args) throws  Exception {
-        testSOAPMessage();
-        //testDOMMessage(true);
+        //testSOAPMessage();
+        testDOMMessage(true);
         //testDOMMessage(false);
 
         int bodyStart = soap.indexOf(BODY_START);

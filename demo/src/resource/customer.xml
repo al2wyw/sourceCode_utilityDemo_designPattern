@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<customer xmlns="http://www.customer.com/webservices/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contactInfo
+            xsi:type="address">
+        <id>test for you 1234</id>
+        <street>1 A Street</street>
+    </contactInfo>
+</customer>
