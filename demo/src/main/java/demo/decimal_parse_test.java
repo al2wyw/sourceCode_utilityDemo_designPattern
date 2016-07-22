@@ -1,5 +1,6 @@
 package demo;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 /**
@@ -18,5 +19,10 @@ public class decimal_parse_test {
         System.out.println(df3.format(12.34));
 
         System.out.println(df4.format(12.34));
+
+
+        //float 精度缺少
+        System.out.println(new BigDecimal("1236699942.43") + " " + new BigDecimal("1236699942.43").floatValue() + " " + new BigDecimal("1236699942.43").doubleValue());
+
     }
 }
