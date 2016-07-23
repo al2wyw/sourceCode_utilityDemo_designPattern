@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +25,8 @@ public class testFluentIterable {
                 }
         ).toList();//Immutable list
         System.out.println(res.get(0));
-        res.get(0).append("t");
+        res.get(0).append("t");//good
+        //res.set(0,new StringBuilder());//bad
         System.out.println(res.get(0));
 
         List<Integer> test = FluentIterable.from(Arrays.asList(new StringBuilder("test1"), new StringBuilder("test2"), new StringBuilder("test3"), new StringBuilder("start1")))
