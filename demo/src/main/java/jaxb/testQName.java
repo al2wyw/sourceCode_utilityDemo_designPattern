@@ -72,3 +72,9 @@ public class testQName {
         parser.parse(new ByteInputStream(TEST.getBytes("UTF-8"),TEST.getBytes("UTF-8").length),handler);
     }
 }
+
+//org.w3c.dom -> Node -> Document Element Attr Text
+//org.xml.sax -> XMLReader, ContentHandler, DTDHandler, SAXException, SAXParseException
+
+//javax.xml.parsers -> DocumentBuilder, SAXParser (neither can write, use transform.Source to write(transform))
+//javax.xml.stream -> XMLStreamReader, XMLStreamWriter (can read can write, stream-style api)
