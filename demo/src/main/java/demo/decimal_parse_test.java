@@ -23,6 +23,9 @@ public class decimal_parse_test {
 
         //float 精度缺少
         System.out.println(new BigDecimal("1236699942.43") + " " + new BigDecimal("1236699942.43").floatValue() + " " + new BigDecimal("1236699942.43").doubleValue());
-
+        System.out.println(Float.valueOf("245234.67"));//345234.67 开始丢失精度
+        System.out.println(new BigDecimal(0.34f));
+        System.out.println(0.34f);
+        System.out.println(Float.valueOf("0.34"));
     }
 }
