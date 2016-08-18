@@ -65,3 +65,8 @@ public class testNoRootEleDemo {
  * @XmlElement
  * @XmlElementRef
 */
+
+/**
+ *  <ResGroups/> empty node  -> new ResGroups but content is all null
+ *  no <ResGroups/>          ->  null
+ * */
