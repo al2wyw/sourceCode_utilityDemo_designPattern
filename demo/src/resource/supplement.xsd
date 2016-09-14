@@ -1,0 +1,79 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trip="http://www.trip.com/webservices/"
+           targetNamespace="http://www.trip.com/webservices/" elementFormDefault="qualified">
+    <xs:element name="FeeBreakDown">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Supplements" type="trip:ArrayOfSupplement"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="ArrayOfSupplement">
+        <xs:complexContent>
+            <xs:restriction base="xs:anyType">
+                <xs:sequence>
+                    <xs:element name="Supplement" type="trip:Supplement" maxOccurs="unbounded" minOccurs="0"/>
+                </xs:sequence>
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="Supplement">
+        <xs:complexContent>
+            <xs:restriction base="xs:anyType">
+                <xs:attribute name="suppId" use="required" type="xs:int" />
+                <xs:attribute name="suppName" type="xs:string" />
+                <xs:attribute name="supptType" use="required" type="xs:int" />
+                <xs:attribute name="suppIsMandatory" use="required" type="xs:boolean" />
+                <xs:attribute name="suppChargeType" use="required" type="trip:ChargeType" />
+                <xs:attribute name="price" use="required" type="xs:decimal" />
+                <xs:attribute name="publishPrice" type="xs:decimal" />
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="PerRoomSupplement">
+        <xs:complexContent>
+            <xs:extension base="trip:Supplement">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+     <xs:complexType name="PerPersonSupplement">
+       <xs:complexContent>
+         <xs:extension base="trip:Supplement">
+           <xs:sequence>
+             <xs:element name="SuppAgeGroup" type="trip:ArrayOfSupplementAge" minOccurs="0"/>
+           </xs:sequence>
+         </xs:extension>
+       </xs:complexContent>
+     </xs:complexType>
+
+    <xs:complexType name="ArrayOfSupplementAge">
+        <xs:complexContent>
+            <xs:restriction base="xs:anyType">
+                <xs:sequence>
+                    <xs:element name="SupplementAge" type="trip:SupplementAge" maxOccurs="unbounded" minOccurs="0"/>
+                </xs:sequence>
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="SupplementAge">
+        <xs:complexContent>
+            <xs:restriction base="xs:anyType">
+                <xs:attribute name="suppFrom" use="required" type="xs:int" />
+                <xs:attribute name="suppTo" use="required" type="xs:int" />
+                <xs:attribute name="suppQuantity" use="required" type="xs:int" />
+                <xs:attribute name="suppPrice" use="required" type="xs:decimal" />
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="ChargeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Included"/>
+            <xs:enumeration value="Addition"/>
+            <xs:enumeration value="AtProperty"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
