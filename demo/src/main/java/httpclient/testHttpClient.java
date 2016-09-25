@@ -100,6 +100,6 @@ public class testHttpClient {
         if(responseEntity!=null){
             System.out.println(responseEntity.getContentType().getValue());
         }
-        //connection keep alive to reuse the connection ?
+        //connection keep alive to reuse the connection ? //yes
     }
 }
