@@ -27,6 +27,7 @@ public class GenericPractice<E> {
                 if(ts[0] instanceof WildcardType){
                     System.out.println("WildcardType: "+ts[0].toString());
                 }
+                System.out.println("ParameterizedType end");
             }
             if(type instanceof WildcardType){
                 System.out.println("WildcardType: "+type);
@@ -38,9 +39,10 @@ public class GenericPractice<E> {
             TypeVariable<?>[] types=method.getTypeParameters();
 
             for(TypeVariable tv:types){
-               System.out.println(tv.getName());
+               System.out.println("TypeVariable: "+tv.getName());
                }
-            System.out.println(type.toString());
+
+            System.out.println("Type: "+type.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
