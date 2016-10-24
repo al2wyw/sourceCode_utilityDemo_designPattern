@@ -46,10 +46,13 @@ public class testFloatCompare {
             System.out.println("a==b");
         }
 
+        //浮点数加减乘除(整除)round half up，不能整除则ceiling
+        System.out.println("special test");
         System.out.println(0.05 + 0.01);
         System.out.println(1.0 - 0.42);
         System.out.println(4.015 * 100);
         System.out.println(123.3 / 100);
+        System.out.println("if you just need two digits scale, round half up will make the result correct");
 
         /**
          * new BigDecimal(0.1) 所创建的 BigDecimal 正好等于 0.1（非标度值 1，其标度为 1），
@@ -60,6 +63,15 @@ public class testFloatCompare {
         System.out.println(big.subtract(new BigDecimal("0.1")).multiply(new BigDecimal(100000000000000000L)).doubleValue());//not 0
         BigDecimal big1 = new BigDecimal(String.valueOf(0.1d));
         System.out.println(big1.subtract(new BigDecimal("0.1")).multiply(new BigDecimal(100000000000000000L)).doubleValue());//0
+
+        //float 精度缺少
+        System.out.println(new BigDecimal("1236699942.43") + " " + new BigDecimal("1236699942.43").floatValue() + " " + new BigDecimal("1236699942.43").doubleValue());
+        System.out.println(Float.valueOf("245234.67"));//345234.67 开始丢失精度
+        System.out.println(new BigDecimal(0.34f));
+        System.out.println(0.34f);
+        System.out.println(Float.valueOf("0.34"));
+
+
 
     }
 }
