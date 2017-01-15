@@ -32,7 +32,7 @@ public class Main {
                     //定义code方法
                     CtMethod method = CtNewMethod.make("public void code(){}", cc);//直接把字符码parse成字节码,不用javac
                     //插入方法代码
-                    method.insertBefore("System.out.println(\"I'm a Programmer,Just "+ action +".....\");");
+                    method.insertBefore("System.out.println(\"I'm a Programmer,Just " + action + ".....\");");
                     cc.addMethod(method);
                     invokeMethod(cc);
                 }catch (Exception e){
