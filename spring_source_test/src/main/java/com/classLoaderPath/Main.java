@@ -15,6 +15,9 @@ import java.net.URLClassLoader;
  */
 public class Main {
     public static void main(String[] args){
+        //clazz.getResource("") will use the class loader of clazz to load resource
+        //clazz.getClassLoader().getResource("") will use the parent of class loader to load resource
+        //URLClassLoader has URLClassPath(ucp) has URLClassPath.Loader has base -> "jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/"
         URL l1 = Main.class.getResource("/");
         URL l2 = Main.class.getResource("");
         URL l3 = Main.class.getClassLoader().getResource(""); // l3 equal to l1
