@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.util.concurrent.Future</OriginalElement>
+  <nodes>
+    <node x="768.75" y="254.0">io.netty.util.concurrent.CompleteFuture</node>
+    <node x="240.24999999999997" y="170.0">java.util.concurrent.FutureTask</node>
+    <node x="164.49999999999997" y="255.0">com.google.common.util.concurrent.ListenableFutureTask</node>
+    <node x="654.25" y="170.0">io.netty.util.concurrent.AbstractFuture</node>
+    <node x="0.5" y="255.0">com.google.common.util.concurrent.SettableFuture</node>
+    <node x="541.25" y="170.0">io.netty.util.concurrent.Promise</node>
+    <node x="432.20833333333337" y="255.0">io.netty.channel.ChannelPromise</node>
+    <node x="257.25" y="0.0">java.util.concurrent.Future</node>
+    <node x="43.25" y="85.0">com.google.common.util.concurrent.ListenableFuture</node>
+    <node x="546.75" y="85.0">io.netty.util.concurrent.Future</node>
+    <node x="376.25" y="170.0">io.netty.channel.ChannelFuture</node>
+    <node x="0.0" y="170.0">com.google.common.util.concurrent.AbstractFuture</node>
+    <node x="602.0" y="254.0">io.netty.util.concurrent.DefaultPromise</node>
+    <node x="221.24999999999997" y="85.0">java.util.concurrent.RunnableFuture</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.google.common.util.concurrent.AbstractFuture" target="com.google.common.util.concurrent.ListenableFuture">
+      <point x="0.0" y="-17.5" />
+      <point x="72.5" y="145.0" />
+      <point x="82.75" y="145.0" />
+      <point x="-39.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.FutureTask" target="java.util.concurrent.RunnableFuture">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="io.netty.util.concurrent.AbstractFuture" target="io.netty.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="726.75" y="145.0" />
+      <point x="615.0833333333334" y="145.0" />
+      <point x="27.33333333333337" y="17.5" />
+    </edge>
+    <edge source="com.google.common.util.concurrent.ListenableFutureTask" target="com.google.common.util.concurrent.ListenableFuture">
+      <point x="-48.0" y="-17.5" />
+      <point x="212.49999999999997" y="230.0" />
+      <point x="192.24999999999997" y="230.0" />
+      <point x="192.24999999999997" y="145.0" />
+      <point x="161.75" y="145.0" />
+      <point x="39.5" y="17.5" />
+    </edge>
+    <edge source="io.netty.util.concurrent.Promise" target="io.netty.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="io.netty.util.concurrent.DefaultPromise" target="io.netty.util.concurrent.AbstractFuture">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="io.netty.util.concurrent.CompleteFuture" target="io.netty.util.concurrent.AbstractFuture">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="com.google.common.util.concurrent.ListenableFutureTask" target="java.util.concurrent.FutureTask">
+      <point x="48.0" y="-17.5" />
+      <point x="308.5" y="230.0" />
+      <point x="298.25" y="230.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.RunnableFuture" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelFuture" target="io.netty.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="448.75" y="145.0" />
+      <point x="560.4166666666666" y="145.0" />
+      <point x="-27.33333333333337" y="17.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelPromise" target="io.netty.util.concurrent.Promise">
+      <point x="39.0" y="-17.5" />
+      <point x="549.2083333333334" y="230.0" />
+      <point x="587.75" y="230.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="io.netty.util.concurrent.DefaultPromise" target="io.netty.util.concurrent.Promise">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="io.netty.util.concurrent.Future" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="587.75" y="60.0" />
+      <point x="325.58333333333326" y="60.0" />
+      <point x="27.333333333333314" y="17.5" />
+    </edge>
+    <edge source="com.google.common.util.concurrent.ListenableFuture" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="122.25" y="60.0" />
+      <point x="270.91666666666663" y="60.0" />
+      <point x="-27.333333333333314" y="17.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelPromise" target="io.netty.channel.ChannelFuture">
+      <point x="-39.0" y="-17.5" />
+      <point x="471.20833333333337" y="230.0" />
+      <point x="448.75" y="230.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="com.google.common.util.concurrent.SettableFuture" target="com.google.common.util.concurrent.AbstractFuture">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.9" x="465.5" y="118.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

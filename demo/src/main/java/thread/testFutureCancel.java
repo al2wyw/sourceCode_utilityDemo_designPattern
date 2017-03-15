@@ -14,9 +14,11 @@ public class testFutureCancel {
 
     public static void main(String[] args) throws Exception{
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        //3 type of submit returns Future<Void>, Future<T>
-        //Future<Void>, Future<T> are all FutureTask, FutureTask has a callable
-        //so all the runnable submitted become callable inside FutureTask finally
+        /**
+         *  3 type of submit returns Future<Void>, Future<T>
+         *  Future<Void>, Future<T> are all FutureTask, FutureTask has a callable
+         *  so all the runnable submitted become callable inside FutureTask finally
+        */
         Future res = executorService.submit(new Runnable() {
             public void run() {
                 try {
@@ -42,3 +44,10 @@ public class testFutureCancel {
         System.out.println(res.isDone());
     }
 }
+
+/**
+ *  Future 的三种实现主要是FutureTask 和两个 AbstractFuture
+ *  google的AF主要是靠Sync继承自java的AbstractQueuedSynchronizer
+ *  netty的AF主要看DefaultPromise的实现
+ * see Future.uml
+ * */
