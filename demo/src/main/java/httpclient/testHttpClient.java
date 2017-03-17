@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class testHttpClient {
     public static void main(String args[]) throws Exception{
+        //proxy ??? ssl???
         ConnectionConfig connectionConfig = ConnectionConfig
                 .custom()
                 .setCharset(Consts.UTF_8)
@@ -42,7 +43,7 @@ public class testHttpClient {
                 .setSocketTimeout(5000)
                 .setConnectTimeout(3000)
                 .build();
-        PoolingHttpClientConnectionManager manager =  new PoolingHttpClientConnectionManager();
+        PoolingHttpClientConnectionManager manager =  new PoolingHttpClientConnectionManager();//内含AbstractConnPool和PoolEntry
         manager.setDefaultConnectionConfig(connectionConfig);
         manager.setDefaultSocketConfig(socketConfig);
         manager.setMaxTotal(100);
@@ -51,15 +52,20 @@ public class testHttpClient {
                 .custom()
                 .setDefaultRequestConfig(requestConfig)
                 .setConnectionManager(manager)
-                .setConnectionTimeToLive(60, TimeUnit.SECONDS)
+                .evictIdleConnections(10L,TimeUnit.SECONDS) //第一个参数是控制conn的最大idle的，closeIdle相关，会生成一个线程去清理
+                .setConnectionTimeToLive(60, TimeUnit.SECONDS) //for connections in PoolingHttpClientConnectionManager, used only by PoolingHttpClientConnectionManager
                 .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
                     public long getKeepAliveDuration(HttpResponse httpResponse, HttpContext httpContext) {
                         return 1000;
                     }
                 })
-                .build();
+                .build();//InternalHttpClient -> MainClientExec
+        //PoolEntry.updateExpiry会更新timetolive, touch一下idle以达到closeIdle的目的
+        //(getKeepAliveDuration -> ConnectionHolder.setValidFor -> ConnectionHolder.release -> PoolEntry.updateExpiry)
+        //timetolive是conn的整个生命周期存活时间，默认为-1，closeExpire相关
+        //KeepAliveDuration会影响conn的存活时间, 默认实现是从Keep-Alive报头取值
         HttpGet get = new HttpGet("http://baidu.com");
-        HttpResponse response = httpClient.execute(get);
+        HttpResponse response = httpClient.execute(get); //AbstractConnPool.getPoolEntryBlocking
         if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
             System.out.println("good");
         }
@@ -100,6 +106,5 @@ public class testHttpClient {
         if(responseEntity!=null){
             System.out.println(responseEntity.getContentType().getValue());
         }
-        //connection keep alive to reuse the connection ? //yes
     }
 }
