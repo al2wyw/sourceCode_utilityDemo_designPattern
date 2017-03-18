@@ -39,7 +39,7 @@ public class testExecutorService {
 Future state:
 	NEW -> COMPLETING -> NORMAL
     NEW -> COMPLETING -> EXCEPTIONAL
-    NEW -> CANCELLED
+    NEW -> CANCELLED just setup the state, no more operations, so no cancelling state
     NEW -> INTERRUPTING -> INTERRUPTED
 
 	!NEW -> isDone
@@ -56,7 +56,7 @@ ThreadPoolExecutor state:
     RUNNING -> SHUTDOWN
        On invocation of shutdown(), perhaps implicitly in finalize()
     (RUNNING or SHUTDOWN) -> STOP
-       On invocation of shutdownNow()
+       On invocation of shutdownNow(), drain queued tasks and interrupt workers
     SHUTDOWN -> TIDYING
        When both queue and pool are empty
     STOP -> TIDYING

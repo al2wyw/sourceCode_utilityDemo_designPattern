@@ -58,5 +58,9 @@ public class testCustomClient {
         executorService.submit(run);
         executorService.submit(run);
         executorService.submit(run);
+
+        executorService.shutdown();
+
+        executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 }

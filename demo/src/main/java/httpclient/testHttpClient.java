@@ -17,6 +17,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 public class testHttpClient {
     public static void main(String args[]) throws Exception{
         //proxy ??? ssl???
+        //AbstractConnPool has route to pool map, route has host and proxy, different host will generate different route
+        //DefaultRoutePlanner to determine the proxy of route
         ConnectionConfig connectionConfig = ConnectionConfig
                 .custom()
                 .setCharset(Consts.UTF_8)
@@ -52,7 +55,7 @@ public class testHttpClient {
                 .custom()
                 .setDefaultRequestConfig(requestConfig)
                 .setConnectionManager(manager)
-                .evictIdleConnections(10L,TimeUnit.SECONDS) //第一个参数是控制conn的最大idle的，closeIdle相关，会生成一个线程去清理
+                .evictIdleConnections(10L, TimeUnit.SECONDS) //第一个参数是控制conn的最大idle的，closeIdle相关，会生成一个线程去清理
                 .setConnectionTimeToLive(60, TimeUnit.SECONDS) //for connections in PoolingHttpClientConnectionManager, used only by PoolingHttpClientConnectionManager
                 .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
                     public long getKeepAliveDuration(HttpResponse httpResponse, HttpContext httpContext) {
@@ -105,6 +108,8 @@ public class testHttpClient {
         HttpEntity responseEntity = response1.getEntity();
         if(responseEntity!=null){
             System.out.println(responseEntity.getContentType().getValue());
+            //System.out.println(responseEntity.getContentEncoding().getValue());//may be null
+            System.out.println(EntityUtils.toString(responseEntity));
         }
     }
 }
