@@ -1,5 +1,6 @@
 package netty;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import utils.ThreadUtils;
@@ -16,13 +17,18 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
         ThreadUtils.printThreadName("in", s);
         final String t = s;
-        FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
-            public String call() throws Exception {
+        final Channel channel = channelHandlerContext.channel();
+        //runnable就够了,future没什么用
+        FutureTask<Void> future = new FutureTask<Void>(new Callable<Void>() {
+            public Void call() throws Exception {
+                ThreadUtils.sleep(3000);
                 ThreadUtils.printThreadName("in", t);
-                return t + System.currentTimeMillis();
+                channel.writeAndFlush(t + System.currentTimeMillis());
+                return null;
             }
         });
         pool.submit(future);
-        channelHandlerContext.writeAndFlush(future.get());
     }
+
+
 }
