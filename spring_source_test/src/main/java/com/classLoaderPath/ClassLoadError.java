@@ -48,7 +48,7 @@ public class ClassLoadError {
     // ClassCastException
     public static void test3() throws Exception {
         BizClassLoader cl1 = new BizClassLoader(new URL[] { new File(findTarget()).toURI().toURL()});
-
+        Class<?>  clazz1 = CastExp.class;
         Class<?>  clazz2 = cl1.loadClass(CastExp.class.getName());
         try {
             CastExp castExp = (CastExp)clazz2.newInstance();
