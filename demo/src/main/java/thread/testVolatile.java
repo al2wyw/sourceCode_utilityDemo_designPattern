@@ -16,6 +16,8 @@ public class testVolatile {
     private AtomicBoolean flag = new AtomicBoolean(true);
 
     public static void main(String args[]) throws Exception{
+        //i5 4200u 2 core 4 threads : 4
+        System.out.println(Runtime.getRuntime().availableProcessors());
         final testVolatile test = new testVolatile();
         new Thread(){
             @Override
