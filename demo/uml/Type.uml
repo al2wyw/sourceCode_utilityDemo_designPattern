@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.lang.reflect.Type</OriginalElement>
+  <nodes>
+    <node x="0.0" y="180.0">java.lang.reflect.Constructor</node>
+    <node x="1019.0" y="180.0">java.lang.reflect.AnnotatedParameterizedType</node>
+    <node x="230.00000000000006" y="180.0">java.lang.reflect.Method</node>
+    <node x="579.0" y="180.0">java.lang.reflect.AnnotatedTypeVariable</node>
+    <node x="142.0" y="180.0">java.lang.reflect.Field</node>
+    <node x="1284.0" y="95.0">java.lang.reflect.GenericArrayType</node>
+    <node x="926.0" y="-2.0">java.lang.annotation.Annotation</node>
+    <node x="720.0" y="95.0">java.lang.reflect.AnnotatedType</node>
+    <node x="1129.0" y="95.0">java.lang.reflect.WildcardType</node>
+    <node x="979.0" y="95.0">java.lang.reflect.TypeVariable</node>
+    <node x="1162.5" y="0.0">java.lang.reflect.Type</node>
+    <node x="889.0" y="95.0">java.lang.Class</node>
+    <node x="505.31250000000006" y="0.0">java.lang.reflect.AnnotatedElement</node>
+    <node x="810.0" y="180.0">java.lang.reflect.AnnotatedArrayType</node>
+    <node x="1470.0" y="95.0">java.lang.reflect.ParameterizedType</node>
+    <node x="96.5" y="95.0">java.lang.reflect.AccessibleObject</node>
+    <node x="343.00000000000006" y="180.0">java.lang.reflect.AnnotatedWildcardType</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.lang.reflect.Constructor" target="java.lang.reflect.AnnotatedElement">
+      <point x="-30.5" y="-17.5" />
+      <point x="30.5" y="55.0" />
+      <point x="519.8958333333335" y="55.0" />
+      <point x="-72.91666666666663" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.TypeVariable" target="java.lang.reflect.Type">
+      <point x="32.5" y="-17.5" />
+      <point x="1076.5" y="75.0" />
+      <point x="1182.9" y="75.0" />
+      <point x="-13.599999999999909" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AnnotatedWildcardType" target="java.lang.reflect.AnnotatedType">
+      <point x="-5.6843418860808015E-14" y="-17.5" />
+      <point x="451.0" y="150.0" />
+      <point x="738.625" y="150.0" />
+      <point x="-55.875" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.ParameterizedType" target="java.lang.reflect.Type">
+      <point x="0.0" y="-17.5" />
+      <point x="1559.0" y="65.0" />
+      <point x="1223.7" y="65.0" />
+      <point x="27.200000000000045" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AnnotatedType" target="java.lang.reflect.AnnotatedElement">
+      <point x="0.0" y="-17.5" />
+      <point x="794.5" y="75.0" />
+      <point x="607.3958333333335" y="75.0" />
+      <point x="14.583333333333371" y="17.5" />
+    </edge>
+    <edge source="java.lang.Class" target="java.lang.reflect.Type">
+      <point x="17.5" y="-17.5" />
+      <point x="941.5" y="65.0" />
+      <point x="1169.3" y="65.0" />
+      <point x="-27.200000000000045" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.WildcardType" target="java.lang.reflect.Type">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.Method" target="java.lang.reflect.AnnotatedElement">
+      <point x="23.25" y="-17.5" />
+      <point x="299.75000000000006" y="75.0" />
+      <point x="578.2291666666667" y="75.0" />
+      <point x="-14.583333333333371" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AnnotatedParameterizedType" target="java.lang.reflect.AnnotatedType">
+      <point x="0.0" y="-17.5" />
+      <point x="1148.5" y="150.0" />
+      <point x="850.375" y="150.0" />
+      <point x="55.875" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.Field" target="java.lang.reflect.AccessibleObject">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.GenericArrayType" target="java.lang.reflect.Type">
+      <point x="0.0" y="-17.5" />
+      <point x="1367.0" y="75.0" />
+      <point x="1210.1" y="75.0" />
+      <point x="13.599999999999909" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AnnotatedTypeVariable" target="java.lang.reflect.AnnotatedType">
+      <point x="0.0" y="-17.5" />
+      <point x="684.5" y="160.0" />
+      <point x="775.875" y="160.0" />
+      <point x="-18.625" y="17.5" />
+    </edge>
+    <edge source="java.lang.Class" target="java.lang.reflect.AnnotatedElement">
+      <point x="-17.5" y="-17.5" />
+      <point x="906.5" y="65.0" />
+      <point x="636.5625" y="65.0" />
+      <point x="43.75" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.Constructor" target="java.lang.reflect.AccessibleObject">
+      <point x="30.5" y="-17.5" />
+      <point x="91.5" y="160.0" />
+      <point x="123.0" y="160.0" />
+      <point x="-53.0" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AccessibleObject" target="java.lang.reflect.AnnotatedElement">
+      <point x="0.0" y="-17.5" />
+      <point x="176.0" y="65.0" />
+      <point x="549.0625" y="65.0" />
+      <point x="-43.75" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.AnnotatedArrayType" target="java.lang.reflect.AnnotatedType">
+      <point x="0.0" y="-17.5" />
+      <point x="904.5" y="160.0" />
+      <point x="813.125" y="160.0" />
+      <point x="18.625" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.Method" target="java.lang.reflect.AccessibleObject">
+      <point x="-23.25" y="-17.5" />
+      <point x="253.25000000000006" y="160.0" />
+      <point x="229.0" y="160.0" />
+      <point x="53.0" y="17.5" />
+    </edge>
+    <edge source="java.lang.reflect.TypeVariable" target="java.lang.reflect.AnnotatedElement">
+      <point x="-32.5" y="-17.5" />
+      <point x="1011.5" y="55.0" />
+      <point x="665.7291666666667" y="55.0" />
+      <point x="72.91666666666674" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="1213.0" y="58.0" />
+  <SelectedNodes>
+    <node>java.lang.reflect.ParameterizedType</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

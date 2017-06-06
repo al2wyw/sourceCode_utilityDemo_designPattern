@@ -1,16 +1,16 @@
 package thread;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import netty.NamedThreadFactory;
+
+import java.util.concurrent.*;
 
 /**
  * Created by johnny.ly on 2016/1/20.
  */
 public class testExecutorService {
-    public static void main(String[] args){
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+    public static void main(String[] args) throws Exception{
+        ExecutorService executorService = new ThreadPoolExecutor(4,4,60,TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(4), new NamedThreadFactory("Johnny", false), new ThreadPoolExecutor.AbortPolicy());
         Future res = executorService.submit(new Runnable() { //submit will not throw exception, while execute will throw
             public void run() {
                 System.out.println(1 / 0);
@@ -23,6 +23,46 @@ public class testExecutorService {
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    Thread.sleep(15000);
+                }catch (Exception e){
+
+                }
+            }
+        };
+        Future result = submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+        submit(executorService, task);
+
+        try {
+            result.get(3, TimeUnit.SECONDS);
+        }catch (TimeoutException e){
+            e.printStackTrace();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }catch (ExecutionException e){
+            e.printStackTrace();
+        }
+        Thread.sleep(1000);
+        submit(executorService, task);
+        System.out.println("cancel start");
+        if(result.cancel(true)){
+            System.out.println("cancel true");
+            Thread.sleep(1000); //cancel后立马submit还是会有可能Reject,多线程就是这么恶心
+            submit(executorService,task);
+        }
+        submit(executorService,task);
+
         executorService.shutdown();//once execute/submit task, must shutdown(even if there is exception), otherwise main can not end
 
         /*
@@ -33,6 +73,15 @@ public class testExecutorService {
         }).start();
         */
         System.out.println("test");
+    }
+
+    private static Future submit(ExecutorService executorService, Runnable task){
+        try{
+            return executorService.submit(task);
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 }
 /*
