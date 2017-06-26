@@ -6,6 +6,9 @@ import java.util.concurrent.*;
 
 /**
  * Created by johnny.ly on 2016/1/20.
+ * runWorker -> w.lock() see interruptIdleWorkers -> w.tryLock() Worker的lock貌似是一种状态标识,标识此worker在run task
+ * 而并不是作为线程同步, Worker.isLock()
+ * Worker的超时回收交给workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS), 而不是另起一条线程来扫描处理
  */
 public class testExecutorService {
     public static void main(String[] args) throws Exception{
@@ -61,7 +64,7 @@ public class testExecutorService {
             Thread.sleep(1000); //cancel后立马submit还是会有可能Reject,多线程就是这么恶心
             submit(executorService,task);
         }
-        submit(executorService,task);
+        submit(executorService,task);//complete 2 tasks
 
         executorService.shutdown();//once execute/submit task, must shutdown(even if there is exception), otherwise main can not end
 
