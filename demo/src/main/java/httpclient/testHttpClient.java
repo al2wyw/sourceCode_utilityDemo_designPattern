@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class testHttpClient {
     public static void main(String args[]) throws Exception{
         //proxy ??? ssl???
+        //proxy is a HttpHost, just need ip and port, set it to builder. The auth process is provided by CredentialsProvider and AuthSchemeProvider. preemptively authenticate provided by AuthCache
         //AbstractConnPool has route to pool map, route has host and proxy, different host will generate different route
         //DefaultRoutePlanner to determine the proxy of route
         ConnectionConfig connectionConfig = ConnectionConfig
