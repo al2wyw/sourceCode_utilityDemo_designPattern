@@ -344,7 +344,7 @@ ServletContextListener has:
 															object = factory.getObject();
 														}
 														postProcessObjectFromFactoryBean(AbstractAutowireCapableBeanFactory){
-															//may be wrapIfNecessary to create proxy
+															//may be wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
 															applyBeanPostProcessorsAfterInitialization
 														}
 													}
@@ -639,7 +639,7 @@ ServletContextListener has:
 
 		// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 		bean = resolveBeforeInstantiation(AbstractAutowireCapableBeanFactory){
-			bean = applyBeanPostProcessorsBeforeInstantiation(mbd.getBeanClass(), beanName);
+			bean = applyBeanPostProcessorsBeforeInstantiation(mbd.getBeanClass(), beanName);//must setup custom source target at first -> createProxy (AbstractAutoProxyCreator)
 			if (bean != null) {
 				bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);(AbstractAutowireCapableBeanFactory)
 			}
@@ -763,8 +763,8 @@ ServletContextListener has:
 					@Override
 					public Object getObject() throws BeansException {
 						return getEarlyBeanReference(beanName, mbd, bean){
-							ibp.getEarlyBeanReference
-							ibp is a SmartInstantiationAwareBeanPostProcessor and should be under AbstractAutoProxyCreator!!!
+							ibp.getEarlyBeanReference -> wrapIfNecessary (AbstractAutoProxyCreator)
+							ibp is a SmartInstantiationAwareBeanPostProcessor
 						}
 					}
 				});
@@ -928,7 +928,7 @@ ServletContextListener has:
 			afterPropertiesSet(InitializingBean)
 			invokeCustomInitMethod
 		}
-		applyBeanPostProcessorsAfterInitialization
+		applyBeanPostProcessorsAfterInitialization  //may be wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
 	}
 	//if require type is int, it will return Integer
 	//value is always String, parsed by beanDefinitionParser or AutowiredAnnotationBeanPostProcessor
