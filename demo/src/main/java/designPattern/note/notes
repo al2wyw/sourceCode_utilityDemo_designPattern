@@ -1,0 +1,8 @@
+bridge and strategy are the same in the structure, but IoC can provide the same functionality
+state and strategy are similar in the structure, except for state should change the stateImpl via if-else in context class
+observer(not observable) and proxy depends on the concrete object not the abstract object/interface
+command and Memento have to store the action for undo/redo
+chain of responsibility dynamically creates if-else structure, if-else sequence can vary.
+Mediator will deal with the dependency between the concrete objects, so it depends on the concrete object
+Mediator is an observer but it has multiple observable 
+Facade is always singleton
