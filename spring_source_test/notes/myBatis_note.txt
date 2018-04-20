@@ -1,0 +1,367 @@
+﻿Namespaces enable the interface bindings
+Name Resolution:
+Fully qualified names (e.g. "com.mypackage.MyMapper.selectAllThings") are looked up directly and used if found.
+Short names (e.g. "selectAllThings") can be used to reference any unambiguous entry.
+
+Scope and LifeCycle
+SqlSessionFactoryBuilder
+This class can be instantiated, used and thrown away.Therefore the best scope for instances of SqlSessionFactoryBuilder is method scope.
+
+SqlSessionFactory
+Once created, the SqlSessionFactory should exist for the duration of your application execution.Therefore the best scope of SqlSessionFactory is application scope.
+
+SqlSession
+Each thread should have its own instance of SqlSession. Instances of SqlSession are not to be shared and are not thread safe. Therefore the best scope is request or method scope.
+
+Mapper Instances
+he best scope for mapper instances is method scope.
+
+Configuration XML
+The MyBatis configuration contains settings and properties that have a dramatic effect on how MyBatis behaves.
+
+properties
+If a property exists in more than one of these places, MyBatis loads them in the following order:
+Properties specified in the body of the properties element are read first,
+Properties loaded from the classpath resource or url attributes of the properties element are read second, and override any duplicate properties already specified,
+Properties passed as a method parameter are read last, and override any duplicate properties that may have been loaded from the properties body and the resource/url attributes.
+
+settings
+These are extremely important tweaks that modify the way that MyBatis behaves at runtime:
+...
+
+typeAliases
+A type alias is simply a shorter name for a Java type.
+You can also specify a package where MyBatis will search for beans. For example:
+<typeAliases>
+  <package name="domain.blog"/>
+</typeAliases>
+Each bean found in domain.blog , if no annotation is found, will be registered as an alias using uncapitalized non-qualified class name of the bean. domain.blog.Author will be registered as author. If the @Alias annotation is found its value will be used as an alias.
+
+typeHandlers
+Whenever MyBatis sets a parameter on a PreparedStatement or retrieves a value from a ResultSet, a TypeHandler is used to retrieve the value.
+You can override the type handlers or create your own to deal with unsupported or non-standard types. To do so, implement the interface org.apache.ibatis.type.TypeHandler or extend the convenience class org.apache.ibatis.type.BaseTypeHandler and optionally map it to a JDBC type:
+@MappedJdbcTypes(JdbcType.VARCHAR)
+public class ExampleTypeHandler extends BaseTypeHandler<String>{...}
+<!-- mybatis-config.xml -->
+<typeHandlers>
+  <typeHandler handler="org.mybatis.example.ExampleTypeHandler"/> //<package name="org.mybatis.example"/>
+</typeHandlers>
+MyBatis will know the the Java type that you want to handle with this TypeHandler by introspecting its generic type, but you can override this behavior by two means:
+Adding a javaType attribute to the typeHandler element (for example: javaType="String")
+Adding a @MappedTypes annotation to your TypeHandler class specifying the list of java types to associate it with. This annotation will be ignored if the javaType attribute as also been specified.
+Associated JDBC type can be specified by two means:
+Adding a jdbcType attribute to the typeHandler element (for example: jdbcType="VARCHAR").
+Adding a @MappedJdbcTypes annotation to your TypeHandler class specifying the list of JDBC types to associate it with. This annotation will be ignored if the jdbcType attribute as also been specified.
+
+...
+
+mappers
+<mappers>
+  <mapper resource="org/mybatis/builder/AuthorMapper.xml"/>
+  <mapper url="file:///var/mappers/AuthorMapper.xml"/>
+  <mapper class="org.mybatis.builder.AuthorMapper"/> //mapper interface
+  <package name="org.mybatis.builder"/>
+</mappers>
+
+Mapper XML Files
+The Mapper XML files have only a few first class elements (in the order that they should be defined):
+cache – Configuration of the cache for a given namespace.
+cache-ref – Reference to a cache configuration from another namespace.
+resultMap – The most complicated and powerful element that describes how to load your objects from the database result sets.
+sql – A reusable chunk of SQL that can be referenced by other statements.
+insert – A mapped INSERT statement.
+update – A mapped UPDATE statement.
+delete – A mapped DELETE statement.
+select – A mapped SELECT statement.
+
+select:
+<select
+  id="selectPerson"
+  parameterType="int"
+  parameterMap="deprecated"
+  resultType="hashmap"
+  resultMap="personResultMap"
+  flushCache="false"
+  useCache="true"
+  timeout="10000"
+  fetchSize="256"
+  statementType="PREPARED"
+  resultSetType="FORWARD_ONLY">
+resultType 	The fully qualified class name or alias for the expected type that will be returned from this statement. Note that in the case of collections, this should be the type that the collection contains, not the type of the collection itself. 
+resultMap 	A named reference to an external resultMap. Use resultMap OR resultType, not both. 
+
+insert, update and delete:
+<insert
+  id="insertAuthor"
+  parameterType="domain.blog.Author"
+  flushCache="true"
+  statementType="PREPARED"
+  keyProperty=""
+  keyColumn=""
+  useGeneratedKeys=""
+  timeout="20">
+<delete
+  id="insertAuthor"
+  parameterType="domain.blog.Author"
+  flushCache="true"
+  statementType="PREPARED"
+  timeout="20">
+<update the same as insert>
+useGeneratedKeys:(insert and update only) This tells MyBatis to use the JDBC getGeneratedKeys method to retrieve keys generated internally by the database. Default: false
+keyProperty:(insert and update only) Identifies a property into which MyBatis will set the key value returned by getGeneratedKeys, or by a selectKey child element of the insert statement. 
+keyColumn:(insert and update only) Sets the name of the column in the table with a generated key. This is only required in certain databases (like PostgreSQL) when the key column is not the first column in the table.
+if your database supports auto-generated key fields:
+<insert id="insertAuthor" useGeneratedKeys="true"
+    keyProperty="id">
+  insert into Author (username,password,email,bio)//no need to insert id
+  values (#{username},#{password},#{email},#{bio})
+</insert>
+or use <selectKey> to select the key id and insert into the table(so silly)
+
+sql:
+This element can be used to define a reusable fragment of SQL code that can be included in other statements.
+<sql id="userColumns"> id,username,password </sql>
+The SQL fragment can then be included in another statement:
+<select id="selectUsers" resultType="map">
+  select <include refid="userColumns"/>
+  from some_table
+  where id = #{id}
+</select>
+
+Parameters:
+Primitive or simply types: no need to specify the parameterType
+Complex types:(no need to specify the parameterType) 
+<insert id="insertUser" parameterType="User">
+  insert into users (id, username, password)
+  values (#{id}, #{username}, #{password})
+</insert>
+the javaType can almost always be determined from the parameter object, unless that object is a HashMap. Then the javaType should be specified to ensure the correct TypeHandler is used. 
+The JDBC Type is required by JDBC for all nullable columns.(for the PreparedStatement.setNull())
+#{property,javaType=int,jdbcType=NUMERIC}
+#{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler}
+#{height,javaType=double,jdbcType=NUMERIC,numericScale=2}
+If the mode=OUT (or INOUT) and the jdbcType=CURSOR, you must specify a resultMap to map the ResultSet to the type of the parameter. The javaType attribute is optional here, it will be automatically set to ResultSet:
+#{department, mode=OUT, jdbcType=CURSOR, javaType=ResultSet, resultMap=departmentResultMap}
+Mode out for the other jdbcType:
+#{middleInitial, mode=OUT, jdbcType=STRUCT, jdbcTypeName=MY_TYPE, resultMap=departmentResultMap}
+
+Despite all of these powerful options,most of the time you'll simply specify the property name, or at most, you'll specify the jdbcType for nullable columns. 
+#{firstName} or just #{middleInitial,jdbcType=VARCHAR} !!!
+
+String Substitution
+By default, using the #{} syntax will cause MyBatis to generate PreparedStatement properties and set the values safely against the PreparedStatement parameters.
+sometimes you just want to directly inject a string unmodified into the SQL Statement:
+ORDER BY ${columnName} //# is different from $
+Here MyBatis won't modify or escape the string !!!
+
+Result Maps
+<select id="selectUsers" resultType="map">//generate a hashmap 
+  select id, username, hashedPassword
+  from some_table
+  where id = #{id}
+</select>
+<select id="selectUsers" resultType="com.someapp.model.User">//User has id, username, hashedPassword as properties with get/set methods
+  select id, username, hashedPassword
+  from some_table
+  where id = #{id}
+</select>
+MyBatis is automatically creating a ResultMap behind the scenes to auto-map the columns to the JavaBean properties based on name.
+If the column names did not match exactly, you could employ select clause aliases:
+<select id="selectUsers" resultType="com.someapp.model.User">
+  select
+    user_id             as "id",
+    user_name           as "userName",
+    hashed_password     as "hashedPassword"
+  from some_table
+  where id = #{id}
+</select>
+
+<resultMap id="userResultMap" type="com.someapp.model.User">
+  <id property="id" column="user_id" />
+  <result property="username" column="user_name"/>
+  <result property="password" column="hashed_password"/>
+</resultMap>
+
+Advanced Result Maps
+<resultMap id="detailedBlogResultMap" type="Blog" autoMapping="PARTIAL">
+  <constructor>
+    <idArg column="blog_id" javaType="int"/>
+  </constructor>
+  <result property="title" column="blog_title"/>
+  <association property="author" javaType="Author">
+    <id property="id" column="author_id"/>
+    <result property="username" column="author_username"/>
+    <result property="password" column="author_password"/>
+    <result property="email" column="author_email"/>
+    <result property="bio" column="author_bio"/>
+    <result property="favouriteSection" column="author_favourite_section"/>
+  </association>
+  <collection property="posts" ofType="Post">
+    <id property="id" column="post_id"/>
+    <result property="subject" column="post_subject"/>
+    <association property="author" javaType="Author"/>
+    <collection property="comments" ofType="Comment">
+      <id property="id" column="comment_id"/>
+    </collection>
+    <collection property="tags" ofType="Tag" >
+      <id property="id" column="tag_id"/>
+    </collection>
+    <discriminator javaType="int" column="draft">
+      <case value="1" resultType="DraftPost"/>
+    </discriminator>
+  </collection>
+</resultMap>
+attributes:
+id 		A unique identifier in this namespace that can be used to reference this result map.
+type 	A fully qualified Java class name, or a type alias (see the table above for the list of built-in type aliases).
+autoMapping 	If present, MyBatis will enable or disable the automapping for this ResultMap. This attribute overrides the global autoMappingBehavior. Default: unset. 
+elements:
+constructor - used for injecting results into the constructor of a class upon instantiation
+	idArg - ID argument; flagging results as ID will help improve overall performance
+	arg - a normal result injected into the constructor
+id - an ID result; flagging results as ID will help improve overall performance(the difference from result)
+result - a normal result injected into a field or JavaBean property
+association - a complex type association; many results will roll up into this type
+	nested result mappings - associations are resultMaps themselves, or can refer to one
+collection - a collection of complex types
+	nested result mappings - collections are resultMaps themselves, or can refer to one
+discriminator - uses a result value to determine which resultMap to use
+	case - a case is a result map based on some value 
+		nested result mappings - a case is also a result map itself, and thus can contain many of these same elements
+
+Always build ResultMaps incrementally. Unit tests really help out here  !!!
+
+id & result (property, column, javaType, jdbcType, typeHandler)
+
+constructor (column, javaType, jdbcType, typeHandler, select, resultMap)
+
+association (property, javaType, jdbcType, typeHandler)
+The association element deals with a "has-one" type relationship:
+    Nested Select: By executing another mapped SQL statement that returns the complex type desired.
+    Nested Results: By using nested result mappings to deal with repeating subsets of joined results.
+
+Nested Select for Association (column, select, fetchType(lazy or eager))
+<resultMap id="blogResult" type="Blog">
+  <association property="author" column="author_id" javaType="Author" select="selectAuthor"/>
+</resultMap>
+<select id="selectBlog" resultMap="blogResult">
+  SELECT * FROM BLOG WHERE ID = #{id}
+</select>
+<select id="selectAuthor" resultType="Author">
+  SELECT * FROM AUTHOR WHERE ID = #{id}
+</select>
+"N+1 Selects Problem" will occur.
+Mybatis can lazy load such query, but still have performance problem.
+
+Nested Results for Association (resultMap, columnPrefix(reuse the resultmap with adding column prefix to every column attribute), notNullColumn, autoMapping)
+<resultMap id="blogResult" type="Blog">
+  <id property="id" column="blog_id" />
+  <result property="title" column="blog_title"/>
+  <association property="author" resultMap="authorResult" />
+</resultMap>
+<resultMap id="authorResult" type="Author">
+  <id property="id" column="author_id"/>
+  <result property="username" column="author_username"/>
+  <result property="password" column="author_password"/>
+  <result property="email" column="author_email"/>
+  <result property="bio" column="author_bio"/>
+</resultMap>
+<select id="selectBlog" resultMap="blogResult">
+  select
+    B.id            as blog_id,
+    B.title         as blog_title,
+    B.author_id     as blog_author_id,
+    A.id            as author_id,
+    A.username      as author_username,
+    A.password      as author_password,
+    A.email         as author_email,
+    A.bio           as author_bio
+  from Blog B left outer join Author A on B.author_id = A.id
+  where B.id = #{id}
+</select>
+id elements play a very important role in Nested Result mapping. You should always specify one or more properties that can be used to uniquely identify the results. 
+Because the column names in the results differ from the columns defined in the resultMap, you need to specify columnPrefix to reuse the resultMap:
+<association property="coAuthor" resultMap="authorResult" columnPrefix="co_" />(see example co_author on myabtis3 website)
+
+Multiple ResultSets for Association (column, foreignColumn, resultSet)
+work with stored procedures(see example on myabtis3 website)
+
+collection (ofType)
+The collection element deals with a "has many" relationship.
+
+private List<Post> posts;
+<collection property="posts" ofType="domain.blog.Post">
+  <id property="id" column="post_id"/>
+  <result property="subject" column="post_subject"/>
+  <result property="body" column="post_body"/>
+</collection>
+
+Nested Select for Collection
+<resultMap id="blogResult" type="Blog">
+	//javaType=ArrayList or The javaType attribute is really unnecessary, as MyBatis will figure this out for you
+  <collection property="posts" javaType="ArrayList" column="id" ofType="Post" select="selectPostsForBlog"/> 
+</resultMap>
+<select id="selectBlog" resultMap="blogResult">
+  SELECT * FROM BLOG WHERE ID = #{id}
+</select>
+<select id="selectPostsForBlog" resultType="Post">
+  SELECT * FROM POST WHERE BLOG_ID = #{id}
+</select>
+
+Nested Results for Collection
+
+Multiple ResultSets for Collection
+
+Discriminator
+???
+
+Auto-mapping
+MyBatis will get the column name and look for a property with the same name ignoring case
+Usually database columns are named using uppercase letters and underscores between words and java properties often follow the camelcase naming covention. 
+To enable the auto-mapping between them set the setting mapUnderscoreToCamelCase to true. 
+Auto-mapping works even when there is an specific result map:
+all columns that are present in the ResultSet that have not a result mapping will be auto-mapped, then result mappings will be processed. 
+
+three auto-mapping levels: 
+    NONE - disables auto-mapping. Only manually mapped properties will be set.
+    PARTIAL - will auto-map results except those that have nested result mappings defined inside (joins).
+    FULL - auto-maps everything.
+
+Cache
+To enable a global second level of caching you simply need to add one line to your SQL Mapping file: <cache/>
+The effect of this one simple statement is as follows:
+    All results from select statements in the mapped statement file will be cached.
+    All insert, update and delete statements in the mapped statement file will flush the cache.
+    The cache will use a Least Recently Used (LRU) algorithm for eviction.
+    The cache will not flush on any sort of time based schedule (i.e. no Flush Interval).
+    The cache will store 1024 references to lists or objects (whatever the query method returns).
+    The cache will be treated as a read/write cache, meaning objects retrieved are not shared and can be safely modified by the caller, without interfering with other potential modifications by other callers or threads.
+
+ The available eviction policies available are:
+    LRU - Least Recently Used: Removes objects that haven't been used for the longst period of time.
+    FIFO - First In First Out: Removes objects in the order that they entered the cache.
+    SOFT - Soft Reference: Removes objects based on the garbage collector state and the rules of Soft References.
+    WEAK - Weak Reference: More aggressively removes objects based on the garbage collector state and rules of Weak References.
+
+A read-only cache will return the same instance of the cached object to all callers.
+A read-write cache will return a copy (via serialization) of the cached object.
+
+Using a Custom Cache
+The default setup of cache is not applied to custom cache!!!
+To configure your cache, simply add public JavaBeans properties to your Cache implementation:
+<cache type="com.domain.something.MyCustomCache">
+  <property name="cacheFile" value="/tmp/my-custom-cache.tmp"/>
+</cache>
+By default, statements are configured like this:
+<select ... flushCache="false" useCache="true"/>
+<insert ... flushCache="true"/>
+<update ... flushCache="true"/>
+<delete ... flushCache="true"/>
+
+<cache-ref namespace="com.someone.application.data.SomeMapper"/>
+
+MyBatis employs powerful OGNL based expressions to eliminate most of the other elements:
+if test="title != null"
+choose (when, otherwise)
+trim (where, set)
+foreach

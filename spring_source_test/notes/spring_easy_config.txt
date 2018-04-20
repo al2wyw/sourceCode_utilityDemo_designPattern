@@ -1,0 +1,61 @@
+java api:
+concurrent
+nio
+security
+ssl
+proxy(specification)
+method's invoke(specification) return int; pass int
+annotatedElement(specification)
+
+java design(things to consider about):
+inheritance, accessor modifier, static/final/abstract, generic type, annotation type, primary/object type, array type, serializable, multi-thread
+
+<aop:scoped-proxy>(inject other scopes into singleton) and lookup method injection(inject prototype into singleton) will use CGLIB by default
+
+<context:property-placeholder/>:
+org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
+
+@ComponentScan has not annotation-config
+AnnotationConfigApplicationContext has already register annotation-config
+<context:component-scan/> has <context:annotation-config/>:
+AutowiredAnnotationBeanPostProcessor(Autowired,Value,Inject),CommonAnnotationBeanPostProcessor(Resource,WebServiceRef,PostConstruct,PreDestroy),PersistenceAnnotationBeanPostProcessor,RequiredAnnotationBeanPostProcessor(Required),ConfigurationClassPostProcessor(Configuration,Bean and the others(ConfigurationClassParser and ConfigurationClassBeanDefinitionReader))
+Service,Controller,Repository,Component are dealed by ClassPathBeanDefinitionScanner
+@Primary, @Lazy, @DependsOn, @Role are dealed by AnnotationConfigUtils(used by ClassPathBeanDefinitionScanner and ConfigurationClassBeanDefinitionReader)
+
+Role Profile({"p1","p2"}) PropertySource(add PropertySource to Environment) ImportResource(<import/> in XML){value,reader}
+ConfigurableEnvironment.setActiveProfiles("p1") the bean @Profile({"p1","p2"}) will be parsed, If the @Profile annotation is omitted, registration will occur, regardless of which (if any) profiles are active. 
+
+LiteConfigurationClass and FullConfigurationClass are all ConfigurationCandidate
+
+AutowiredAnnotationBeanPostProcessor:
+Note: A default AutowiredAnnotationBeanPostProcessor will be registered by the "context:annotation-config" and "context:component-scan" XML tags. Remove or turn off the default annotation configuration there if you intend to specify a custom AutowiredAnnotationBeanPostProcessor bean definition.
+NOTE: Annotation injection will be performed before XML injection; thus the latter configuration will override the former for properties wired through both approaches.
+
+component-scan with use-default-filters="true" include-filter="..." to use default filter plus the added filters
+
+The full set of initialization methods and their standard order is:
+1. BeanNameAware's setBeanName
+2. BeanClassLoaderAware's setBeanClassLoader
+3. BeanFactoryAware's setBeanFactory
+4. ResourceLoaderAware's setResourceLoader (only applicable when running in an application context)
+5. ApplicationEventPublisherAware's setApplicationEventPublisher (only applicable when running in an application context)
+6. MessageSourceAware's setMessageSource (only applicable when running in an application context)
+7. ApplicationContextAware's setApplicationContext (only applicable when running in an application context)
+8. ServletContextAware's setServletContext (only applicable when running in a web application context)
+9. postProcessBeforeInitialization methods of BeanPostProcessors
+10. InitializingBean's afterPropertiesSet
+11. a custom init-method definition
+12. postProcessAfterInitialization methods of BeanPostProcessors
+On shutdown of a bean factory, the following lifecycle methods apply:
+1. DisposableBean's destroy
+2. a custom destroy-method definition
+
+BeanDifinitionParser: (several subclasses)
+ParserContext{XmlReaderContext readerContext, BeanDefinitionParserDelegate delegate, BeanDefinition containingBeanDefinition}
+XmlReaderContext{XmlBeanDefinitionReader reader, NamespaceHandlerResolver namespaceHandlerResolver, ...}
+XmlBeanDefinitionReader{BeanDefinitionRegistry registry, ...}
+
+ComponentScanBeanDefinitionParser:
+ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider
+
+AnnotationVisitor(protected properties) -> AbstractRecursiveAnnotationVisitor(protected properties) -> RecursiveAnnotationAttributesVisitor -> AnnotationAttributesReadingVisitor

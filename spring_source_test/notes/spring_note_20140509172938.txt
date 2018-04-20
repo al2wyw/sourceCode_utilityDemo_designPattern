@@ -1,0 +1,1546 @@
+IoC can be decomposed into two subtypes: Dependency Injection and Dependency Lookup.
+
+Dependency Lookup comes in two types: Dependency Pull and Contextualized Dependency
+Lookup (CDL). Dependency Injection also has two common flavors: Constructor Dependency Injection
+and Setter Dependency Injection.
+
+Dependency Injection services that Spring offers, including Setter Injection, Constructor Injection, and Method Injection.
+
+Dependency Pull is the most familiar type of IoC. In Dependency Pull, dependencies are pulled from a REGISTRY as required:
+public static void main(String[] args) throws Exception {
+// get the bean factory
+	BeanFactory factory = getBeanFactory();
+	MessageRenderer mr = (MessageRenderer) factory.getBean("renderer");
+	mr.render();
+}
+
+Contextualized Dependency Lookup is performed against the container that is managing the resource, not from some central registry:
+public interface ManagedComponent {
+	public void performLookup(Container container);
+}
+
+When you are using Spring, you can access EJB resources without needing to perform an explicit lookup.
+Spring can act as an adapter between lookup and injection-style IoC systems, thus allowing you to manage all
+resources using injection.
+
+The real question is this: given the choice, which method should you use, injection or lookup? The answer to this is most definitely injection. (using injection has zero impact on your components’ code)
+
+you should strive to keep setters used solely for injection out of your business and DAO interfaces. Unless
+you are absolutely sure that all implementations of a particular business interface require a particular dependency
+
+what is the difference between a configuration parameter and any other kind of dependency?
+Configuration parameters are passive.Passive dependencies are not used directly to perform an action; instead, they are used internally or by another dependency to perform their actions.
+Configuration parameters are usually information, not other components.
+Configuration parameters are usually simple values or collections of simple values.
+
+Setter injection also allows you to swap dependencies for a different implementation on the fly
+without creating a new instance of the parent component. Perhaps the biggest benefit of Setter Injection is that it is the least intrusive of the injection mechanisms.
+In general, setter-based injection is the best choice, because it has the least effect on your code’s usability in non-IoC settings.
+
+In Spring, the ApplicationContext interface is an extension to BeanFactory. In addition to DI services,
+the ApplicationContext also provides other services, such as transaction and AOP service, message
+source for internationalization (i18n), and application event handling, to name a few.
+
+setter injection
+<bean id="messageRenderer" class="com.apress.prospring3.ch4.xml.StandardOutMessageRenderer">
+<property name="messageProvider"> //<property name="messageProvider" ref="messageProvider">
+	<ref bean="messageProvider"/>
+</property>
+</bean>
+
+<bean id="messageRenderer" class="com.apress.prospring3.ch4.xml.StandardOutMessageRenderer"
+p:messageProvider-ref="messageProvider"/>
+
+constructor injection(you need to give each <constructor-arg> tag an index attribute to specify the index of the argument,
+starting at 0 and the type attribute to define the parameter type)
+<bean id="messageProvider" class="com.apress.prospring3.ch4.xml.ConfigurableMessageProvider">
+<constructor-arg>
+	<value>This is a configurable message</value>
+</constructor-arg>
+</bean>
+
+<bean id="messageProvider" class="com.apress.prospring3.ch4.xml.ConfigurableMessageProvider"
+c:message="This is a configurable message"/>("message" is the property)
+
+<bean id="message" class="java.lang.String"
+c:_0="This is a configurable message"/>("_0" defines the index of parameter)
+
+value injectction:
+<property name="name">
+	<value>John Smith</value>
+</property>
+
+ApplicationContext Nesting:
+child can use beans in parent context. child.setParent(parent);
+
+Using Collections for Injection:
+<bean id="oracle" name="wiseworm" class="com.apress.prospring3.ch4.BookwormOracle"/>
+<bean id="injectCollection" class="com.apress.prospring3.ch4.xml.CollectionInjection">
+<property name="map">
+	<map>
+		<entry key="someValue">
+			<value>Hello World!</value>
+		</entry>
+		<entry key="someBean">
+			<ref local="oracle"/>
+		</entry>
+	</map>
+</property>
+<property name="props">
+	<props>
+		<prop key="firstName">Clarence</prop>
+		<prop key="secondName">Ho</prop>
+	</props>
+</property>
+<property name="set">
+	<set>(no specified type)
+		<value>Hello World!</value>
+		<ref local="oracle"/>
+	</set>
+</property>
+<property name="list">//array property also use list to inject
+	<list>(no specified type)
+		<value>Hello World!</value>
+		<ref local="oracle"/>
+	</list>
+</property>
+</bean>
+with the <list>, <map>, and <set> elements, you can employ any of the tags used to set
+the value of noncollection properties to specify the value of the entries in the collection.(rather than using primitive type)
+
+From spring reference:
+
+<import> in the applicationcontext.xml
+
+It is possible, but not recommended, to reference files in parent directories using a relative
+"../" path.In particular, this reference is not recommended for "classpath:" URLs (for example, "classpath:../
+services.xml"), where the runtime resolution process chooses the "nearest" classpath root and
+then looks into its parent directory. Classpath configuration changes may lead to the choice of
+a different, incorrect directory. It is generally preferable
+to keep an indirection for such absolute locations, for example, through "${…}" placeholders that
+are resolved against JVM system properties at runtime.
+
+Indeed,your application code should have no calls to the getBean() method at all, and thus no dependency
+on Spring APIs at all.
+
+the ApplicationContext implementations also permit the registration of existing objects that are
+created outside the container, by users. This is done by accessing the ApplicationContext’s
+BeanFactory via the method getBeanFactory() which returns the BeanFactory implementation
+DefaultListableBeanFactory.
+
+you want to introduce other aliases to the bean, you can also specify them in the name attribute, separated by a comma (,),
+semicolon (;), or white space. (just one id but more names)
+
+Instantiating beans:
+• Typically, the bean class to be constructed in the case where the container itself directly
+creates the bean by calling its constructor reflectively, using the new operator. (default constructor)
+• the actual class containing the static factory method that will be invoked to create the
+object. The object type returned from the invocation of the static factory method may
+be the same class or another class entirely. 
+(a bean class definition for a static nested class "com.example.Foo$Bar")
+
+1.Instantiation with a constructor:
+<bean id="clientService" class="examples.ClientService"/>
+	
+2.Instantiation with a static factory method:
+<bean id="clientService"
+	class="examples.ClientService"
+		factory-method="createInstance"/>
+public class ClientService {
+	private static ClientService clientService = new ClientService();
+	private ClientService() {}
+	public static ClientService createInstance() {
+		return clientService;
+	}
+}
+
+3.Instantiation using an instance factory method:
+<bean id="serviceLocator" class="examples.DefaultServiceLocator"></bean>
+<bean id="clientService" factory-bean="serviceLocator" factory-method="createClientServiceInstance"/>
+public class DefaultServiceLocator {
+	private static ClientService clientService = new ClientServiceImpl();
+	private DefaultServiceLocator() {}
+	public ClientService createClientServiceInstance() {
+		return clientService;
+	}
+}
+
+IOC definition:
+the name Inversion of Control (IoC), of the bean itself controlling the instantiation or location of
+its dependencies on its own by using direct construction of classes, or the Service Locator pattern.
+
+Constructor-based dependency injection:
+1.<constructor-arg ref="bar"/>
+2.	<constructor-arg type="int" value="7500000"/>
+	<constructor-arg index="0" value="7500000"/>
+	<constructor-arg name="years" value="7500000"/>(years is the parameter name)
+Setter-based dependency injection:
+
+Circular dependencies
+constructor injection will arise circular dependencies, instantiate A with parameter B but B should be 
+instantiated with parameter A, container throws a BeanCurrentlyInCreationException at runtime.
+
+Dependencies and configuration in detail:
+Straight values (primitives, Strings, and so on): use value in the bean definition
+The idref element(the name string of bean):the idref tag allows the container to validate at deployment time that the referenced, named bean actually exists.
+References to other beans: <ref bean="someBean"/> or <ref parent="accountService"/>(a reference to a bean that is in a parent
+container of the current container.)
+Inner beans(A <bean/> element inside the <property/> or <constructor-arg/> elements): no name , no id, no scope, the container will ignore all above.
+Collections: List, Set, Map, and Properties
+<bean id="moreComplexObject" class="example.ComplexObject">
+<!-- results in a setAdminEmails(java.util.Properties) call -->
+	<property name="adminEmails">
+		<props>
+			<prop key="administrator">administrator@example.org</prop>
+			<prop key="support">support@example.org</prop>
+			<prop key="development">development@example.org</prop>
+		</props>
+	</property>
+<!-- results in a setSomeList(java.util.List) call -->
+	<property name="someList">
+		<list>
+			<value>a list element followed by a reference</value>
+			<ref bean="myDataSource" />
+		</list>
+	</property>
+<!-- results in a setSomeMap(java.util.Map) call -->
+	<property name="someMap">
+		<map>
+			<entry key="an entry" value="just some string"/>
+			<entry key ="a ref" value-ref="myDataSource"/>
+		</map>
+	</property>
+<!-- results in a setSomeSet(java.util.Set) call -->
+	<property name="someSet">
+		<set>
+			<value>just some string</value>
+			<ref bean="myDataSource" />
+		</set>
+	</property>
+</bean>
+Collection merge
+<bean id="parent" abstract="true" class="example.ComplexObject">
+	<property name="adminEmails">
+		<props>
+			<prop key="administrator">administrator@example.com</prop>
+			<prop key="support">support@example.com</prop>
+		</props>
+	</property>
+</bean>
+<bean id="child" parent="parent">
+	<property name="adminEmails">
+		<!-- the merge is specified on the *child* collection definition -->
+		<props merge="true">
+			<prop key="sales">sales@example.com</prop>
+			<prop key="support">support@example.co.uk</prop>
+		</props>
+	</property>
+</bean>
+strong-type collection
+When the accounts property is prepared for injection, the generics information about
+the element type of the strongly-typed Map<String, Float> is available by reflection. Spring's
+type conversion recognizes the various value elements as being of type Float
+<property name="accounts"> (map<Sting,Float>)
+	<map>
+		<entry key="one" value="9.99"/>
+		<entry key="two" value="2.75"/>
+		<entry key="six" value="3.99"/>
+	</map>
+</property>
+Null and empty string values:
+<property name="email" value=""/>
+<property name="email"><null/></property>
+Compound property names: fred is not null, bob is not null before this injection
+<property name="fred.bob.sammy" value="123" />
+
+Compound property names
+You can use compound or nested property names when you set bean properties:
+<bean id="foo" class="foo.Bar">
+	<property name="fred.bob.sammy" value="123" />
+</bean>
+The foo bean has a fred property, which has a bob property, which has a sammy property, and that final
+sammy property is being set to the value 123.
+
+Using depends-on
+To express a dependency on multiple beans, supply a list of bean names as the value of the dependson
+attribute, with commas, whitespace and semicolons, used as valid delimiters:
+<bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+
+Dependent beans that define a depends-on relationship with a given bean are destroyed first,
+prior to the given bean itself being destroyed !!!
+
+Lazy-initialized beans:
+ApplicationContext implementations eagerly create and configure all singleton beans
+as part of the initialization process.
+<bean id="lazy" class="com.foo.ExpensiveToCreateBean" lazy-init="true"/>
+a lazy-initialized bean is a dependency of a singleton bean that is not lazy-initialized,
+the ApplicationContext creates the lazy-initialized bean at startup
+
+Autowiring: to reduce the need to specify properties or constructor arguments
+mode: byName, byType, constructor(similar to byType,but applies to constructor arguments),
+autodetect(byType or construtor), default(the value of default-autowire in <beans> tag)
+You can autowire strongly-typed Maps if the expected key type is String. An autowired
+Maps values will consist of all bean instances that match the expected type, and the Maps keys will
+contain the corresponding bean names.
+disadvantages of autowiring:
+cannot autowire so-called simple properties such as primitives, Strings, and Classes (and
+arrays of such simple properties)
+Multiple bean definitions within the container may match the type specified by the setter method
+or constructor argument to be autowired.
+You can not know the dependency of beans, maintenance is more difficult.
+set autowire-candidate attribute of the <bean/> element to false to exclude from autowiring.
+<beans default-autowire="autodetect">
+    <bean id="computer1" class="ioc.test.Computer" autowire="byName"></bean>
+    <bean id="computer2" class="ioc.test.Computer" autowire="byType"></bean>
+    <bean id="computer3" class="ioc.test.Computer" autowire="default"></bean>
+    
+    <bean id="host" class="ioc.test.Host"></bean>
+    <bean id="display" class="ioc.test.Display"></bean>    
+</beans>
+
+method injection (to inject serveral prototype into a singlton)(rarely use)
+1.ApplicationContextAware to use getBean("beanname") as needed;
+2.lookup-method:
+The Spring Framework implements this method injection by using bytecode generation from the CGLIB library to generate dynamically a
+subclass that overrides the method
+the method to be injected requires a signature of the following form:
+<public|protected> [abstract] <return-type> theMethodName(no-arguments);
+If the method is abstract, the dynamically-generated subclass implements the method. Otherwise,
+the dynamically-generated subclass overrides the concrete method defined in the original class.
+<bean id="command" class="fiona.apple.AsyncCommand" scope="prototype">
+</bean>
+<bean id="commandManager" class="fiona.apple.CommandManager">
+	<lookup-method name="createCommand" bean="command"/>//createCommand is the method to be injected
+</bean>
+The class that the Spring container will subclass cannot
+be final, and the method to be overridden cannot be final either.
+Finally, objects that have been the target of method injection cannot be serialized.
+3.Arbitrary method replacement:
+...
+
+
+Bean scopes:
+singlton, prototype, request, session, global seesion
+the following are only valid in the context of a web-aware Spring ApplicationContext(use XmlWebApplicationContext, not ClassPathXmlApplicationContext)
+request : a single bean definition to the lifecycle of a single HTTP request;
+session : a single bean definition to the lifecycle of a HTTP session;
+global session: a single bean definition to the lifecycle of a global HTTP Session; (used in portlet)
+
+prototype: initialization lifecycle callback methods
+are called on all objects regardless of scope, in the case of prototypes, configured destruction lifecycle
+callbacks are not called. The client code must clean up prototype-scoped objects and release expensive
+resources that the prototype bean(s) are holding.
+
+to use request, session, global session:(if use Spring Web MVC no setup needed!)
+<listener>
+	<listener-class>
+		org.springframework.web.context.request.RequestContextListener
+	</listener-class>
+</listener>
+
+to inject request, seesion,global session bean into normal beans:
+<bean id="userPreferences" class="com.foo.UserPreferences" scope="session"><aop:scoped-proxy/></bean>
+<bean id="userService" class="com.foo.SimpleUserService">
+	<property name="userPreferences" ref="userPreferences"/>
+</bean>
+when a UserManager instance invokes a method on the dependency-injected UserPreferences object, it actually is invoking a method on
+the proxy. The proxy then fetches the real UserPreferences object from (in this case) the HTTP Session, and delegates the method invocation onto the retrieved real UserPreferences object.
+without aop:scoped-proxy. you are injecting a shorter-lived scoped bean into a longerlived scoped bean, does not make sense!
+
+Custome scope : interface org.springframework.beans.factory.config.Scope
+Using a custom scope
+1. call void registerScope(String scopeName, Scope scope); of AbstractBeanFactory
+2.<bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+	<property name="scopes">
+		<map>
+			<entry key="thread">
+				<bean class="org.springframework.context.support.SimpleThreadScope"/>
+			</entry>
+		</map>
+	</property>
+</bean>
+
+Lifecycle callbacks:
+<bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
+<bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/>
+or
+implements the InitializingBean and DisposableBean callback interfaces;
+or
+annotations @PostConstruct and @PreDestroy
+<!--
+If multiple lifecycle mechanisms are configured for a bean, and each mechanism is configured
+with a different method name, then each configured method is executed in the order listed below:
+• Methods annotated with @PostConstruct
+• afterPropertiesSet() as defined by the InitializingBean callback interface
+• A custom configured init() method
+Destroy methods are called in the same order:
+• Methods annotated with @PreDestroy
+• destroy() as defined by the DisposableBean callback interface
+• A custom configured destroy() method
+-->
+
+implements aware interface to inject the relevant referrence. ApplicationContextAware will acquire ApplicationContext.
+
+if you have a (parent) bean definition which you intend to use
+only as a template, and this definition specifies a class, you must make sure to set the abstract
+attribute to true,
+
+4.8 BeanPostProcessor interface(container-level scope, impact on all the bean in the same xml file) 
+using the addBeanPostProcessor method do not respect the Ordered interface
+BeanPostProcessors are scoped per-container,beans that are defined in one container are not postprocessed
+by a BeanPostProcessor defined in another container
+BeanFactoryPostProcessors are scoped per-container.
+
+Customizing instantiation logic with a FactoryBean:
+If you have complex initialization code that is better expressed in Java as opposed to a (potentially)
+verbose amount of XML, you can create your own FactoryBean
+So for a given FactoryBean with an id of myBean, invoking
+getBean("myBean") on the container returns the product of the FactoryBean; whereas, invoking
+getBean("&myBean") returns the FactoryBean instance itself.
+
+4.9 Annotation-based container configuration
+...
+
+Fine-tuning annotation-based autowiring with qualifiers
+<bean class="example.SimpleMovieCatalog">
+	<qualifier value="main"/>
+	<!-- inject any dependencies required by this bean -->
+</bean>
+For a fallback match, the bean name is considered a default qualifier value. Thus you can define the bean
+with an id "main" instead of the nested qualifier element, leading to the same matching result.
+define multiple MovieCatalog beans with the same qualifier value "action"; all of which would be
+injected into a Set<MovieCatalog> annotated with @Qualifier("action")
+
+@Autowired applies to fields, constructors, and multi-argument methods, allowing for narrowing
+through qualifier annotations at the parameter level. By contrast, @Resource is supported only
+for fields and bean property setter methods with a single argument.
+@Resource by name while @Autowired by type by default, @Resource will by type or find the primary candidate by type as fall-back as @Autowired does.
+
+Create own Qualifier:
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Genre {
+	String value();
+}
+<bean class="example.SimpleMovieCatalog">
+	<qualifier type="Genre" value="Action"/>
+	<!-- inject any dependencies required by this bean -->
+</bean>
+
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface MovieQualifier {
+	String genre();
+	Format format();
+}
+public enum Format {
+	VHS, DVD, BLURAY
+}
+<bean class="example.SimpleMovieCatalog">
+	<qualifier type="MovieQualifier">
+		<attribute key="format" value="VHS"/>
+		<attribute key="genre" value="Action"/>
+	</qualifier>
+	<!-- inject any dependencies required by this bean -->
+</bean>
+@Autowired
+@MovieQualifier(format=Format.VHS, genre="Action")
+private MovieCatalog actionVhsCatalog;
+
+The CustomAutowireConfigurer is a BeanFactoryPostProcessor that enables you to register
+your own custom qualifier annotation types even if they are not annotated with Spring's @Qualifier
+annotation.
+
+4.10 Classpath scanning and managed components
+You can disable the registration of AutowiredAnnotationBeanPostProcessor and
+CommonAnnotationBeanPostProcessor by including the annotation-config attribute with a
+value of false
+
+Using filters to customize scanning
+Filter Types:
+annotation org.example.SomeAnnotation (An annotation at the type level on target)
+assignable org.example.SomeClass (A class (or interface) that the target are assignable to)
+aspectj org.example..*Service+ (An AspectJ type expression matches target)
+regex org\.example\.Default.* (A regex expression matches target class name)
+custom org.example.MyTypeFilter (A custom implementation of the TypeFilter)
+You can also disable the default filters by providing use-default-filters="false"
+
+Defining bean metadata within components
+@Component
+public class FactoryMethodComponent {
+	@Bean @Qualifier("public") //<qualifier value="public">
+	public TestBean publicInstance() {
+		return new TestBean("publicInstance");
+	}
+}
+Other method level annotations that can be specified are @Scope, @Lazy, and custom qualifier annotations.
+
+define the scoped-proxy
+@Scope(value = WebApplicationContext.SCOPE_SESSION,
+proxyMode = ScopedProxyMode.TARGET_CLASS)
+ScopedProxyMode.DEFAULT(same as scoped-proxy of component-scan) 
+ScopedProxyMode.NO ScopedProxyMode.INTERFACES ScopedProxyMode.TARGET_CLASS
+
+do not want to rely on the default bean-naming strategy, you can provide a custom beannaming
+strategy which implements the BeanNameGenerator interface
+<context:component-scan base-package="org.example"
+name-generator="org.example.MyNameGenerator" />
+
+To provide a custom strategy for scope resolution rather than relying on the annotation-based
+approach, implement the ScopeMetadataResolver interface
+<context:component-scan base-package="org.example"
+scope-resolver="org.example.MyScopeResolver" />
+
+default scoped-proxy implementation
+<context:component-scan base-package="org.example"
+scoped-proxy="interfaces" />
+
+Providing qualifier metadata with annotations
+@Component
+@Genre("Action")
+public class ActionMovieCatalog implements MovieCatalog {
+}
+
+4.11 Using JSR 330 Standard Annotations 
+...
+
+4.12 Java-based container configuration
+public static void main(String[] args) {
+	AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+	ctx.scan("com.acme");
+	ctx.refresh();
+	MyService myService = ctx.getBean(MyService.class);
+}
+
+public static void main(String[] args) {
+	AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+	ctx.register(AppConfig.class, OtherConfig.class);
+	ctx.register(AdditionalConfig.class);
+	ctx.refresh();
+	MyService myService = ctx.getBean(MyService.class);
+}
+
+@Configuration
+public class ConfigA {
+	public @Bean A a() { return new A(); }
+}
+@Configuration
+@Import(ConfigA.class)
+public class ConfigB {
+	public @Bean B b() { return new B(); }
+}
+public static void main(String[] args) {
+	//just need to add ConfigB.class
+	ApplicationContext ctx = new AnnotationConfigApplicationContext(ConfigB.class);
+	A a = ctx.getBean(A.class);
+	B b = ctx.getBean(B.class);
+}
+
+All @Configuration(FullConfigurationClass) classes are subclassed at startup-time with CGLIB. In the subclass, the child method checks the container first for any cached (scoped) beans before it calls the parent method and creates a new instance.
+@Configuration
+public class AppConfig {
+	@Bean
+	public ClientService clientService1() {
+		ClientServiceImpl clientService = new ClientServiceImpl(); clientService.setClientDao(clientDao());
+		return clientService;
+	}
+	@Bean
+	public ClientService clientService2() {
+		ClientServiceImpl clientService = new ClientServiceImpl(); clientService.setClientDao(clientDao());
+		return clientService;
+	}
+	@Bean
+	public ClientDao clientDao() { return new ClientDaoImpl();} 
+}
+There will be just one clientDao instance
+
+@Configuration constraints:
+@Configuration classes must be non-final
+@Configuration classes must be non-local (may not be declared within a method)
+@Configuration classes must have a default/no-arg constructor and may not use @Autowired constructor parameters. Any nested configuration classes must be static. 
+
+4.13 Registering a LoadTimeWeaver
+The LoadTimeWeaver is used by Spring to dynamically transform classes as they are loaded into the
+Java virtual machine:
+@Configuration
+@EnableLoadTimeWeaving
+public class AppConfig {
+}
+or
+<beans>
+	<context:load-time-weaver/>
+</beans>
+
+4.14 Additional Capabilities of the ApplicationContext
+To enhance BeanFactory functionality in a more framework-oriented style the context package also
+provides the following functionality:
+• Access to messages in i18n-style, through the MessageSource interface.
+• Access to resources, such as URLs and files, through the ResourceLoader interface.
+• Event publication to beans implementing the ApplicationListener interface, through the use of the ApplicationEventPublisher interface.
+• Loading of multiple (hierarchical) contexts, allowing each to be focused on one particular layer, such as the web layer of an application, through the HierarchicalBeanFactory interface.
+
+bean name must be messageSource(the only one)
+<bean id="messageSource"
+class="org.springframework.context.support.ReloadableResourceBundleMessageSource"> 
+<property name="basenames">
+		<list> 
+				<value>format</value> <value>exceptions</value> <value>windows</value>
+    </list>
+  </property>
+</bean>
+in exceptions_en_US.properties
+argument.required=The '{0}' argument is required.
+getMessage(String key, Object[] args, Locale loc)
+
+EmailService implements ApplicationEventPublisherAware interface to set ApplicationEventPublisher and call publishEvent(ApplicationEvent e)
+BlackListEvent extends ApplicationEvent{
+	public BlackListEvent(Object source, ...) { super(source);...}
+}
+BlackListNotifier implements ApplicationListener<BlackListEvent>{
+	public void onApplicationEvent(BlackListEvent event) {}
+}
+Normally we just register ApplicationListener to deal with the pre-defined application events.
+You may register as many event listeners as you wish, but note that by default event listeners receive events synchronously. This means the publishEvent() method blocks until all listeners have finished processing the event. One advantage of this synchronous and single-threaded approach is that when a listener receives an event, it operates inside the transaction context of the publisher if a transaction context is available. (maybe not true, ApplicationContext has ApplicationEventMulticaster to deal with listeners)
+
+5. Resource, Resource Path of applicationContext.xml
+Resource has several built-in implementation:
+public interface ResourceLoader { Resource getResource(String location);}
+ClassPathXmlApplicationContext.getResource returns ClassPathResource
+FileSystemXmlApplicationContext returns FileSystemResource
+WebApplicationContext returns ServletContextResource
+
+On the other hand, you may also force ClassPathResource to be used, regardless of the application
+context type, by specifying the special prefix:
+classpath:com/myapp/config.xml     Loaded from the classpath. (ClassPathResource)
+file:/data/config.xml              Loaded as a URL, from the filesystem. (UrlResource)
+http://myserver/logo.png           Loaded as a URL. (UrlResource)
+(none)/data/config.xml             Depends on the underlying ApplicationContext.
+
+6.7 Application contexts and Resource paths
+Constructing application contexts
+
+
+Wildcards in application context constructor resource paths ???
+The resource paths may contain the special "classpath*:" prefix and/or internal Ant-style regular expressions(PathMatcher utility)
+
+The classpath*: prefix:
+This special prefix specifies that all classpath resources that match the given name must be obtained and then merged
+to form the final application context definition.
+The wildcard classpath relies on the getResources() method of the underlying classloader. As most application servers nowadays supply their own classloader implementation, the behavior might differ especially when dealing with jar files.
+Please note that "classpath*:" when combined with Ant-style patterns will only work reliably with at
+least one root directory before the pattern starts:
+classpath*:META-INF/*-beans.xml(match all the META-INF/ and then match *-beans.xml under all the META-INF/)
+
+FileSystemApplicationContext simply forces all attached FileSystemResource instances to
+treat all location paths as relative. Relative paths are relative to the current working directory.
+
+AOP:
+advice type: Before advice, After returning advice, After throwing advice,  After (similar to finally) advice, Around advice.
+• Before advice: Advice that executes before a join point, but which does not have the ability to prevent
+execution flow proceeding to the join point (unless it throws an exception).
+• After returning advice: Advice to be executed after a join point completes normally: for example, if a
+method returns without throwing an exception.
+• After throwing advice: Advice to be executed if a method exits by throwing an exception.
+• After (finally) advice: Advice to be executed regardless of the means by which a join point exits (normal
+or exceptional return).
+• Around advice: Advice to proceed to the join point or to shortcut the
+advised method execution by returning its own return value or throwing an exception.
+Spring AOP currently supports only method execution join points,need to advise field access and update join
+points, consider a language such as AspectJ.
+
+To enable @AspectJ support in programming with XML based configuration use the aop:aspectj-autoproxy element:
+<aop:aspectj-autoproxy/>
+@EnableAspectJAutoProxy
+
+Declaring an aspect with @Aspect
+<bean id="myAspect" class="org.xyz.NotVeryUsefulAspect">
+<!-- configure properties of aspect here as normal -->
+</bean>
+@Aspect
+public class NotVeryUsefulAspect {
+}
+Autodetecting aspects through component scanning: add a separate @Component annotation with @Aspect
+In Spring AOP, it is not possible to have aspects themselves be the target of advice from other
+aspects. The @Aspect annotation on a class marks it as an aspect, and hence excludes it from
+auto-proxying.
+
+Declaring pointcut
+pointcut declaration has two parts:
+a signature comprising a name and any parameters, and a pointcut expression that determines exactly
+which method executions we are interested in.
+In the @AspectJ annotation-style, a pointcut signature is provided by a regular method definition, 
+and the pointcut expression is indicated using the
+@Pointcut annotation (the method serving as the pointcut signature must have a void return type).
+
+• execution - for matching method execution join points, this is the primary pointcut designator you will
+use when working with Spring AOP
+• within - limits matching to join points within certain types (simply the execution of a method declared
+within a matching type when using Spring AOP)
+• this - limits matching to join points (the execution of methods when using Spring AOP) where the bean
+reference (Spring AOP proxy) is an instance of the given type
+• target - limits matching to join points (the execution of methods when using Spring AOP) where the
+target object (application object being proxied) is an instance of the given type
+• args - limits matching to join points (the execution of methods when using Spring AOP) where the
+arguments are instances of the given types
+• @target - limits matching to join points (the execution of methods when using Spring AOP) where the
+class of the executing object has an annotation of the given type
+• @args - limits matching to join points (the execution of methods when using Spring AOP) where the
+runtime type of the actual arguments passed have annotations of the given type(s)
+• @within - limits matching to join points within types that have the given annotation (the execution of
+methods declared in types with the given annotation when using Spring AOP)
+• @annotation - limits matching to join points where the subject of the join point (method being executed
+in Spring AOP) has the given annotation
+The full AspectJ pointcut language supports additional pointcut designators!!!!!
+
+AspectJ itself has type-based semantics and at an execution join point both ' this' and
+' target' refer to the same object - the object executing the method. Spring AOP is a proxy-based
+system and differentiates between the proxy object itself (bound to ' this) and the target object behind
+the proxy (bound to ' target).
+
+protected methods are by definition not intercepted, neither for JDK proxies (where this isn’t applicable) nor for CGLIB proxies (where
+this is technically possible but not recommendable for AOP purposes). As a consequence, any given pointcut will be matched against public methods only!
+If your interception needs include protected/private methods or even constructors, consider the
+use of Spring-driven native AspectJ weaving instead of Spring’s proxy-based AOP framework.
+
+PCD named ' bean(only supported in Spring AOP):  bean(nameofbean)
+match join points to a particular named Spring bean, or to a set of named Spring beans (when using wildcards).
+
+Combining pointcut expressions:
+Pointcut expressions can be combined using &&, || and !. It is also possible to refer
+to pointcut expressions by name.
+@Pointcut("anyPublicOperation() && inTrading()")
+
+Sharing common pointcut definitions:
+@Aspect
+public class SystemArchitecture { //public method
+@Pointcut("execution(* com.xyz.someapp.service.*.*(..))")
+public void businessService() {}
+}
+<aop:config>
+	<aop:advisor
+	pointcut="com.xyz.someapp.SystemArchitecture.businessService()"
+	advice-ref="tx-advice"/>
+</aop:config>
+
+execution(modifiers-pattern? ret-type-pattern declaring-type-pattern? name-pattern(parampattern) throws-pattern?)
+? means optional
+
+The existing designators naturally fall into one of three groups: kinded, scoping and context:
+• Kinded designators are those which select a particular kind of join point. For example: execution, get,
+set, call, handler
+• Scoping designators are those which select a group of join points of interest (of probably many kinds).
+For example: within, withincode
+• Contextual designators are those that match (and optionally bind) based on context. For example:
+this, target, @annotation
+A well written pointcut should try and include at least the first two types! Supplying either just a kinded designator or just a contextual designator will work but could affect weaving performance. Scoping designators are very fast to match.
+Basically pointcuts are rewritten in DNF (Disjunctive Normal Form) and
+the components of the pointcut are sorted such that those components that are cheaper to evaluate are
+checked first.(order doesnot matter)
+
+Declaring advice
+The pointcut expression of advice may be either a simple reference to a named pointcut,
+or a pointcut expression declared in place.
+
+after throwing advice:
+@AfterThrowing(
+pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+throwing="ex")
+public void doRecoveryActions(DataAccessException ex) {
+	// ...
+}
+after returning advice:
+@AfterReturning(
+pointcut="com.xyz.myapp.SystemArchitecture.dataAccessOperation()",
+returning="retVal")
+public void doAccessCheck(Object retVal) {
+	// ...
+}
+around adivce:
+@Around("com.xyz.myapp.SystemArchitecture.businessService()")
+public Object doBasicProfiling(ProceedingJoinPoint pjp) throws Throwable {
+	// start stopwatch
+	Object retVal = pjp.proceed();//can pass Object[] o as arguments
+	// stop stopwatch
+	return retVal;
+}
+Note that proceed may be invoked once, many times, or not at all within the body of the
+around advice, all of these are quite legal.
+
+Advice parameters(exclude from execution and bean, the other pointcut tags can inject parameters into advice):
+
+Access to the current JoinPoint
+Any advice method may declare as its first parameter, a parameter of type org.aspectj.lang.JoinPoint(ProceedingJoinPoint is a subclass of JoinPoint)
+
+Passing parameters to advice
+If a parameter name is used in place of a type name in an args expression, then the value
+of the corresponding argument will be passed as the parameter value when the advice is invoked.
+To make argument values available to the advice body, you can use the binding form of args:
+@Pointcut(value="com.xyz.myapp.SystemArchitecture.dataAccessOperation() && args(account)", argNames="account")
+private void accountDataAccessOperation(Account account) {}
+@Before("accountDataAccessOperation(account)")
+public void validateAccount(Account account) {
+	// ...
+}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Auditable {
+AuditCode value();
+}
+@Before("com.xyz.lib.Pointcuts.anyPublicMethod() && @annotation(auditable)")
+public void audit(Auditable auditable) {
+AuditCode code = auditable.value();
+// ...
+}
+
+Advice parameters and generics
+public interface Sample<T> {
+	void sampleGenericMethod(T param);
+	void sampleGenericCollectionMethod(Collection>T> param);
+}
+@Before("execution(* Test.Sample+.sampleGenericMethod(*)) && args(param)")
+	public void beforeSampleMethod(MyType param) {
+	// work
+	}
+@Before("execution(* Test.Sample+.sampleGenericCollectionMethod(*)) && args(param)")
+	public void beforeSampleMethod(Collection<MyType> param) {
+	// will not work
+	}
+To make this work we would have to inspect every element of the collection, and change the parameter to Collection<?>.
+
+Determining argument names:(JoinPoint,ProceedingJoinPoint,JoinPoint.StaticPart can be omitted from argNames)
+1.If the parameter names have been specified by 'argNames', they are used.
+2.if the 'argNames' has not been specified, then Spring AOP will look at the debug information for the class and try to determine the parameter names from the local variable table.(compile with '-g:vars' at a minimum).
+3.If the code has been compiled without the necessary debug information,then Spring AOP will
+attempt to deduce the pairing of binding variables to parameters.(AmbiguousBindingException will be thrown)
+4.If all of the above strategies fail then an IllegalArgumentException will be thrown.
+
+advice ordering:
+The highest precedence advice runs first "on the way in", "On the way out" from a join point, the highest precedence advice runs last
+
+Given two aspects, the aspect returning the lower value from Ordered.getValue() (or the annotation value) has the higher precedence.
+Given two pieces of advice defined in the same aspect both need to run at the same join point, the ordering is undefined.
+(since there is no way to retrieve the declaration order via reflection for javaccompiled classes.
+Consider collapsing such advice methods into one advice method per join point in
+each aspect class, or refactor the pieces of advice into separate aspect classes)
+
+introductions:(have other annotations such like @DeclareMixin...)
+This annotation is used to declare that matching types have a new parent(implements the new interface).
+For example,given an interface UsageTracked, and an implementation of that interface DefaultUsageTracked
+the following aspect declares that all implementors of service interfaces also implement the UsageTracked interface:
+@Aspect
+public class UsageTracking {
+@DeclareParents(value="com.xzy.myapp.service.*+",defaultImpl=DefaultUsageTracked.class)
+public static UsageTracked mixin;
+}
+
+aspect instantiation models ???
+Spring supports AspectJ’s perthis and pertarget instantiation models.
+The effect of the 'perthis' clause is that one aspect instance will be created for each unique service
+object executing a business service (each unique object bound to 'this' at join points matched by the
+pointcut expression).
+
+8.3 Schema-based AOP support
+The <aop:config> style of configuration makes heavy use of Spring’s auto-proxying
+mechanism. This can cause issues (such as advice not being woven) if you are already
+using explicit auto-proxying via the use of BeanNameAutoProxyCreator or suchlike.
+Don't use both all together!
+
+all aspect and advisor elements must be placed within an <aop:config> element (you can have more than one <aop:config> element in an application context configuration)
+
+aspect:
+<aop:config>
+	<aop:aspect id="myAspect" ref="aBean">
+		...
+	</aop:aspect>
+</aop:config>
+<bean id="aBean" class="...">
+	...
+</bean>
+
+pointcut:
+<aop:config>
+	<aop:pointcut id="businessService"
+		expression="execution(* com.xyz.myapp.service..(..))"/> (expression="com.xyz.myapp.SystemArchitecture.businessService()"/>)
+</aop:config>
+keywords and, or and not can be used in place of &&, || and ! respectively!!!
+
+advice:
+<aop:aspect id="afterReturningExample" ref="aBean">
+	<aop:after-returning
+		pointcut-ref="dataAccessOperation" (pointcut="execution(* com.xyz.myapp.dao..(..))")
+		returning="retVal"
+		method="doAccessCheck"/>
+	...
+</aop:aspect>
+
+introduction:
+<aop:declare-parents
+	types-matching="com.xzy.myapp.service.*+"
+	implement-interface="com.xyz.myapp.service.tracking.UsageTracked"
+	default-impl="com.xyz.myapp.service.tracking.DefaultUsageTracked"/>
+
+Aspect instantiation models
+The only supported instantiation model for schema-defined aspects is the singleton model. Other
+instantiation models may be supported in future releases.
+
+advisor:
+An advisor is like a small self-contained aspect that has a single piece of advice.
+<aop:advisor
+	pointcut-ref="businessService"
+	advice-ref="tx-advice"/>
+
+Spring AOP or full AspectJ?
+You will also need to use AspectJ if you wish to advise join
+points other than simple method executions (for example, field get or set join points, and so on).
+
+@AspectJ or XML for Spring AOP?
+The XML style has two disadvantages. Firstly it does not fully encapsulate the implementation of the
+requirement it addresses in a single place.Secondly, the XML style is slightly
+more limited that only the "singleton" aspect instantiation model is supported.
+The @AspectJ style supports additional instantiation models, and richer pointcut composition. It also has the advantage the @AspectJ aspects can be understood (and thus consumed) both by Spring AOP and by AspectJ.
+
+9.6 Proxying mechanisms:
+If the target object to be proxied implements at least one interface then a JDK dynamic proxy will be
+used.(All of the interfaces implemented by the target type will be proxied) If the target object does not
+implement any interfaces then a CGLIB proxy will be created.
+
+If you want to force the use of CGLIB proxying:
+• final methods cannot be advised, as they cannot be overridden.(class should not be final)
+• The constructor of your proxied object will be called twice. two objects are created: the actual proxied object and an instance of the subclass that implements the advice. This behavior is not exhibited when using JDK proxies. (??? not verified, maybe wrong)
+
+to force the use of CGLIB proxying: 
+final methods cannot be advised, as they cannot be overridden.
+The constructor of your proxied object will be called twice. This behavior is not exhibited when using JDK proxies
+As of Spring 3.2, it is no longer necessary to add CGLIB to your project classpath
+
+how to force:
+<aop:config proxy-target-class="true">
+	<!-- other beans defined here... -->
+</aop:config>
+To force CGLIB proxying when using the @AspectJ autoproxy support, set the 'proxy-targetclass'
+attribute of the <aop:aspectj-autoproxy> element to true:
+<aop:aspectj-autoproxy proxy-target-class="true"/>
+
+using 'proxy-target-class="true"' on <tx:annotation-driven/>,
+<aop:aspectj-autoproxy/> or <aop:config/> elements will force the use of CGLIB
+proxies for all three of them. !!!
+
+Understanding AOP proxies
+self-invocation issue of proxy-based AOP(AspectJ is not proxy-based)
+use AspectJ to enable load time weaving to solve the problem.
+
+9.7 Programmatic creation of @AspectJ Proxies
+The class org.springframework.aop.aspectj.annotation.AspectJProxyFactory can be
+used to create a proxy for a target object that is advised by one or more @AspectJ aspects
+// create a factory that can generate a proxy for the given target object
+AspectJProxyFactory factory = new AspectJProxyFactory(targetObject);
+// add an aspect, the class must be an @AspectJ aspect
+factory.addAspect(SecurityManager.class);
+// you can also add existing aspect instances, the type of the object supplied must be an @AspectJ aspect
+factory.addAspect(usageTracker);
+MyInterfaceType proxy = factory.getProxy();
+
+9.8 Using AspectJ with Spring applications
+Using AspectJ to dependency inject domain objects with Spring
+The Spring container also possible to ask a bean factory to configure a pre-existing object given the name of a bean definition containing the configuration to be applied. Domain objects often fall into this category because they are often created programmatically using the new operator, or by an ORM tool as a result of a database query.
+
+The @Configurable annotation marks a class as eligible for Spring-driven configuration. Spring will configure new instances of the annotated type (Account in this case) using a prototype-scoped bean definition with the same name as the fully- qualified type name.
+
+If you want the dependencies to be injected before the constructor bodies execute, and thus be available for use in the body of the constructors: @Configurable(preConstruction=true)
+
+The AnnotationBeanConfigurerAspect itself needs configuring by Spring (in order to obtain a reference to the bean factory that is to be used to configure new objects). If you are using Java based configuration simply add @EnableSpringConfigured to any @Configuration class or <context:spring-configured/>.
+
+<context:spring-configured/>:
+<bean class="org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect"
+factory-method="aspectOf"/>
+
+Instances of @Configurable objects created before the AnnotationBeanConfigurerAspect has been configured will result in a
+warning being issued to the log and no configuration of the object taking place.
+
+The aspect that interprets @Transactional annotations is the AnnotationTransactionAspect.
+When using this aspect, you must annotate the implementation class (and/or methods within that class).
+A @Transactional annotation on a class specifies the default transaction semantics for the execution
+of any public operation in the class.
+A @Transactional annotation on a method within the class overrides the default transaction
+semantics given by the class annotation (if present). 
+Annotating protected and default visibility methods directly is the only
+way to get transaction demarcation for the execution of such methods.
+
+Configuring AspectJ aspects using Spring IoC
+... ???
+If you have some @AspectJ aspects that you want to weave with AspectJ (for example, using load-time
+weaving for domain model types) and other @AspectJ aspects that you want to use with Spring AOP,
+Each <include/> element specifies a name pattern, and
+only beans with names matched by at least one of the patterns will be used for Spring AOP autoproxy
+configuration:
+<aop:aspectj-autoproxy>
+	<aop:include name="thisBean"/>
+	<aop:include name="thatBean"/>
+</aop:aspectj-autoproxy>
+
+Load-time weaving with AspectJ in the Spring Framework(four things: Aspect definiton, aop.xml, loadtimeweaver, server setup(similar to -javaagent))
+
+Aspect definition 
+
+META-INF/aop.xml
+
+Spring configuration
+The default LoadTimeWeaver is the DefaultContextLoadTimeWeaver class, which attempts to decorate
+an automatically detected LoadTimeWeaver: the exact type of LoadTimeWeaver that will be
+'automatically detected' is dependent upon your runtime environment.
+A LoadTimeWeaver is responsible for adding
+one or more java.lang.instrument.ClassFileTransformers to a ClassLoader at runtime.
+The actual ClassFileTransformer that does the LTW is the ClassPreProcessorAgentAdapter class.
+to specify the exact load time weaver to use:
+<context:load-time-weaver
+weaverclass="
+org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver"/>
+aspectj-weaving:
+ENABLED on AspectJ weaving is on.
+DISABLED off LTW is off.
+AUTODETECT autodetect 
+If the Spring LTW infrastructure can find at least one 'META-INF/aop.xml' file, then
+AspectJ weaving is on, else it is off. This is the default value.
+
+Environment-specific configuration
+different environment to enable LTW: tomcat , JBOSS, generic java application
+Tomcat 6.0.x or higher
+1. Copy org.springframework.instrument.tomcat.jar into $CATALINA_HOME/lib
+2. Instruct Tomcat to use the custom class loader by editing the web application context file:(META-INF/context.xml)
+<Context path="/myWebApp" docBase="/my/webApp/location"> 
+<Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"/ >
+</Context>
+
+
+10. Spring AOP APIs
+Pointcut API:
+public interface Pointcut {
+	ClassFilter getClassFilter();
+	MethodMatcher getMethodMatcher();
+}
+public interface ClassFilter {
+	boolean matches(Class clazz);//used to restrict the pointcut to a given set of target classes
+}
+public interface MethodMatcher {
+	boolean matches(Method m, Class targetClass);//used to test whether this pointcut will ever match a given
+												 //method on a target class when proxy is created.
+	boolean isRuntime();//Most MethodMatchers are static, meaning that their isRuntime() method returns false.
+	boolean matches(Method m, Class targetClass, Object[] args);//will be invoked when the above two methods return true.
+}
+
+If possible, try to make pointcuts static, allowing the AOP framework to cache the results of
+pointcut evaluation when an AOP proxy is created.
+
+org.springframework.aop.aspectj.AspectJExpressionPointcut. This is a pointcut that
+uses an AspectJ supplied library to parse an AspectJ pointcut expression string.
+
+Static pointcuts:(Static pointcuts are based on method and target class, and cannot take into account the method’s arguments.)
+org.springframework.aop.support.JdkRegexpMethodPointcut
+<bean id="settersAndAbsquatulateAdvisor"
+	class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+	<property name="advice">
+		<ref bean="beanNameOfAopAllianceInterceptor"/>
+	</property>
+	<property name="patterns">
+		<list>
+			<value>.set.</value>
+			<value>.*absquatulate</value>
+		</list>
+	</property>
+</bean>
+
+Dynamic pointcuts:(take into account method
+arguments, as well as static information. This means that they must be evaluated with every method
+invocation; the result cannot be cached, as arguments will vary.)
+org.springframework.aop.support.ControlFlowPointcut
+Control flow pointcuts are significantly more expensive to evaluate at runtime than even other
+dynamic pointcuts. In Java 1.4, the cost is about 5 times that of other dynamic pointcuts.
+
+Advice API:
+Each advice is a Spring bean. An advice instance can be shared across all advised objects, or unique
+to each advised object. This corresponds to per-class or per-instance advice:
+Per-class advice is used most often. It is appropriate for generic advice such as transaction advisors.
+These do not depend on the state of the proxied object or add new state;
+Per-instance advice is appropriate for introductions, to support mixins. In this case, the advice adds
+state to the proxied object.
+
+around advice:
+public interface MethodInterceptor extends Interceptor {
+	Object invoke(MethodInvocation invocation) throws Throwable;
+}
+invocation.proceed();
+
+before advice:
+public interface MethodBeforeAdvice extends BeforeAdvice {
+	void before(Method m, Object[] args, Object target) throws Throwable;
+}
+
+throws advice:
+public interface ThrowsAdvice {
+	public void afterThrowing([Method method, Object[] args, Object target,] subclassOfThrowable) throws Throwable {
+	// Do something with remote exception
+	}
+}
+If a throws-advice method throws an exception itself, it will override the original exception (i.e. change the exception to RuntimeException).
+Do not throw an undeclared checked exception that is incompatible with the target method’s signature!
+
+After Returning advice:
+public interface AfterReturningAdvice extends Advice {
+	void afterReturning(Object returnValue, Method m, Object[] args, Object target) throws Throwable;
+}
+
+Intruduction advice: ???
+Introduction requires an IntroductionAdvisor, and an IntroductionInterceptor, implementing the following interface:
+public interface IntroductionInterceptor extends MethodInterceptor {
+	boolean implementsInterface(Class intf);
+}
+Introduction advice cannot be used with any pointcut, as it applies only at class
+
+advisor api:
+org.springframework.aop.support.DefaultPointcutAdvisor is the most commonly used advisor class
+
+ProxyFactoryBean:(not used any more)
+In common with most FactoryBean implementations, the ProxyFactoryBean
+class is itself a JavaBean. Its properties are used to setup the proxy.
+• proxyTargetClass: true, then CGLIB proxies will be created
+• optimize: controls whether or not aggressive optimizations are applied to proxies created via CGLIB.
+• frozen: if a proxy configuration is frozen, then changes to the configuration are no longer allowed.
+• exposeProxy: determines whether or not the current proxy should be exposed in a ThreadLocal.
+• proxyInterfaces: array of String interface names.
+• interceptorNames: String array of Advisor, interceptor or other advice names to apply. Ordering
+is significant, on a first come-first served basis.You can append an interceptor name with an asterisk (*). 
+This will result in the application of all advisor beans with names starting with the part before the asterisk to be applied.
+• singleton: whether or not the factory should return a single object
+
+<bean id="myAdvisor" class="com.mycompany.MyAdvisor">
+	<property name="someProperty" value="Custom string property value"/>
+</bean>
+<bean id="debugInterceptor" class="org.springframework.aop.interceptor.DebugInterceptor"/>
+<bean id="person" class="org.springframework.aop.framework.ProxyFactoryBean">
+	<property name="proxyInterfaces" value="com.mycompany.Person"/>
+	<!-- Use inner bean, not local reference to target -->
+	<property name="target">
+		<bean class="com.mycompany.PersonImpl">
+			<property name="name" value="Tony"/>
+			<property name="age" value="51"/>
+		</bean>
+	</property>
+	<property name="interceptorNames">
+		<list>
+			<value>myAdvisor</value>
+			<value>debugInterceptor</value>
+		</list>
+	</property>
+</bean>
+
+Concise proxy definitions (not usefult)
+The use of parent and child bean definitions, along with inner bean definitions, can result in much cleaner
+and more concise proxy definitions.
+
+10.7 Creating AOP proxies programmatically with the ProxyFactory(do not do this)
+ProxyFactory factory = new ProxyFactory(myBusinessInterfaceImpl);
+factory.addAdvice(myMethodInterceptor);
+factory.addAdvisor(myAdvisor);
+MyBusinessInterface tb = (MyBusinessInterface) factory.getProxy();
+
+10.8 Manipulating advised objects
+Advisor[] getAdvisors();
+void addAdvice(Advice advice) throws AopConfigException;
+void addAdvice(int pos, Advice advice) throws AopConfigException;
+void addAdvisor(Advisor advisor) throws AopConfigException;
+void addAdvisor(int pos, Advisor advisor) throws AopConfigException; int indexOf(Advisor advisor);
+boolean removeAdvisor(Advisor advisor) throws AopConfigException;
+void removeAdvisor(int index) throws AopConfigException;
+boolean replaceAdvisor(Advisor a, Advisor b) throws AopConfigException; boolean isFrozen();
+Depending on how you created the proxy, you can usually set a frozen flag, in which case the Advised isFrozen() method will return true, and any attempts to modify advice through addition or removal will result in an AopConfigException. 
+
+10.9 Using the "auto-proxy" facility:(in place of ProxyFactoryBean)
+BeanNameAutoProxyCreator
+The BeanNameAutoProxyCreator class is a BeanPostProcessor that automatically creates AOP
+proxies for beans with names matching literal values or wildcards.
+<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+	<property name="beanNames" value="jdk*,onlyJdk"/>
+	<property name="interceptorNames">
+		<list>
+			<value>myInterceptor</value>
+		</list>
+	</property>
+</bean>
+Note that if advisors are used (rather than the interceptor in the above example), the pointcuts may apply differently
+to different beans.
+
+DefaultAdvisorAutoProxyCreator
+This class is completely generic; it contains no special code to handle any particular aspects.
+Using this mechanism involves:
+• Specifying a DefaultAdvisorAutoProxyCreator bean definition.
+• Specifying any number of Advisors in the same or related contexts. Note that these must be Advisors, not just interceptors or other advices.
+If no pointcut in any of the advisors matches any method in a business object, the object will not be proxied.
+<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>(property advisorBeanNamePrefix and usePrefix can be setup)
+
+The DefaultAdvisorAutoProxyCreator offers support for filtering (using a naming convention
+so that only certain advisors are evaluated) and ordering. Advisors can implement the
+org.springframework.core.Ordered interface to ensure correct ordering
+
+Using metadata-driven auto-proxying(special use case of DefaultAdvisorAutoProxyCreator) ???
+attribute-driven:
+<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+<bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor">
+	<property name="transactionInterceptor" ref="transactionInterceptor"/>
+</bean>
+<bean id="transactionInterceptor"
+class="org.springframework.transaction.interceptor.TransactionInterceptor">
+	<property name="transactionManager" ref="transactionManager"/>
+	<property name="transactionAttributeSource">
+		<bean class="org.springframework.transaction.interceptor.AttributesTransactionAttributeSource">
+			<property name="attributes" ref="attributes"/>
+		</bean>
+	</property>
+</bean>
+<bean id="attributes" class="org.springframework.metadata.commons.CommonsAttributes"/>
+
+10.10 TargetSource: 
+org.springframework.aop.TargetSource interface. This interface is responsible for returning
+the "target object" implementing the join point.
+
+HotSwappableTargetSource:
+HotSwappableTargetSource swapper =
+(HotSwappableTargetSource) beanFactory.getBean("swapper");
+Object oldTarget = swapper.swap(newTarget);
+
+CommonsPoolTargetSource:
+<bean id="businessObjectTarget" class="com.mycompany.MyBusinessObject"
+scope="prototype">
+... properties omitted
+</bean>
+<bean id="poolTargetSource" class="org.springframework.aop.target.CommonsPoolTargetSource">
+	<property name="targetBeanName" value="businessObjectTarget"/>
+	<property name="maxSize" value="25"/>
+</bean>
+<bean id="businessObject" class="org.springframework.aop.framework.ProxyFactoryBean">
+	<property name="targetSource" ref="poolTargetSource"/>
+	<property name="interceptorNames" value="myInterceptor"/>
+</bean>
+(Pooling stateless service objects is not usually necessary. We don't believe it should be the
+default choice, as most stateless objects are naturally thread safe, and instance pooling is
+problematic if resources are cached.)
+
+ThreadLocalTargetSource
+PrototypeTargetSource
+
+
+
+12.2 Advantages of the Spring Framework's transaction support model
+Traditionally, Java EE developers have had two choices for transaction management: global or local
+transactions, both of which have profound limitations.
+Global transactions enable you to work with multiple transactional resources, typically relational
+databases and message queues.The application server manages global transactions through the
+JTA,a JTA UserTransaction normally needs to be sourced from JNDI.Previously, the preferred way to use 
+global transactions was via EJB CMT.
+Local transactions are resource-specific, such as a transaction associated with a JDBC connection.
+Local transactions may be easier to use, but they cannot work across multiple transactional resources.
+
+Spring resolves the disadvantages of global and local transactions. It enables application developers to
+use a consistent programming model in any environment. You write your code once, and it can benefit
+from different transaction management strategies in different environments.
+declarative and programmatic transaction management!
+
+12.3 Understanding the Spring Framework transaction abstraction
+The key to the Spring transaction abstraction is the notion of
+a transaction strategy. A transaction strategy is defined by the
+org.springframework.transaction.PlatformTransactionManager interface:
+public interface PlatformTransactionManager {
+	TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException;
+	void commit(TransactionStatus status) throws TransactionException;
+	void rollback(TransactionStatus status) throws TransactionException;
+}
+TransactionException: unchecked exception, inherit from RuntimeException.
+TransactionDefinition specifies: Isolation,Propagation,Timeout,Read-only status
+public interface TransactionStatus extends SavepointManager {
+	boolean isNewTransaction();
+	boolean hasSavepoint();
+	void setRollbackOnly();
+	boolean isRollbackOnly();
+	void flush();
+	boolean isCompleted();
+}
+
+non-JTA transaction manager or JTA transaction manager:
+If the DataSource, used by any non-JTA transaction manager, is looked up via JNDI and
+managed by a Java EE container, then it should be non-transactional.
+If you are using Hibernate(support local and global) and Java EE container-managed JTA transactions, then you should simply
+use the same JtaTransactionManager:
+<bean id="txManager" class="org.springframework.transaction.jta.JtaTransactionManager"/>
+If you use JTA , then your transaction manager definition will look the same regardless of what
+data access technology you use,JTA transactions are global transactions, which can enlist any
+transactional resource.
+
+High-level synchronization approach
+The preferred approach is to use Spring’s highest level template based persistence integration APIs or to
+use native ORM APIs with transaction- aware factory beans or proxies for managing the native resource
+factories. These transaction-aware solutions internally handle resource creation and reuse, cleanup,
+optional transaction synchronization of the resources, and exception mapping.
+Low-level synchronization approach
+Classes such as DataSourceUtils (for JDBC), EntityManagerFactoryUtils (for JPA),
+SessionFactoryUtils (for Hibernate), PersistenceManagerFactoryUtils (for JDO), and so
+on exist at a lower level.
+
+At the very lowest level exists the TransactionAwareDataSourceProxy class. This is a proxy for a target DataSource, which wraps the target DataSource to add awareness of Spring-managed transactions.
+
+The Spring Framework’s declarative transaction management:(compared with EJB CMT)
+the Spring Framework’s declarative transaction management works in any environment.
+You can apply the Spring Framework declarative transaction management to any class.
+The Spring Framework offers declarative rollback rules.
+The Spring Framework enables you to customize transactional behavior, by using AOP
+The Spring Framework does not support propagation of transaction contexts across remote calls
+
+TransactionProxyFactoryBean  to configure the transaction 
+
+The concept of rollback rules is important: they enable you to specify which exceptions (and throwables) should cause automatic rollback.
+The significant advantage to this option is that business objects do not depend on the transaction infrastructure.
+the Spring default behavior for declarative transaction management follows EJB convention (roll back is automatic only on unchecked exceptions), it is often useful to customize this behavior.
+
+Transaction Advisor created on the way in, committed or rolled back on the way out.
+
+Spring Framework’s declarative transaction support are that this support is enabled via an AOP proxy that uses a TransactionInterceptor in conjunction with an appropriate PlatformTransactionManager implementation to drive transactions around method invocations.
+<tx:advice id="txAdvice" transaction-manager="txManager">
+	<tx:attributes>
+		<tx:method name="get*" read-only="true"/>
+		<tx:method name=""/>
+	</tx:attributes>
+</tx:advice>
+<aop:config>
+	<aop:pointcut id="fooServiceOperation" expression="execution(* x.y.service.FooService.*(..))"/>
+	<aop:advisor advice-ref="txAdvice" pointcut-ref="fooServiceOperation"/> 
+</aop:config>
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy- method="close">
+	...
+</bean>
+<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"> 
+	<property name="dataSource" ref="dataSource"/>
+</bean>
+You can omit the transaction-manager attribute in the transactional advice ( <tx:advice/>) 
+if the bean name of the PlatformTransactionManager that you want to wire in has the name transactionManager.
+
+Rollback Rule:
+The Spring Framework’s transaction infrastructure code only marks a 
+transaction for rollback in the case of runtime, unchecked exceptions;That is,when the thrown exception
+is an instance or subclass of RuntimeException. ( Error s will also - by default - result in a rollback).
+<tx:advice id="txAdvice">
+	<tx:attributes>
+		<tx:method name="*" rollback-for="Throwable" no-rollbackfor="InstrumentNotFoundException"/>
+	</tx:attributes>
+</tx:advice>
+Spring consults configured rollback rules to determine whether to mark the transaction for rollback, the strongest
+matching rule wins.(InstrumentNotFoundException will not roll back)
+try {
+	// some business logic...
+} catch (NoProductInStockException ex) {
+	// trigger rollback programmatically
+	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+}
+
+The default <tx:advice/> settings are:
+Propagation setting is REQUIRED.
+Isolation level is DEFAULT.
+Transaction is read/write.
+Transaction timeout defaults to the default timeout of the underlying transaction system
+Any RuntimeException triggers rollback, and any checked Exception does not.
+<tx:method/> settings are:
+name  		Method name(s) with which the transaction attributes are to be associated. The wildcard (*) character can be used
+propagation REQUIRED Transaction propagation behavior.
+isolation 	DEFAULT Transaction isolation level.
+timeout 	-1 Transaction timeout value (in seconds).
+read-only 	false Is this transaction read-only?
+rollback-for 	Exception(s) that trigger rollback; commadelimited.
+no-rollback-for Exception(s) that do not trigger rollback; comma-delimited.
+
+Using @Transactional:
+@Transactional ==> <tx:advice/>
+public class DefaultFooService implements FooService {
+	Foo getFoo(String fooName);
+	Foo getFoo(String fooName, String barName);
+	void insertFoo(Foo foo);
+	void updateFoo(Foo foo);
+}
+<bean id="fooService" class="x.y.service.DefaultFooService"/>
+<tx:annotation-driven transaction-manager="txManager"/> important to switch on the transactional behavior
+<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+<property name="dataSource" ref="dataSource"/>
+</bean>
+The @EnableTransactionManagement(mode, proxy-targetclass, order) annotation provides equivalent support with @Configuration to <tx:annotation-driven/>
+
+When using proxies, you should apply the @Transactional annotation only to methods with public visibility.
+Spring recommends that you only annotate concrete classes (and methods of concrete classes) with the @Transactional annotation. You certainly can place the @Transactional annotation on an interface (or an interface method), but must use interface-based proxy.
+In proxy mode (which is the default), only external method calls coming in through the proxy are
+intercepted. Consider the use of AspectJ mode if you expect self-invocations to be wrapped with transactions as well.
+
+The most derived location takes precedence when evaluating the transactional settings for a method.
+@Transactional(readOnly = true)
+public class DefaultFooService implements FooService {
+	public Foo getFoo(String fooName) {
+		// do something
+	}
+	// these settings have precedence for this method
+	@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+	public void updateFoo(Foo foo) {
+		// do something
+	}
+}
+
+@Transactional default settings are similar to the default <tx:advice/> settings
+
+Multiple Transaction Managers with @Transactional
+@Transactional("account")
+public void doSomething() { ... }
+<bean id="transactionManager2" class="org.springframework.jdbc.DataSourceTransactionManager">
+...
+<qualifier value="account"/>
+</bean>
+
+Custom shortcut annotations
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Transactional("account")
+public @interface AccountTx {
+}
+@AccountTx
+public void doSomething() { ... }
+
+transaction propagation:
+In Spring-managed transactions, be aware of the difference between physical and logical transactions,
+and how the propagation setting applies to this difference.
+
+PROPAGATION_REQUIRED
+a logical transaction scope is created for each method. Each such logical transaction scope can determine
+rollback-only status individually, with an outer transaction scope being logically independent from the
+inner transaction scope.But all these scopes will be mapped to the same physical transaction.
+an inner transaction scope sets the rollback-only marker, the outer
+transaction has not decided on the rollback itself, so a corresponding UnexpectedRollbackException is thrown at that point. 
+The outer caller needs to receive an UnexpectedRollbackException to indicate clearly that a rollback was performed instead.
+
+PROPAGATION_REQUIRES_NEW
+uses a completely independent transaction for each affected transaction scope. the underlying physical
+transactions are different and hence can commit or roll back independently.
+
+PROPAGATION_NESTED
+uses a single physical transaction with multiple savepoints that it can roll back to.Such partial rollbacks allow an inner transaction scope to trigger a rollback for its scope, with the
+outer transaction being able to continue the physical transaction.(only work with JDBC resource transactions)
+
+Using @Transactional with AspectJ
+The simplest way to configure the transaction management aspect is to use the
+<tx:annotation-driven/> element and specify the mode attribute to aspectj
+
+Programmatic transaction management
+• Using the TransactionTemplate.
+• Using a PlatformTransactionManager implementation directly.
+The Spring team generally recommends the TransactionTemplate for programmatic transaction management.
+...
+
+
+
+DAO:
+Consistent exception hierarchy(DAO Support)
+Spring provides a convenient translation from technology-specific exceptions like SQLException to
+its own exception class hierarchy with the DataAccessException as the root exception.
+
+Spring can also wrap Hibernate-specific exceptions, converting them
+from proprietary, checked exceptions (in the case of versions of Hibernate prior to Hibernate 3.0), to a set
+of focused runtime exceptions (the same is true for JDO and JPA exceptions).
+
+If one uses the interceptor-based classes then the application
+must care about handling HibernateExceptions and JDOExceptions itself, preferably
+via delegating to SessionFactoryUtils' convertHibernateAccessException(..) or
+convertJdoAccessException() methods respectively
+
+
+JdbcTemplate:
+When you use the JdbcTemplate for your code, you only need to implement callback interfaces,
+giving them a clearly defined contract. The PreparedStatementCreator callback interface creates
+a prepared statement given a Connection provided by this class, providing SQL and any necessary
+parameters. The same is true for the CallableStatementCreator interface, which creates callable
+statements. The RowCallbackHandler interface extracts values from each row of a ResultSet.
+It also catches JDBC exceptions and translates them to the generic, more
+informative, exception hierarchy defined in the org.springframework.dao package.
+
+NamedParameterJdbcTemplate:
+String sql = "select count(*) from T_ACTOR where first_name = :first_name";
+SqlParameterSource namedParameters = new MapSqlParameterSource("first_name",firstName);//firstName is parameter
+return this.namedParameterJdbcTemplate.queryForObject(sql, Integer.class, namedParameters);
+
+SQLExceptionTranslator:
+SQLExceptionTranslator is an interface to be implemented by classes that can translate between
+SQLExceptions and Spring’s own org.springframework.dao.DataAccessException
+
+The SQLErrorCodesFactory is used by default to define Error codes and custom exception
+translations. They are looked up in a file named sql-error-codes.xml from the classpath
+and the matching SQLErrorCodes instance(generate the bean "SQLErrorCodes" object)
+
+The SQLErrorCodeSQLExceptionTranslator applies matching rules in the following sequence: ???
+public void setDataSource(DataSource dataSource) {
+	this.jdbcTemplate = new JdbcTemplate();
+	this.jdbcTemplate.setDataSource(dataSource);
+	
+	CustomSQLErrorCodesTranslator tr = new CustomSQLErrorCodesTranslator();//extends SQLErrorCodeSQLExceptionTranslator
+	tr.setDataSource(dataSource);
+	this.jdbcTemplate.setExceptionTranslator(tr);
+}
+
+Retrieving auto-generated keys: ???
+An update() convenience method supports the retrieval of primary keys generated by the database.
+KeyHolder, which contains the generated key on successful return from the update.
+
+Basic batch operations with the JdbcTemplate:
+interface BatchPreparedStatementSetter
+Use the setValues method to set the values for the parameters of the prepared statement. This method
+will be called the number of times that you specified in the getBatchSize call.
+
+int[] updateCounts =jdbcTemplate.batchUpdate(
+"update t_actor set first_name = ?, last_name = ? where id = ?",
+new BatchPreparedStatementSetter(){});
+
+int[] updateCounts =jdbcTemplate.batchUpdate(
+"update t_actor set first_name = ?, last_name = ? where id = ?",
+batch);//batch is a list<Object>, object has first_name,last_name and id
+
+If the count is not available, the JDBC driver returns a -2 value.
+
+Inserting data using SimpleJdbcInsert:
+The important thing to note here is that the keys used for the Map must match the column names of the table as defined
+in the database. This is because we read the metadata in order to construct the actual insert statement.
+
+Retrieving auto-generated keys using SimpleJdbcInsert:
+	Map<String, Object> parameters = new HashMap<String, Object>(2);
+	parameters.put("first_name", actor.getFirstName());
+	parameters.put("last_name", actor.getLastName());
+	Number newId = insertActor.executeAndReturnKey(parameters);
+	actor.setId(newId.longValue());
+This returns a java.lang.Number object with which you can create an instance of the numerical type,
+non-numeric type, use KeyHolder that is returned from the executeReturningKeyHolder method.
+
+Specifying columns for a SimpleJdbcInsert:
+.usingColumns("first_name", "last_name")
+
+Using SqlParameterSource to provide parameter values:
+MapSqlParameterSource
+BeanPropertySqlParameterSource
+
+SimpleJdbcCall ???
+
+How to define SqlParameters:
+new SqlParameter("in_id", Types.NUMERIC),//"in_id" is defined in database
+new SqlOutParameter("out_first_name", Types.VARCHAR),
+new SqlInOutParameter("out_first_name", Types.VARCHAR)
+
+Modeling JDBC operations as Java objects:(reusable sql)
+MappingSqlQuery is a reusable query in which concrete subclasses must implement the abstract
+mapRow(..) method to convert each row of the supplied ResultSet into an object of the type specified.
+This class is thread-safe after it is compiled, so as long as these instances are created when the DAO is initialized they can be
+kept as instance variables and be reused.
+
+SqlUpdate
+
+StoredProcedure
+
+Common problems with parameter and data value handling ???

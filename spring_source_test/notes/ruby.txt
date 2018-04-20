@@ -1,0 +1,462 @@
+Ruby支持的数据类型包括基本的Number、String、Ranges、Symbols，以及true、false和nil这几个特殊值，同时还有两种重要的数据结构——Array和Hash。 
+
+整型(Integer)
+整型分两种，如果在31位以内（四字节），那为Fixnum实例。如果超过，即为Bignum实例。
+整数范围从 -230 到 230-1 或 -262 到 262-1。在这个范围内的整数是类 Fixnum 的对象，在这个范围外的整数存储在类 Bignum 的对象中。
+您可以在整数前使用一个可选的前导符号，一个可选的基础指标（0 对应 octal，0x 对应 hex，0b 对应 binary），后跟一串数字。下划线字符在数字字符串中被忽略。
+您可以获取一个 ASCII 字符或一个用问号标记的转义序列的整数值。（before ruby 1.9）
+
+#带千分符的整型 
+a2=1_000_000 --->  a2 = 1000000
+# 'a' 的字符编码
+?A      ------>   65
+
+浮点型
+Ruby 支持浮点数。它们是带有小数的数字。浮点数是类 Float 的对象，且可以是下列中任意一个。
+
+123.4                # 浮点值
+1.0e6                # 科学记数法
+4E20                 # 不是必需的
+4e+20                # 指数前的符号
+
+加减乘除操作符：+-*/；指数操作符为** 
+puts 16**(1/4.0)#1与4.0的商为0.25（四分之一），然后开四次方根
+
+字符串类型
+Ruby 字符串简单地说是一个 8 位字节序列，它们是类 String 的对象。
+双引号标记的字符串允许替换和使用反斜线符号，单引号标记的字符串不允许替换，且只允许使用 \\ 和 \' 两个反斜线符号。
+可以使用序列 #{ expr } 替换任意 Ruby 表达式的值为一个字符串。在这里，expr 可以是任意的 Ruby 表达式。
+
+通过一般的分隔字符串，您可以在以百分号字符（%）为前导的一对匹配的任意分隔字符（例如，!、 (、 {、 <，等等）内创建字符串。Q、 q 和 x 有特殊的意义。一般的分隔字符串可以是：
+%{Ruby is fun.}  相当于 "Ruby is fun."
+%Q{ Ruby is fun. } 相当于 " Ruby is fun. "
+%q[Ruby is fun.]  相当于以单引号字符串
+%x!ls! 相当于反勾号命令输出 `ls`
+
+
+数组
+Ruby 数组是任何对象的有序的、整数索引的集合。
+数组的索引从 0 开始，这与 C 或 Java 中一样。一个负数的索引时相对于数组的末尾计数的，也就是说，索引为 -1 表示数组的最后一个元素，-2 表示数组中的倒数第二个元素，依此类推。
+Ruby 数组可存储诸如 String、 Integer、 Fixnum、 Hash、 Symbol 等对象，甚至可以是其他 Array 对象。
+数组字面量通过[]中以逗号分隔定义，且支持range定义。
+    （1）数组通过[]索引访问
+    （2）通过赋值操作插入、删除、替换元素
+    （3）通过+，－号进行合并和删除元素，且集合做为新集合出现
+    （4）通过<<号向原数据追加元素
+    （5）通过*号重复数组元素 （array=[1,2,3] array*3 ----> 123123123）
+    （6）通过｜和&符号做并集和交集操作（注意顺序，会排除重复的项）
+
+names = Array.new(20)
+puts names.size  # 返回 20
+puts names.length # 返回 20
+
+在核心 Ruby 中可用的 Kernel 模块有一个 Array 方法，只接受单个参数。在这里，该方法带有一个范围作为参数来创建一个数字数组：
+digits = Array(0..9)
+puts "#{digits}"
+0123456789
+
+array[index] [or] array[start, length] [or] array[range]   -------->  array.slice
+
+
+哈希类型
+哈希（Hash）是类似 "employee" => "salary" 这样的键值对的集合。通过键或值遍历哈希的顺序看起来是随意的，且通常不是按照插入顺序。如果您尝试通过一个不存在的键访问哈希，则方法会返回 nil。
+hsh = { "red" => 0xf00, "green" => 0x0f0, "blue" => 0x00f }
+hsh.each do |key, value|
+   print key, " is ", value, "\n"
+end
+
+您也可以使用 new 创建带有默认值的哈希，不带默认值的哈希是 nil：
+months = Hash.new( "month" )
+puts "#{months[0]}"    ->  month
+puts "#{months[72]}"   ->  month
+
+arr = [1,'test',2,'ppp']
+months = Hash[*arr]
+puts months
+{1=>"test", 2=>"ppp"}
+
+您可以使用任何的 Ruby 对象作为键或值，甚至可以使用数组，所以下面的实例是一个有效的实例：
+[1,"jan"] => "January"
+
+一些奇怪的function ???
+
+
+
+范围（Range）无处不在：January 到 December、 0 到 9、a 到 z等等。Ruby 支持范围，并允许我们以不同的方式使用范围：
+    作为序列的范围
+    作为条件的范围
+    作为间隔的范围
+	
+作为序列的范围
+范围的第一个也是最常见的用途是表达序列。序列有一个起点、一个终点和一个在序列产生连续值的方式。
+range = ('bar'..'bat').to_a
+bar, bas, bat
+
+作为条件的范围
+范围也可以用作条件表达式。例如，下面的代码片段从标准输入打印行，其中每个集合的第一行包含单词 start，最后一行包含单词 end.：
+while gets
+   print if /start/../end/
+end
+result = case score
+   when 0..40: "Fail"
+   when 41..60: "Pass"
+   when 61..70: "Pass with Merit"
+   when 71..100: "Pass with Distinction"
+   else "Invalid Score"
+end
+
+作为间隔的范围
+范围的最后一个用途是间隔测试：检查某些值是否落在范围表示的间隔里。这是使用 === 相等运算符来完成的。
+if ((1..10) === 5)
+  puts "5 lies in (1..10)"
+end
+
+Symbol 对象
+创建一个 Symbol 对象的方法是在名字或者字符串前面加上冒号：
+:foo
+:test 
+:”abc”
+:”I am a boy”
+
+每个 String 对象都是不同的，即便他们包含了相同的字符串内容；而对于 Symbol 对象，一个名字（字符串内容）唯一确定一个 Symbol 对象。
+值得注意的是创建 Symbol 对象的字符串中不能含有’\0’字符，而 String 对象是可以的。
+
+除了可以采用一般的字符串，还可以使用操作符（例如+, -, *, /），变量，常量，方法甚至类的名字来创建 Symbol 对象，例如:+就是一个合法的 Symbol 。实际上，在 Ruby 内部操作符、变量等名字本身就是作为 Symbol 处理的，例如当你定义一个实例变量时， Ruby 会自动创建一个 Symbol 对象，例如 @test 对应为 :@test
+
+注意，类变量 @@test 和实例变量 @test 对应的 Symbol 显然是不同的。记住：名字相同，则Symbol 相同。
+
+attr_accessor :test   实际上 Ruby 创建了两个 Symbol ，一个是实例变量的 symbol :@test ，另一个是 :test 
+
+Symbol 对象一旦定义将一直存在，直到程序执行退出
+
+通常来讲，当你面临 String 还是 Symbol 的选择时，可以参考以下标准：
+    如果使用字符串的内容，这个内容可能会变化，使用 String
+    如果使用固定的名字或者说是标识符，使用 Symbol
+
+Symbol 和哈希混合使用！！！
+
+Ruby 全局变量
+全局变量以 $ 开头。未初始化的全局变量的值为 nil
+
+Ruby 实例变量
+实例变量以 @ 开头。未初始化的实例变量的值为 nil
+
+Ruby 类变量
+类变量以 @@ 开头，且必须初始化后才能在方法定义中使用。
+引用一个未初始化的类变量会产生错误。类变量在定义它的类或模块的子类或子模块中可共享使用。
+
+Ruby 局部变量
+局部变量以小写字母或下划线 _ 开头。局部变量的作用域从 class、module、def 或 do 到相对应的结尾或者从左大括号到右大括号 {}。
+当调用一个未初始化的局部变量时，它被解释为调用一个不带参数的方法。
+对未初始化的局部变量赋值也可以当作是变量声明。变量会一直存在，直到当前域结束为止。局部变量的生命周期在 Ruby 解析程序时确定。
+
+Ruby 常量
+常量以大写字母开头。定义在类或模块内的常量可以从类或模块的内部访问，定义在类或模块外的常量可以被全局访问。
+常量不能定义在方法内。引用一个未初始化的常量会产生错误。类常量可被继承，也可像实例方法一样被重载。
+
+Ruby 伪变量
+它们是特殊的变量，有着局部变量的外观，但行为却像常量。您不能给这些变量赋任何值。
+    self: 当前方法的接收器对象。
+    true: 代表 true 的值。
+    false: 代表 false 的值。
+    nil: 代表 undefined 的值。
+    __FILE__: 当前源文件的名称。
+    __LINE__: 当前行在源文件中的编号。
+
+
+运算符
+==	检查两个操作数的值是否相等，如果相等则条件为真。
+===	用于测试 case 语句的 when 子句内的相等。	(1...10) === 5 返回 true。
+.eql?	如果接收器和参数具有相同的类型和相等的值，则返回 true。	1 == 1.0 返回 true，但是 1.eql?(1.0) 返回 false。
+equal?	如果接收器和参数具有相同的对象 id，则返回 true。	如果 aObj 是 bObj 的副本，那么 aObj == bObj 返回 true，a.equal?bObj 返回 false，但是 a.equal?aObj 返回 true。
+
+..	创建一个从开始点到结束点的范围（包含结束点）	1..10 创建从 1 到 10 的范围
+...	创建一个从开始点到结束点的范围（不包含结束点）	1...10 创建从 1 到 9 的范围
+
+Ruby 也支持变量的并行赋值。这使得多个变量可以通过一行的 Ruby 代码进行初始化。例如：
+a = 10
+b = 20
+c = 30
+使用并行赋值可以更快地声明：
+a, b, c = 10, 20, 30
+
+defined? 是一个特殊的运算符，以方法调用的形式来判断传递的表达式是否已定义。它返回表达式的描述字符串，如果表达式未定义则返回 nil。
+foo = 42
+defined? foo    # => "local-variable"
+defined? $_     # => "global-variable"
+defined? bar    # => nil（未定义）
+defined? puts        # => "method"
+
+双冒号是定义 name space 用的，或者叫 scope
+当你使用 Foo::Bar 的时候，实际你是在找一个名字叫 Foo 的 namespace ，然后让它返回它里面的 Bar 参数 ， 这个 Bar 可以是个常量，可以是个类，可以是个方法,
+但 :: 只能用来找 class method , instance method 就只能用 . 了 
+
+Ruby if...else 语句
+if 表达式用于条件执行。值 false 和 nil 为假，其他值都为真。请注意，Ruby 使用 elsif，不是使用 else if 和 elif。
+if 表达式的 conditional 通过保留字 then、一个换行符或一个分号，来与代码分离开。
+
+Ruby if 修饰符
+code if condition
+
+Ruby unless 语句
+unless conditional [then]
+   code
+[else
+   code ]
+end
+如果 conditional 为假，则执行 code。如果 conditional 为真，则执行 else 子句中指定的 code
+
+Ruby unless 修饰符
+code unless conditional
+如果 conditional 为假，则执行 code。
+
+Ruby case 语句
+case expression
+[when expression [, expression ...] [then]
+   code ]...
+[else
+   code ]
+end
+when 语句的表达式通过保留字 then、一个换行符或一个分号，来与代码分离开。
+
+case expr0
+when expr1, expr2
+   stmt1
+when expr3, expr4
+   stmt2
+else
+   stmt3
+end
+基本上类似于：
+_tmp = expr0
+if expr1 === _tmp || expr2 === _tmp
+   stmt1
+elsif expr3 === _tmp || expr4 === _tmp
+   stmt2
+else
+   stmt3
+end
+
+while conditional [do]
+   code
+end
+while 循环的 conditional 通过保留字 do、一个换行符、反斜线 \ 或一个分号 ; ，来与 code 分开
+
+Ruby while 修饰符
+code while condition
+或者
+begin 
+  code 
+end while conditional
+如果 while 修饰符跟在一个没有 rescue 或 ensure 子句的 begin 语句后面，code 会在 conditional 判断之前执行一次。
+
+Ruby until 语句
+until conditional [do]
+   code
+end
+当 conditional 为假时，执行 code。until 语句的 conditional 通过保留字 do、一个换行符或一个分号，来与 code 分离开。
+
+Ruby until 修饰符
+code until conditional
+或者
+begin
+   code
+end until conditional
+如果 until 修饰符跟在一个没有 rescue 或 ensure 子句的 begin 语句后面，code 会在 conditional 判断之前执行一次。
+
+Ruby for 语句
+for variable [, variable ...] in expression [do]
+   code
+end
+for...in 循环几乎是完全等价于：
+(expression).each do |variable[, variable...]| code end
+for 循环的 expression 通过保留字 do、一个换行符或一个分号，来与 code 分离开。
+
+Ruby break 语句
+Ruby next 语句
+Ruby redo 语句
+Ruby retry 语句
+
+Ruby 方法
+方法名应以小写字母开头。如果您以大写字母作为方法名的开头，Ruby 可能会把它当作常量，从而导致不正确地解析调用。
+方法应在调用之前定义，否则 Ruby 会产生未定义的方法调用异常。
+def method_name (var1, var2)
+   expr..
+end
+您可以为参数设置默认值，如果方法调用时未传递必需的参数则使用默认值：
+def method_name (var1=value1, var2=value2)
+   expr..
+end
+
+从方法返回值
+Ruby 中的每个方法默认都会返回一个值。这个返回的值是最后一个语句的值。例如：
+def test
+   i = 100
+   j = 10
+   k = 0
+end
+在调用这个方法时，将返回最后一个声明的变量 k。
+Ruby return 语句
+
+Ruby 中的 return 语句用于从 Ruby 方法中返回一个或多个值。
+return [expr[, expr...]]
+如果给出超过两个的表达式，包含这些值的数组将是返回值。如果未给出表达式，nil 将是返回值。
+
+在Ruby中有很多方法是以?和!号结尾的
+“？”被用于标示谓词，即返回Boolean直的方法，如Array.empty?(判断数组中元素是否为空)
+“！”出现在方法名尾部的感叹号表明使用该方法是需要多加小心。许多Ruby的核心类都定义了
+成对的方法，它们具有同样的名称，只是结尾相差一个“！”,通常情况下，不带感叹号的方法返
+调用该方法的一个拷贝，二带感叹号的方法则是一个可变方法，该方法会修改原来的对象，如Array
+类中的sort和sort! 
+
+可变数量的参数
+def sample (*test)
+   puts "The number of parameters is #{test.length}"
+   for i in 0...test.length
+      puts "The parameters are #{test[i]}"
+   end
+end
+sample "Zara", "6", "F"
+sample "Mac", "36", "M", "MCA"
+
+类方法
+当方法定义在类定义外部时，方法默认标记为 private。另一方面，定义在类定义中的方法默认标记为 public。方法默认的可见性和 private 标记可通过模块（Module）的 public 或 private 改变。
+Ruby 提供了一种不用实例化类即可访问方法的方式。让我们看看如何声明并访问类方法：
+class Accounts
+   def reading_charge
+   end
+   def Accounts.return_date
+   end
+end
+调用时 Accounts.return_date，您不需要创建类 Accounts 的对象。
+
+Ruby 块
+    块由大量的代码组成。
+    您需要给块取个名称。
+    块中的代码总是包含在大括号 {} 内。
+    块总是从与其具有相同名称的函数调用。这意味着如果您的块名称为 test，那么您要使用函数 test 来调用这个块。
+    您可以使用 yield 语句来调用块。
+def test
+  yield
+end
+test{ puts "Hello world"}
+
+但是如果方法的最后一个参数前带有 &，那么您可以向该方法传递一个块，且这个块可被赋给最后一个参数。如果 * 和 & 同时出现在参数列表中，& 应放在后面。
+def test(&block)
+   block.call
+end
+test { puts "Hello World!"}
+
+BEGIN 和 END 块
+每个 Ruby 源文件可以声明当文件被加载时要运行的代码块（BEGIN 块），以及程序完成执行后要运行的代码块（END 块）。
+一个程序可以包含多个 BEGIN 和 END 块。BEGIN 块按照它们出现的顺序执行。END 块按照它们出现的相反顺序执行。
+
+Ruby 模块（Module）
+模块（Module）是一种把方法、类和常量组合在一起的方式。模块（Module）为您提供了两大好处。
+    模块提供了一个命名空间和避免名字冲突。
+    模块实现了 mixin 装置
+
+Ruby require 语句
+require 语句类似于 C 和 C++ 中的 include 语句以及 Java 中的 import 语句。如果一个第三方的程序想要使用任何已定义的模块，则可以简单地使用 Ruby require 语句来加载模块文件
+
+Ruby include 语句
+您可以在类中嵌入模块。为了在类中嵌入模块，您可以在类中使用 include 语句：
+include modulename
+如果模块是定义在一个单独的文件中，那么在嵌入模块之前使用 require 语句引用该文件时必需的。
+
+Ruby 中的 Mixins
+当一个类可以从多个父类继承类的特性时，该类显示为多重继承。
+Ruby 不直接支持多重继承，但是 Ruby 的模块（Module）有另一个神奇的功能。它几乎消除了多重继承的需要，提供了一种名为 mixin 的装置。
+module A
+   def a1
+   end
+   def a2
+   end
+end
+module B
+   def b1
+   end
+   def b2
+   end
+end
+
+class Sample
+include A
+include B
+   def s1
+   end
+end
+
+samp=Sample.new
+samp.a1
+samp.a2
+samp.b1
+samp.b2
+samp.s1
+
+Ruby 迭代器
+在这里我们将讨论两种迭代器，each 和 collect.
+
+Ruby 为您提供了三个级别的实例方法保护，分别是 public、private 或 protected。Ruby 不在实例和类变量上应用任何访问控制。
+
+    Public 方法： Public 方法可被任意对象调用。默认情况下，方法都是 public 的，除了 initialize 方法总是 private 的。
+    Private 方法： Private 方法不能从类外部访问或查看。只有类方法可以访问私有成员。
+    Protected 方法： Protected 方法只能被类及其子类的对象调用。访问也只能在类及其子类内部进行。
+   
+   def getWidth
+      @width
+   end
+   def getHeight
+      @height
+   end
+   # make them private
+   private :getWidth, :getHeight
+
+   def printArea
+      @area = getWidth() * getHeight
+      puts "Big box area is : #@area"
+   end
+   # 让实例方法是 protected 的
+   protected :printArea
+ 
+类的继承
+继承有助于重用代码和快速执行，不幸的是，Ruby 不支持多继承，但是 Ruby 支持 mixins。mixin 就像是多继承的一个特定实现，在多继承中，只有接口部分是可继承的。
+class BigBox < Box
+   # 添加一个新的实例方法
+   def printArea
+      @area = @width * @height
+      puts "Big box area is : #@area"
+   end
+end
+
+对象包含：
+对象对类的引用（指针）
+对象的实例变量
+对象的object_id
+对象的状态tainted和frozen状态
+
+类包含：
+实例的方法
+类变量 
+
+
+运算符重载
+  def +(other)         # 定义 + 来执行向量加法
+    Box.new(@width + other.width, @height + other.height)
+  end
+
+  def -@               # 定义一元运算符 - 来对 width 和 height 求反
+    Box.new(-@width, -@height)
+  end
+
+  def *(scalar)        # 执行标量乘法
+    Box.new(@width*scalar, @height*scalar)
+  end
+
+方法重载
+虽然您可以在派生类中添加新的功能，但有时您可能想要改变已经在父类中定义的方法的行为。这时您可以保持方法名称不变，重载方法的功能即可。
+在同一个类里面无法重载方法，会覆盖原先的方法。
+
+冻结对象
+有时候，我们想要防止对象被改变。在 Object 中，freeze 方法可实现这点，它能有效地把一个对象变成一个常量。任何对象都可以通过调用 Object.freeze 进行冻结。您可以使用 Object.frozen? 方法检查一个给定的对象是否已经被冻结。
+
