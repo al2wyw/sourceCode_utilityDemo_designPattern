@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;

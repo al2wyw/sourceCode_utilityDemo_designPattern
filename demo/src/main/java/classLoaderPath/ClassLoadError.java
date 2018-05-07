@@ -1,4 +1,4 @@
-package com.classLoaderPath;
+package classLoaderPath;
 
 import java.io.File;
 import java.net.URL;
@@ -12,9 +12,9 @@ import java.net.URL;
  */
 public class ClassLoadError {
     /**
-     * ClassNotFoundException ¼ÓÔØÀàµÄÊ±ºòÕÒ²»µ½classÎÄ¼þ£¬Ò»°ãÊÇclasspathÉèÖÃ²»¶Ô£¬»òÕßÊÇÈ±ÉÙÒÀÀµ
-     * NoClassDefFoundError ²»ÊÇ¼ÓÔØÀàµÄÊ±ºò±¨µÄ´íÎó£¬¶øÊÇÔÚ³õÊ¼»¯µÄÊ±ºò±¨µÄ´íÎó£¬ µ±ÐèÒªÑ°ÕÒÒ»¸öÀàµÄClass¶ÔÏóµÄÊ±ºò£¬ÔÚµ±Ç°ÃüÃû¿Õ¼äÕÒ²»µ½Õâ¸öClass¶ÔÏó£¬ÄÇÃ´»áÅ×³öÕâ¸ö´íÎó
-     * ClassCastException ¶ÔÏóÇ¿ÖÆ×ª»»µÄÊ±ºò£¬Ä¿±êClassÒÑ¾­ÕÒµ½ÁË£¬µ«ÊÇÓëÐèÒª±»×ªµÄ¶ÔÏóµÄÀà¼ÓÔØ²»Ò»Ñù£¬µ¼ÖÂ×ª»»³ö´í
+     * ClassNotFoundException ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½classï¿½Ä¼ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½classpathï¿½ï¿½ï¿½Ã²ï¿½ï¿½Ô£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * NoClassDefFoundError ï¿½ï¿½ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ò±¨µÄ´ï¿½ï¿½ó£¬¶ï¿½ï¿½ï¿½ï¿½Ú³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ò±¨µÄ´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ÒªÑ°ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Classï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Úµï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Classï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½×³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * ClassCastException ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ä¿ï¿½ï¿½Classï¿½Ñ¾ï¿½ï¿½Òµï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½×ªï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø²ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      * */
     public static void main(String[] args) throws Exception{
         test1();

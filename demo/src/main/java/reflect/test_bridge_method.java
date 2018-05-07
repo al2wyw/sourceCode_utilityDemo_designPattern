@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 import java.lang.reflect.Method;
 
@@ -20,6 +20,7 @@ public class test_bridge_method {
 abstract class C<T> {
     abstract T id(T x);
 }
+
 class D extends C<String> {
     String id(String x) { return x; }
 }

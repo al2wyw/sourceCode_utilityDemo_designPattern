@@ -1,4 +1,4 @@
-package com.classLoaderPath;
+package classLoaderPath;
 
 /**
  * Created with IntelliJ IDEA.

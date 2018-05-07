@@ -1,4 +1,4 @@
-package com.javac;
+package javac;
 
 import java.net.URL;
 import java.net.URLClassLoader;

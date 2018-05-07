@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,7 +8,7 @@ public class test_reflect_generic {
 	@SuppressWarnings("all")
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		parent<String> p = new parent<String>();
-		p.setObject("test");
+		p.setObject("reflect");
 		//do the type cast here, not in the method getObject
 		//String test = p.getObject();
 		Object test = p.getObject();

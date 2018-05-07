@@ -1,4 +1,4 @@
-package com.javac;
+package javac;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;

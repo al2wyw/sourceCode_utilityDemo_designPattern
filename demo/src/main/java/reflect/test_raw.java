@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -36,6 +36,7 @@ class Person {
         return "I'm a person";
     }
 }
+
 class PersonDAO extends TypeExtractor<Person> {
 }
 

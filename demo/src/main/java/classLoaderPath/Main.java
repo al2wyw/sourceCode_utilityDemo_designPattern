@@ -1,6 +1,4 @@
-package com.classLoaderPath;
-
-import sun.misc.Launcher;
+package classLoaderPath;
 
 import java.net.MalformedURLException;
 import java.net.URL;

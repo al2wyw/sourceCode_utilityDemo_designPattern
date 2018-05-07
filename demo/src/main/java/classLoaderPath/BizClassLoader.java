@@ -1,4 +1,4 @@
-package com.classLoaderPath;
+package classLoaderPath;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -18,7 +18,7 @@ class BizClassLoader extends URLClassLoader {
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        if (name.contains("NotLoad")) {// Ç¿ÐÐ²»¼ÓÔØÕâ¸öÀà
+        if (name.contains("NotLoad")) {// Ç¿ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             System.out.println("NotLoad");
             return null;
         }

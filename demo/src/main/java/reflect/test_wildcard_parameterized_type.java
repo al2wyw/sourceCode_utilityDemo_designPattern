@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class test_wildcard_parameterized_type {
 	public static void main(String[] args) {
 		
 		List<String> list = new ArrayList<String>();
-		list.add("test");
+		list.add("reflect");
 		test(list);
 	}
 

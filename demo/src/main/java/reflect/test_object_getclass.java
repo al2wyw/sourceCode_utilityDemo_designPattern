@@ -1,4 +1,4 @@
-package com.reflect.test;
+package reflect;
 
 public class test_object_getclass {
 

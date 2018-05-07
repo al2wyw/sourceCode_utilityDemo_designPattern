@@ -1,11 +1,10 @@
-package com.reflect.test;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedType;
+package reflect;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+
+import java.lang.annotation.Annotation;
 
 public class test_annotation_reflect {
 
