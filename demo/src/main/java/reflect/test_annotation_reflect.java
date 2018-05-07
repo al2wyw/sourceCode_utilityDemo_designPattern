@@ -1,8 +1,7 @@
 package reflect;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+
+import annotation.Test;
 
 import java.lang.annotation.Annotation;
 
@@ -19,16 +18,16 @@ public class test_annotation_reflect {
 				System.out.println(ano.annotationType().getName());
 			}
 		}
-		Annotation[] a = klass.getAnnotationsByType(Component.class);
+		Annotation[] a = klass.getAnnotationsByType(Test.class);
 		System.out.println(a.length);
 		
-		System.out.println(Component.class.getSimpleName());
-		Annotation an = klass.getAnnotation(Component.class);
+		System.out.println(Test.class.getSimpleName());
+		Annotation an = klass.getAnnotation(Test.class);
 		Class<?> antype = an.annotationType();
-		if(antype.equals(Component.class)){
+		if(antype.equals(Test.class)){
 			System.out.println("good");
 		}
-		if(an.getClass().equals(Component.class)){
+		if(an.getClass().equals(Test.class)){
 			System.out.println("bad");
 		}
 		//do not know how to get the annotations on annotation interface
@@ -36,12 +35,11 @@ public class test_annotation_reflect {
 	//AnnotatedType since 1.8
 }
 
-@Component
+@Test
 class Anno{
-	@Autowired
 	private Object test;
 	
-	@Bean
+
 	public Object get(){
 		return null;
 	}
