@@ -1,4 +1,4 @@
-package classLoaderPath;
+package classloader;
 
 /**
  * Created with IntelliJ IDEA.

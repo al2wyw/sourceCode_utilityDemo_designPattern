@@ -1,4 +1,4 @@
-package classLoaderPath;
+package classloader;
 
 import java.io.File;
 import java.net.URL;
