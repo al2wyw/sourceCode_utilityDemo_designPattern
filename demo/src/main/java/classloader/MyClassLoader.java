@@ -19,4 +19,10 @@ public class MyClassLoader extends URLClassLoader {
         System.out.println("Class name: " + name);
         return super.defineClass(name, classData, 0, classData.length);
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        System.out.println(this +" gc");
+    }
 }
