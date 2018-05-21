@@ -12,6 +12,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * Created by johnny.ly on 2016/6/26.
+ * BigObject没有被回收是因为被object1s引用了
  */
 public class testPhamGC {
 
@@ -35,7 +36,7 @@ public class testPhamGC {
                 PhantomReference<Object> mr = (PhantomReference<Object>)r;
                 System.out.println("object from queue " + mr.get() + " " + mr.get());
             }
-            //LockSupport.parkNanos(1000000000L);
+            LockSupport.parkNanos(1000000000L);
         }
     }
 }
