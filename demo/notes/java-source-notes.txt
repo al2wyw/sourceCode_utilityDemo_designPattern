@@ -1,0 +1,283 @@
+AbstractQueuedSynchronizer{
+	Node head;
+	Node tail;
+	int state;
+	
+	acquire{
+		!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg) -> Thread.currentThread().interrupt()
+	}
+	acquireInterruptibly{
+		!tryAcquire(arg) -> acquireInterruptibly(arg)
+	}
+	acquireShared{
+		tryAcquireShared(arg) < 0 -> doAcquireShared(arg);
+	}
+	acquireSharedInterruptibly
+	release{
+		tryRelease(arg) -> head != null && head.waitStatus != 0 -> unparkSuccessor(head)
+	}
+	releaseShared
+	tryAcquireNanos(自旋锁的使用)
+	tryAcquireSharedNanos
+	
+	addWaiter(create new node and set to tail, then set pre and next node, otherwise enq)
+	acquireQueued(返回当前线程是否interrupted){
+		for{
+			p = node.predecessor() -> p == head && tryAcquire(arg) -> setHead(node); failed = false; return interrupted;
+			shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt() -> interrupted = true
+		}finally{failed -> cancelAcquire}
+	}
+	setHead{
+		head = node;
+        node.thread = null;
+        node.prev = null;
+	}
+	shouldParkAfterFailedAcquire(Node pred, Node node){
+		//set pre waitStatus to SIGNAL then return true
+		int ws = pred.waitStatus;
+        if (ws == Node.SIGNAL)
+            return true;
+        if (ws > 0) {
+			//skip over cancelled pre nodes
+            do {
+                node.prev = pred = pred.prev;
+            } while (pred.waitStatus > 0);
+            pred.next = node;
+        } else {
+			// 0 or PROPAGATE are set to SIGNAL
+            compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+        }
+        return false;
+	}
+	cancelAcquire{
+		处理所有场景的acquire失败,包括独占和共享
+		Node pred = node.prev; Skip cancelled predecessors; node.waitStatus = Node.CANCELLED;
+		node == tail && set tail to pred -> compareAndSetNext(pred, predNext, null);
+		pred != head && ((ws = pred.waitStatus) == Node.SIGNAL || (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) && pred.thread != null -> node.next != null && next.waitStatus <= 0 -> compareAndSetNext(pred, predNext, next);
+		unparkSuccessor(node);
+	}
+	unparkSuccessor(Node node){
+		int ws = node.waitStatus;
+        if (ws < 0)
+            compareAndSetWaitStatus(node, ws, 0);
+		skip cancelled node to find the non-cancelled successor and unpark the successor(not delete cancelled node)
+	}
+	acquireInterruptibly{
+		addWaiter(Node.EXCLUSIVE) -> for{
+						p = node.predecessor() -> p == head && tryAcquire(arg) -> setHead(node); -> return;
+						shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt() -> throw new InterruptedException()
+					}
+	}
+	doAcquireShared{
+		addWaiter(Node.SHARED) -> for{
+						p = node.predecessor() -> p == head -> int r = tryAcquireShared(arg); -> r >= 0 -> setHeadAndPropagate(node, r); -> interrupted -> selfInterrupt() -> return; 
+						shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt() -> interrupted = true
+					}
+	}
+	setHeadAndPropagate(){
+		setHead(node) -> propagate > 0 || h == null || h.waitStatus < 0 || (h = head) == null || h.waitStatus < 0 -> Node s = node.next; -> s == null || s.isShared() -> doReleaseShared() -> unparkSuccessor(head);
+	}
+}
+sync queue的head指向一个空node!(thread=null) 看enq逻辑,enq返回predecessor!!!
+
+Node{
+	static final Node SHARED = new Node();
+	static final Node EXCLUSIVE = null;
+	/** waitStatus value to indicate thread has cancelled */
+	static final int CANCELLED =  1;
+	/** waitStatus value to indicate successor's thread needs unparking */
+	static final int SIGNAL    = -1;
+	/** waitStatus value to indicate thread is waiting on condition */
+	static final int CONDITION = -2;
+	/**
+	 * waitStatus value to indicate the next acquireShared should
+	 * unconditionally propagate
+	 */
+	static final int PROPAGATE = -3;
+	int waitStatus;
+	Node prev;
+	Node next;
+	Node nextWaiter; -> (SHARED/EXCLUSIVE/node in condition)
+	Thread thread;
+}
+
+ConditionObject{
+	Node firstWaiter;
+	Node lastWaiter;
+	/** Mode meaning to reinterrupt on exit from wait */
+	private static final int REINTERRUPT =  1;
+	/** Mode meaning to throw InterruptedException on exit from wait */
+	private static final int THROW_IE    = -1;
+	
+	await();{
+		addConditionWaiter -> int savedState =fullyRelease(set state to 0 and return original state, unpark successor on sync queue)
+		-> while (!isOnSyncQueue(node)) {
+				LockSupport.park(this) -> interruptMode = Thread.interrupted() ? (transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) : 0; -> interruptMode != 0 -> break;
+			}
+		acquireQueued(node, savedState) && interruptMode != THROW_IE -> interruptMode = REINTERRUPT;
+		node.nextWaiter != null -> unlinkCancelledWaiters(Unlinks waken-up waiter nodes from condition queue)
+		interruptMode != 0 -> THROW_IE -> throw new InterruptedException()
+						   -> REINTERRUPT -> selfInterrupt()
+	}
+	awaitUninterruptibly();{
+		addConditionWaiter() -> int savedState =fullyRelease() 
+		-> while (!isOnSyncQueue(node)) {
+				LockSupport.park(this) -> Thread.interrupted() -> interrupted = true;
+			}
+		acquireQueued(node, savedState) || interrupted -> selfInterrupt()
+	}
+	signal();{
+		first = firstWaiter;first != null -> doSignal(first);
+	}
+	
+	addConditionWaiter(create new node and set to lastWaiter, append to nextWaiter)
+	transferAfterCancelledWait{
+		compareAndSetWaitStatus(node, Node.CONDITION, 0) -> enq(node) -> return true;
+		while (!isOnSyncQueue(node)) -> Thread.yield();
+		return false;
+	}
+	isOnSyncQueue{
+		node.waitStatus == Node.CONDITION || node.prev == null -> return false;
+		node.next != null -> return true;
+		return findNodeFromTail(node);
+	}
+	doSignal(first){
+		do{
+			(firstWaiter = first.nextWaiter) == null -> lastWaiter = null;
+			first.nextWaiter = null;
+		}while (!transferForSignal(first) && (first = firstWaiter) != null)
+	}
+	transferForSignal{
+		!compareAndSetWaitStatus(node, Node.CONDITION, 0) -> return false;(说明已经cancelled)
+		p = enq(node); ws = p.waitStatus; -> ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL) ->  LockSupport.unpark(node.thread) (让node所在线程进入到acquireQueue方法中,看wait方法)
+		return true;
+	}
+}
+
+need to be implemented:
+tryAcquire
+tryRelease
+tryAcquireShared
+tryReleaseShared
+isHeldExclusively
+
+Sync{
+	abstract void lock();
+	final boolean nonfairTryAcquire(int acquires);
+	protected final boolean tryRelease(int releases);{
+		state-=releases -> state == 0 -> setExclusiveOwnerThread(null)
+	}
+	protected final boolean isHeldExclusively();
+	final ConditionObject newCondition();
+}
+
+NonfairSync{
+	final void lock(); {
+		compareAndSetState(0, 1) 
+		acquire(1)
+	}
+	protected final boolean tryAcquire(int acquires); (nonfairTryAcquire){
+		state == 0 -> compareAndSetState(0, acquires)
+		current == getExclusiveOwnerThread() -> state+=acquires
+	}
+}
+
+FairSync{
+	final void lock(); (acquire(1))
+	protected final boolean tryAcquire(int acquires); {
+		state == 0 -> !hasQueuedPredecessors() && compareAndSetState(0, acquires)
+		current == getExclusiveOwnerThread() -> state+=acquires
+	}(hasQueuedPredecessors -> whether any threads have been waiting to acquire longer than the current thread)
+}
+
+Sync{
+	SHARED_SHIFT: state高16位用来表示读锁占有的线程数量，用低16位表示写锁被同一个线程申请的次数
+	SHARED_UNIT:  增加一个读锁，就相当于增加SHARED_UNIT
+	MAX_COUNT:    申请读锁最大的线程数量
+	EXCLUSIVE_MASK: getState & EXCLUSIVE_MASK算出写锁的线程数
+	将获取读锁的线程放入线程本地变量,方便获取持有锁的次数:
+	ThreadLocalHoldCounter readHolds//本线程的hc
+	HoldCounter cachedHoldCounter//上一次上读锁的hc
+	Thread firstReader//第一个上读锁的线程
+	int firstReaderHoldCount//第一个上读锁的hc
+	
+	tryAcquire{
+		int c = getState();int w = exclusiveCount(c);
+		c != 0 -> w == 0 || current != getExclusiveOwnerThread() -> return false;
+			   -> w + exclusiveCount(acquires) > MAX_COUNT -> throw;
+			   -> setState(c + acquires); return true;
+		writerShouldBlock() || !compareAndSetState(c, c + acquires) -> return false;
+		setExclusiveOwnerThread(current); return true;
+	}
+	tryAcquireShared{
+		int c = getState();
+		exclusiveCount(c) != 0 && getExclusiveOwnerThread() != current -> return -1;//write locked
+		int r = sharedCount(c);
+		!readerShouldBlock() && r < MAX_COUNT && compareAndSetState(c, c + SHARED_UNIT){
+			//获得了读锁,对HoldCounter进行调整
+			r == 0 -> firstReader = current;firstReaderHoldCount = 1;
+			firstReader == current -> firstReaderHoldCount++;
+			HoldCounter rh = cachedHoldCounter; -> rh == null || rh.tid != getThreadId(current) -> cachedHoldCounter = rh = readHolds.get() -> rh.count++
+												-> rh.count == 0 -> readHolds.set(rh); -> rh.count++
+			return 1;
+		}
+		return fullTryAcquireShared(current);
+	}
+	tryRelease{
+		int nextc = getState() - releases;
+		exclusiveCount(nextc) == 0 -> setExclusiveOwnerThread(null);
+		setState(nextc);
+	}
+	tryReleaseShared{
+		firstReader == current{
+			firstReaderHoldCount == 1 -> firstReader = null;
+			firstReaderHoldCount != 1 -> firstReaderHoldCount--;
+		}
+		firstReader != current{
+			HoldCounter rh = cachedHoldCounter; 
+			rh == null || rh.tid != getThreadId(current) -> rh = readHolds.get();
+			int count = rh.count;
+			count <= 1 -> readHolds.remove(); count <= 0 -> throw
+			--rh.count;
+		}
+		for{
+			int c = getState(); int nextc = c - SHARED_UNIT; -> compareAndSetState(c, nextc) -> return nextc == 0
+		}
+	}
+	tryReadLock(similar with tryAcquireShared except for lack of calls to readerShouldBlock)
+	tryWriteLock(similar with tryAcquire except for lack of calls to writerShouldBlock)
+	
+	fullTryAcquireShared{
+		tryAcquireShared的for循环版,除了判断readerShouldBlock的逻辑不一样，为了避免死循环
+	}
+}
+NonfairSync{
+	readerShouldBlock apparentlyFirstQueuedIsExclusive(the apparent first queued thread is waiting in exclusive mode)
+	writerShouldBlock return false;
+}
+FairSync{
+	readerShouldBlock hasQueuedPredecessors(Queries whether any threads have been waiting to acquire longer than the current thread)
+	writerShouldBlock hasQueuedPredecessors
+}
+ReadLock{
+	lock -> sync.acquireShared(1);
+	tryLock -> sync.tryReadLock();
+	unlock -> sync.releaseShared(1);
+}
+WriteLock{
+	lock -> sync.acquire(1);
+	tryLock -> sync.tryWriteLock();
+	unlock -> sync.release(1);
+}
+
+StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。因此，这就会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，就会发生疯狂占用CPU的情况。(先上writeLock，writeLock不释放，同时中断readLock就会导致readLock死循环)
+
+Striped64(false sharing伪共享)
+-XX:-RestrictContended
+@sun.misc.Contended
+public final static class VolatileLong {
+	public volatile long value = 0L;
+	//public long p1, p2, p3, p4, p5, p6;
+}
+LongAdder extends Striped64
+
