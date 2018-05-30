@@ -178,8 +178,8 @@ Sync{
 
 NonfairSync{
 	final void lock(); {
-		compareAndSetState(0, 1) 
-		acquire(1)
+		if compareAndSetState(0, 1) -> setExclusiveOwnerThread(Thread.currentThread());
+		else acquire(1)
 	}
 	protected final boolean tryAcquire(int acquires);{
 		return nonfairTryAcquire(acquires)
@@ -195,6 +195,8 @@ FairSync{
 	}(hasQueuedPredecessors -> whether any threads have been waiting to acquire longer than the current thread)
 }
 
+
+////////////////////////////////////ReentrantReadWriteLock////////////////////////////////////
 Sync{
 	SHARED_SHIFT: state高16位用来表示读锁占有的线程数量，用低16位表示写锁被同一个线程申请的次数
 	SHARED_UNIT:  增加一个读锁，就相当于增加SHARED_UNIT
