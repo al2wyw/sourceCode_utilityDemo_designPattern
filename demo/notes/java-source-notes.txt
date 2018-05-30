@@ -163,9 +163,14 @@ isHeldExclusively
 
 Sync{
 	abstract void lock();
-	final boolean nonfairTryAcquire(int acquires);
+	final boolean nonfairTryAcquire(int acquires){
+		state == 0 -> compareAndSetState(0, acquires)  -> setExclusiveOwnerThread(current);return true;
+		current == getExclusiveOwnerThread() -> state+=acquires;return true;
+		return false;
+	}
 	protected final boolean tryRelease(int releases);{
 		state-=releases -> state == 0 -> setExclusiveOwnerThread(null)
+		return state == 0;
 	}
 	protected final boolean isHeldExclusively();
 	final ConditionObject newCondition();
@@ -176,17 +181,17 @@ NonfairSync{
 		compareAndSetState(0, 1) 
 		acquire(1)
 	}
-	protected final boolean tryAcquire(int acquires); (nonfairTryAcquire){
-		state == 0 -> compareAndSetState(0, acquires)
-		current == getExclusiveOwnerThread() -> state+=acquires
+	protected final boolean tryAcquire(int acquires);{
+		return nonfairTryAcquire(acquires)
 	}
 }
 
 FairSync{
 	final void lock(); (acquire(1))
 	protected final boolean tryAcquire(int acquires); {
-		state == 0 -> !hasQueuedPredecessors() && compareAndSetState(0, acquires)
-		current == getExclusiveOwnerThread() -> state+=acquires
+		state == 0 -> !hasQueuedPredecessors() && compareAndSetState(0, acquires) -> setExclusiveOwnerThread(current);return true;
+		current == getExclusiveOwnerThread() -> state+=acquires;return true;
+		return false;
 	}(hasQueuedPredecessors -> whether any threads have been waiting to acquire longer than the current thread)
 }
 
