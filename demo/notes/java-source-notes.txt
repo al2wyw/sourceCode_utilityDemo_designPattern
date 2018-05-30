@@ -288,3 +288,10 @@ public final static class VolatileLong {
 }
 LongAdder extends Striped64
 
+多个地方调用tryTerminate(),从调用方可以看到多种场景下都可以使线程池终止:
+addWorkerFailed (decrementWorkerCount();tryTerminate();) This worker holding up termination
+processWorkerExit (workers.remove(w);tryTerminate();)
+remove (workQueue.remove(task);tryTerminate();) // In case SHUTDOWN and now empty
+shutdown 最后call tryTerminate()
+shutdownNow 最后call tryTerminate()
+purge ???
