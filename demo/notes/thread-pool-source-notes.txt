@@ -1,0 +1,194 @@
+ThreadPoolExecutor extends AbstractExecutorService
+{
+	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
+	private static final int COUNT_BITS = Integer.SIZE - 3;//32 - 3 = 29
+    private static final int CAPACITY   = (1 << COUNT_BITS) - 1;//000低位全是1
+
+    // runState is stored in the high-order bits
+    private static final int RUNNING    = -1 << COUNT_BITS;//111低位全是0
+    private static final int SHUTDOWN   =  0 << COUNT_BITS;//000低位全是0
+    private static final int STOP       =  1 << COUNT_BITS;//001低位全是0
+    private static final int TIDYING    =  2 << COUNT_BITS;//010低位全是0
+    private static final int TERMINATED =  3 << COUNT_BITS;//011低位全是0
+	
+	private static int runStateOf(int c)     { return c & ~CAPACITY; }//32位的高三位是run state
+    private static int workerCountOf(int c)  { return c & CAPACITY; }//32位的低位是worker数量
+    private static int ctlOf(int rs, int wc) { return rs | wc; }//把running state和worker数量合并,作为初始化
+	
+	private final ReentrantLock mainLock = new ReentrantLock();
+	private final Condition termination = mainLock.newCondition();
+
+	private boolean compareAndIncrementWorkerCount(int expect) { return ctl.compareAndSet(expect, expect + 1);}
+	private boolean compareAndDecrementWorkerCount(int expect) { return ctl.compareAndSet(expect, expect - 1);}
+	private void decrementWorkerCount() { do {} while (! compareAndDecrementWorkerCount(ctl.get()));}
+
+	final void runWorker(Worker w) { //wt就是Woker的thread属性
+		Thread wt = Thread.currentThread(); Runnable task = w.firstTask; w.firstTask = null; w.unlock();//allow interrupts(call setState(0))
+		while (task != null || (task = getTask()) != null) {
+			w.lock();
+			(runStateAtLeast(ctl.get(), STOP) ||(Thread.interrupted() &&runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted()) -> wt.interrupt();
+			try{ beforeExecute(wt, task); task.run(); afterExecute(task, thrown); }finally{task = null; w.completedTasks++; w.unlock();}
+		}
+		completedAbruptly = false; 
+		finally{processWorkerExit(w, completedAbruptly);}
+	}
+	private Runnable getTask() {
+		boolean timedOut = false; // Did the last poll() time out?
+		for{
+			rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty()) -> decrementWorkerCount(); return null;
+			boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
+			(wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty()) -> compareAndDecrementWorkerCount(c) -> return null;
+																							 -> continue;
+			try{
+				Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
+				r != null -> return r;
+				timedOut = true;
+			}catch(InterruptedException) -> timedOut = false;
+		}
+	}
+	private void processWorkerExit(Worker w, boolean completedAbruptly) {
+		completedAbruptly -> decrementWorkerCount();
+		mainLock.lock(); completedTaskCount += w.completedTasks; workers.remove(w); mainLock.unlock();
+		tryTerminate();
+		runStateLessThan(c, STOP) -> !completedAbruptly -> workerCountOf(c) >= allowCoreThreadTimeOut ? 0 : corePoolSize -> return;
+								  -> addWorker(null, false);
+	}
+	tryTerminate(){
+		for{
+			isRunning(c) || runStateAtLeast(c, TIDYING) || (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()) -> return;
+			workerCountOf(c) != 0 -> interruptIdleWorkers(true); return;
+			mainLock.lock(); ctl.compareAndSet(c, ctlOf(TIDYING, 0) -> try{ terminated(); } finally{ctl.set(ctlOf(TERMINATED, 0));termination.signalAll();}
+			mainLock.unlock();
+		}
+	}
+	private boolean addWorker(Runnable firstTask, boolean core){
+		retry: for{
+			rs >= SHUTDOWN && (rs != SHUTDOWN || firstTask != null || workQueue.isEmpty()) -> return false;
+			for{
+				wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize) -> return false;
+				compareAndIncrementWorkerCount(c) -> break retry;
+				runStateOf(c) != rs -> continue retry;
+			}
+		}
+		try {
+			w = new Worker(firstTask); t = w.thread;
+			t != null -> mainLock.lock(); try{ rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null) -> workers.add(w); workerAdded = true; } finally{mainLock.unlock();}
+			workerAdded -> t.start(); workerStarted = true;
+		}finally{ ! workerStarted -> addWorkerFailed(w);}
+		return workerStarted;
+	}
+	private void addWorkerFailed(Worker w){
+		workers.remove(w);decrementWorkerCount();tryTerminate();
+	}
+	
+	public void execute(Runnable command) {
+		workerCountOf(c) < corePoolSize) -> addWorker(command, true)) -> return;
+										 ->	c = ctl.get();
+		if isRunning(c) && workQueue.offer(command) -> recheck = ctl.get(); -> ! isRunning(recheck) && remove(command) -> reject(command);
+																		 -> workerCountOf(recheck) == 0 -> addWorker(null, false);
+		else !addWorker(command, false) -> reject(command);
+	}
+	public boolean remove(Runnable task) {
+        boolean removed = workQueue.remove(task); tryTerminate(); // In case SHUTDOWN and now empty
+		return removed;
+    }
+	final void reject(Runnable command) { handler.rejectedExecution(command, this);}
+	
+	public boolean awaitTermination(long timeout, TimeUnit unit){
+		mainLock.lock(); 
+		for{
+			if (runStateAtLeast(ctl.get(), TERMINATED)) return true;
+			if (nanos <= 0) return false;
+			nanos = termination.awaitNanos(nanos);
+		}finally{mainLock.unlock()}
+	}
+	public void shutdown() {
+		mainLock.lock();
+        try {
+			checkShutdownAccess();//check the access permission to the thread of worker
+			advanceRunState(SHUTDOWN);//set run state to shutdown
+			interruptIdleWorkers();//interruptIdleWorkers(false);
+		}finally{mainLock.unlock()}
+		tryTerminate();
+	}
+	private void interruptIdleWorkers(boolean onlyOne) {
+		mainLock.lock(); 
+		try{
+			for(Worker w : workers){
+				!t.isInterrupted() && w.tryLock() -> try{t.interrupt();}finally{w.unlock()}
+				onlyOne -> break;
+			}
+		}finally{mainLock.unlock()}
+	}
+	public List<Runnable> shutdownNow() {
+		mainLock.lock();
+        try {
+			checkShutdownAccess();//check the access permission to the thread of worker
+			advanceRunState(STOP);//set run state to shutdown
+			interruptWorkers();//interrupt all workers with worker.interruptIfStarted();
+			tasks = drainQueue();//返回所有的未开始task
+		}finally{mainLock.unlock()}
+		tryTerminate();return tasks;
+	}
+	void onShutdown() {
+    }
+	
+	do nothing:
+	protected void beforeExecute(Thread t, Runnable r) { }
+	protected void afterExecute(Runnable r, Throwable t) { }
+	protected void terminated(){} 
+}
+
+private final class Worker extends AbstractQueuedSynchronizer implements Runnable
+    {
+        /** Thread this worker is running in.  Null if factory fails. */
+        final Thread thread;
+        /** Initial task to run.  Possibly null. */
+        Runnable firstTask;
+        /** Per-thread task counter */
+        volatile long completedTasks;
+
+        Worker(Runnable firstTask) {
+            setState(-1); // inhibit interrupts until runWorker ?????
+            this.firstTask = firstTask;
+            this.thread = getThreadFactory().newThread(this);
+        }
+
+        public void run() {
+            runWorker(this);
+        }
+
+        protected boolean isHeldExclusively() {
+            return getState() != 0;
+        }
+
+		//不可重入,参数unused
+        protected boolean tryAcquire(int unused) {
+            if (compareAndSetState(0, 1)) {
+                setExclusiveOwnerThread(Thread.currentThread());
+                return true;
+            }
+            return false;
+        }
+
+        protected boolean tryRelease(int unused) {
+            setExclusiveOwnerThread(null);
+            setState(0);
+            return true;
+        }
+
+        public void lock()        { acquire(1); }
+        public boolean tryLock()  { return tryAcquire(1); }
+        public void unlock()      { release(1); }
+        public boolean isLocked() { return isHeldExclusively(); }
+
+        void interruptIfStarted() {
+            Thread t;
+            if (getState() >= 0 && (t = thread) != null && !t.isInterrupted()) {
+                try {
+                    t.interrupt();
+                } catch (SecurityException ignore) {
+                }
+            }
+        }
+    }
