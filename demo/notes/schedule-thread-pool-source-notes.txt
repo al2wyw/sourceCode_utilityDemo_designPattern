@@ -1,0 +1,155 @@
+public class ScheduledThreadPoolExecutor extends ThreadPoolExecutor implements ScheduledExecutorService{
+
+	/**
+     * False if should cancel/suppress periodic tasks on shutdown.
+     */
+    private volatile boolean continueExistingPeriodicTasksAfterShutdown;
+
+    /**
+     * False if should cancel non-periodic tasks on shutdown.
+     */
+    private volatile boolean executeExistingDelayedTasksAfterShutdown = true;
+
+    /**
+     * True if ScheduledFutureTask.cancel should remove from queue
+     */
+    private volatile boolean removeOnCancel = false;
+	
+	public ScheduledThreadPoolExecutor(int corePoolSize) {
+        super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
+              new DelayedWorkQueue());
+    }
+	
+	public <V> ScheduledFuture<V> schedule(Callable<V> callable,long delay,TimeUnit unit) {
+        RunnableScheduledFuture<V> t = decorateTask(callable, new ScheduledFutureTask<V>(callable, triggerTime(delay, unit)));//decorateTask just return ScheduledFutureTask
+        delayedExecute(t);
+        return t;
+    }
+	
+	private void delayedExecute(RunnableScheduledFuture<?> task) {
+        if (isShutdown())
+            reject(task);
+        else {
+            super.getQueue().add(task);
+            if (isShutdown() && !canRunInCurrentRunState(task.isPeriodic()) && remove(task)) -> task.cancel(false);
+            else ensurePrestart();
+        }
+    }
+	
+	public ScheduledFuture<?> scheduleAtFixedRate(){
+		same as schedule() except for set ScheduledFutureTask.outerTask to itself after decorateTask
+	}
+	public ScheduledFuture<?> scheduleWithFixedDelay(){
+		same as schedule() except for set ScheduledFutureTask.outerTask to itself after decorateTask,
+		the period of ScheduledFutureTask should be negative
+	}
+	
+	void onShutdown() {
+		if (!keepDelayed && !keepPeriodic) {
+            for (Object e : q.toArray())
+                if (e instanceof RunnableScheduledFuture<?>)
+                    ((RunnableScheduledFuture<?>) e).cancel(false);
+            q.clear();
+        }
+        else {
+            // Traverse snapshot to avoid iterator exceptions
+            for (Object e : q.toArray()) {
+                if (e instanceof RunnableScheduledFuture) {
+                    RunnableScheduledFuture<?> t =
+                        (RunnableScheduledFuture<?>)e;
+                    if ((t.isPeriodic() ? !keepPeriodic : !keepDelayed) || t.isCancelled()) { // also remove if already cancelled
+                        if (q.remove(t))
+                            t.cancel(false);
+                    }
+                }
+            }
+        }
+        tryTerminate();
+	}
+	
+	execute,submit will delegate to schedule with 0 delay!!!
+	shutdown, shutdownNow will delegate to super methods, but onShutdown is overrided.
+}
+
+private class ScheduledFutureTask<V> extends FutureTask<V> implements RunnableScheduledFuture<V> {
+	/** Sequence number to break ties FIFO */
+	private final long sequenceNumber;
+	/** The time the task is enabled to execute in nanoTime units */
+	private long time;
+	/**
+	 * Period in nanoseconds for repeating tasks.  A positive
+	 * value indicates fixed-rate execution.  A negative value
+	 * indicates fixed-delay execution.  A value of 0 indicates a
+	 * non-repeating task.
+	 */
+	private final long period;
+	/** The actual task to be re-enqueued by reExecutePeriodic */
+	RunnableScheduledFuture<V> outerTask = this;
+	/** Index into delay queue, to support faster cancellation.*/
+	int heapIndex;//在二叉堆数组里的下标, -1 为已删除状态
+	
+	public boolean isPeriodic() {
+        return period != 0;
+    }
+		
+	public void run() {
+		boolean periodic = isPeriodic();
+		if (!canRunInCurrentRunState(periodic)) cancel(false);
+		else if (!periodic) ScheduledFutureTask.super.run();
+		else if (ScheduledFutureTask.super.runAndReset()) { setNextRunTime(); reExecutePeriodic(outerTask);}
+	}
+	
+	boolean canRunInCurrentRunState(boolean periodic) {
+        return isRunningOrShutdown(periodic ? continueExistingPeriodicTasksAfterShutdown : executeExistingDelayedTasksAfterShutdown);
+    }
+	
+	final boolean isRunningOrShutdown(boolean shutdownOK) {
+        return rs == RUNNING || (rs == SHUTDOWN && shutdownOK);
+    }
+	
+	protected boolean runAndReset() { //similar to run, except for setting outcome
+        state != NEW || !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()) -> return false;
+		try {
+            Callable<V> c = callable;
+            if (c != null && state == NEW) {
+                try {
+                    c.call(); ran = true;
+                } catch (Throwable ex) {
+                    setException(ex);
+                }
+            }
+        } finally {
+            runner = null;
+            int s = state;
+            if (s >= INTERRUPTING)
+                handlePossibleCancellationInterrupt(s);
+        }
+        return ran && s == NEW;
+    }
+	
+	private void setNextRunTime() {
+		if (p > 0) time += p;
+		else time = now() + (-p);
+	}
+	
+	void reExecutePeriodic(RunnableScheduledFuture<?> task) {
+        if (canRunInCurrentRunState(true)) {
+            super.getQueue().add(task);
+            if (!canRunInCurrentRunState(true) && remove(task)) task.cancel(false);
+            else ensurePrestart();// 确保线程池中至少有一个线程启动，即使corePoolSize为0，调用addWorker
+        }
+    }
+
+	public boolean cancel(boolean mayInterruptIfRunning) {
+		boolean cancelled = super.cancel(mayInterruptIfRunning);
+		cancelled && removeOnCancel && heapIndex >= 0 -> remove(this);//remove this from workQueue
+		return cancelled;
+	}
+}
+
+static class DelayedWorkQueue extends AbstractQueue<Runnable> implements BlockingQueue<Runnable> {
+	使用数组实现的二叉堆
+	private Thread leader = null;//Leader-Follower 模式变体, 当前线程准备获取第一个位置的任务时会对leader赋值(变为leader),而其他线程只能wait(都是follower)，当前线程获得任务后leader=null
+	
+	take(siftDown, 把最后一个元素放到第一个位置), remove(siftDown -> siftUp, 把最后一个元素放到当前位置,siftDown，如果元素还在当前位置，shitUp), offer(siftUp, 把元素放到最后一个位置)
+}

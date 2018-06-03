@@ -1,3 +1,29 @@
+public abstract class AbstractExecutorService implements ExecutorService{
+	public <T> Future<T> submit(Callable<T> task) {
+        RunnableFuture<T> ftask = newTaskFor(task);
+        execute(ftask);
+        return ftask;
+    }
+	
+	protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+        return new FutureTask<T>(callable);
+    }
+	//submit 有Runnable作为形参的方法, 通过RunnableAdapter把Runnable转为Callable,再生成RunnableFuture作为返回值
+	
+	static final class RunnableAdapter<T> implements Callable<T> {
+        final Runnable task;
+        final T result;
+        RunnableAdapter(Runnable task, T result) {
+            this.task = task;
+            this.result = result;
+        }
+        public T call() {
+            task.run();
+            return result;
+        }
+    }
+}
+
 ThreadPoolExecutor extends AbstractExecutorService
 {
 	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
@@ -27,7 +53,10 @@ ThreadPoolExecutor extends AbstractExecutorService
 		while (task != null || (task = getTask()) != null) {
 			w.lock();
 			(runStateAtLeast(ctl.get(), STOP) ||(Thread.interrupted() &&runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted()) -> wt.interrupt();
-			try{ beforeExecute(wt, task); task.run(); afterExecute(task, thrown); }finally{task = null; w.completedTasks++; w.unlock();}
+			try{ 
+				beforeExecute(wt, task); 
+				try{task.run();}catch(Throwable x){throw x;}finally{afterExecute(task, thrown);} 
+			}finally{task = null; w.completedTasks++; w.unlock();}
 		}
 		completedAbruptly = false; 
 		finally{processWorkerExit(w, completedAbruptly);}
@@ -43,7 +72,7 @@ ThreadPoolExecutor extends AbstractExecutorService
 				Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
 				r != null -> return r;
 				timedOut = true;
-			}catch(InterruptedException) -> timedOut = false;
+			}catch(InterruptedException){ timedOut = false;}
 		}
 	}
 	private void processWorkerExit(Worker w, boolean completedAbruptly) {
@@ -140,55 +169,168 @@ ThreadPoolExecutor extends AbstractExecutorService
 }
 
 private final class Worker extends AbstractQueuedSynchronizer implements Runnable
-    {
-        /** Thread this worker is running in.  Null if factory fails. */
-        final Thread thread;
-        /** Initial task to run.  Possibly null. */
-        Runnable firstTask;
-        /** Per-thread task counter */
-        volatile long completedTasks;
+{
+	/** Thread this worker is running in.  Null if factory fails. */
+	final Thread thread;
+	/** Initial task to run.  Possibly null. */
+	Runnable firstTask;
+	/** Per-thread task counter */
+	volatile long completedTasks;
 
-        Worker(Runnable firstTask) {
-            setState(-1); // inhibit interrupts until runWorker ?????
-            this.firstTask = firstTask;
-            this.thread = getThreadFactory().newThread(this);
-        }
+	Worker(Runnable firstTask) {
+		setState(-1); // inhibit interrupts until runWorker ?????
+		this.firstTask = firstTask;
+		this.thread = getThreadFactory().newThread(this);
+	}
 
-        public void run() {
-            runWorker(this);
-        }
+	public void run() {
+		runWorker(this);
+	}
 
-        protected boolean isHeldExclusively() {
-            return getState() != 0;
-        }
+	protected boolean isHeldExclusively() {
+		return getState() != 0;
+	}
 
-		//不可重入,参数unused
-        protected boolean tryAcquire(int unused) {
-            if (compareAndSetState(0, 1)) {
-                setExclusiveOwnerThread(Thread.currentThread());
-                return true;
-            }
-            return false;
-        }
+	//不可重入,参数unused
+	protected boolean tryAcquire(int unused) {
+		if (compareAndSetState(0, 1)) {
+			setExclusiveOwnerThread(Thread.currentThread());
+			return true;
+		}
+		return false;
+	}
 
-        protected boolean tryRelease(int unused) {
-            setExclusiveOwnerThread(null);
-            setState(0);
-            return true;
-        }
+	protected boolean tryRelease(int unused) {
+		setExclusiveOwnerThread(null);
+		setState(0);
+		return true;
+	}
 
-        public void lock()        { acquire(1); }
-        public boolean tryLock()  { return tryAcquire(1); }
-        public void unlock()      { release(1); }
-        public boolean isLocked() { return isHeldExclusively(); }
+	public void lock()        { acquire(1); }
+	public boolean tryLock()  { return tryAcquire(1); }
+	public void unlock()      { release(1); }
+	public boolean isLocked() { return isHeldExclusively(); }
 
-        void interruptIfStarted() {
-            Thread t;
-            if (getState() >= 0 && (t = thread) != null && !t.isInterrupted()) {
-                try {
-                    t.interrupt();
-                } catch (SecurityException ignore) {
-                }
-            }
-        }
+	void interruptIfStarted() {
+		Thread t;
+		if (getState() >= 0 && (t = thread) != null && !t.isInterrupted()) {
+			try {
+				t.interrupt();
+			} catch (SecurityException ignore) {
+			}
+		}
+	}
+}
+	
+
+public class FutureTask<V> implements RunnableFuture<V> {
+	private volatile int state;
+	private static final int NEW          = 0;
+    private static final int COMPLETING   = 1;
+    private static final int NORMAL       = 2;
+    private static final int EXCEPTIONAL  = 3;
+    private static final int CANCELLED    = 4;
+    private static final int INTERRUPTING = 5;
+    private static final int INTERRUPTED  = 6;
+	
+	/** The underlying callable; nulled out after running */
+    private Callable<V> callable;
+    /** The result to return or exception to throw from get() */
+    private Object outcome; // non-volatile, protected by state reads/writes
+    /** The thread running the callable; CASed during run() */
+    private volatile Thread runner;
+    /** Treiber stack of waiting threads */
+    private volatile WaitNode waiters;
+	
+	static final class WaitNode { //从头加入到waiters，单向链表, 指向next
+        volatile Thread thread;
+        volatile WaitNode next;
+        WaitNode() { thread = Thread.currentThread(); }
     }
+	
+	public boolean isCancelled() {
+        return state >= CANCELLED;
+    }
+
+    public boolean isDone() {
+        return state != NEW;
+    }
+	
+	public void run() {
+		state != NEW || !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()) -> return;
+		try {
+            Callable<V> c = callable;
+            if (c != null && state == NEW) {
+                try {
+                    result = c.call(); ran = true;
+                } catch (Throwable ex) {
+                    result = null; ran = false; setException(ex);
+                }
+                ran -> set(result);
+            }
+        } finally {
+            runner = null;
+            int s = state;
+            if (s >= INTERRUPTING)
+                handlePossibleCancellationInterrupt(s);
+        }
+	}
+	private void handlePossibleCancellationInterrupt(int s) {
+		if (s == INTERRUPTING)
+            while (state == INTERRUPTING)
+                Thread.yield();
+	}
+	protected void set(V v) {
+		UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING) -> outcome = t; UNSAFE.putOrderedInt(this, stateOffset, NORMAL); finishCompletion();
+    }
+	protected void setException(Throwable t) {
+        UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING) -> outcome = t; UNSAFE.putOrderedInt(this, stateOffset, EXCEPTIONAL); finishCompletion();
+    }
+	private void finishCompletion() {
+        for (WaitNode q; (q = waiters) != null;) {
+            if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) {
+                for (;;) {
+                    Thread t = q.thread;
+                    t != null -> q.thread = null; LockSupport.unpark(t);
+                    WaitNode next = q.next;
+                    next == null -> break;
+                    q = next;
+                }
+                break;
+            }
+        }
+        done();
+    }
+	protected void done() { }
+	
+	public V get() throws InterruptedException, ExecutionException { //带超时的参数会多throw一个TimeoutException
+        s <= COMPLETING -> s = awaitDone(false, 0L);
+        return report(s);
+    }
+	private V report(int s) throws ExecutionException {
+		s == NORMAL -> return outcome;
+		s >= CANCELLED -> throw new CancellationException();
+		throw new ExecutionException((Throwable)x);
+	}
+	private int awaitDone(boolean timed, long nanos){
+		WaitNode q = null;boolean queued = false;
+		for (;;) {
+			if Thread.interrupted() -> removeWaiter(q); throw new InterruptedException();
+			elseif s > COMPLETING -> { q != null -> q.thread = null;
+									return s;}
+			elseif s == COMPLETING -> Thread.yield();
+			elseif q == null -> q = new WaitNode();
+			elseif !queued -> queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
+			elseif timed ->  { nanos = deadline - System.nanoTime(); nanos <= 0L -> removeWaiter(q); return state;
+							LockSupport.parkNanos(this, nanos);}
+			else LockSupport.park(this);
+		}
+	}
+	private void removeWaiter(WaitNode node) { set node.thread to null and traverse all waiters to delete node with null thread }
+	
+	public boolean cancel(boolean mayInterruptIfRunning) {
+		!(state == NEW && UNSAFE.compareAndSwapInt(this, stateOffset, NEW, mayInterruptIfRunning ? INTERRUPTING : CANCELLED)) -> return false;
+        mayInterruptIfRunning ->  runner != null ? runner.interrupt() : nothing ; UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);
+        finishCompletion();return true;
+	}
+}
