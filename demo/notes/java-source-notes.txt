@@ -210,9 +210,9 @@ Sync{
 	
 	tryAcquire{
 		int c = getState();int w = exclusiveCount(c);
-		c != 0 -> w == 0 || current != getExclusiveOwnerThread() -> return false;
-			   -> w + exclusiveCount(acquires) > MAX_COUNT -> throw;
-			   -> setState(c + acquires); return true;
+		c != 0 { w == 0 || current != getExclusiveOwnerThread() -> return false;
+				 w + exclusiveCount(acquires) > MAX_COUNT -> throw;
+				 setState(c + acquires); return true; }
 		writerShouldBlock() || !compareAndSetState(c, c + acquires) -> return false;
 		setExclusiveOwnerThread(current); return true;
 	}
