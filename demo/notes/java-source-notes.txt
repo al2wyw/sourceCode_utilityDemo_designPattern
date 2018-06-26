@@ -295,3 +295,17 @@ remove (workQueue.remove(task);tryTerminate();) // In case SHUTDOWN and now empt
 shutdown 最后call tryTerminate()
 shutdownNow 最后call tryTerminate()
 purge ???
+
+Thread.State:
+RUNNABLE
+TIMED_WAITING(on object monitor)
+TIMED_WAITING(parking)
+TIMED_WAITING(sleeping)
+WAITING(on object monitor)
+WAITING(parking)
+BLOCKED (on object monitor)
+第一行结尾状态:
+runnable
+waiting for monitor entry
+waiting on condition
+in Object.wait()
