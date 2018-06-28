@@ -149,7 +149,7 @@ private class ScheduledFutureTask<V> extends FutureTask<V> implements RunnableSc
 
 static class DelayedWorkQueue extends AbstractQueue<Runnable> implements BlockingQueue<Runnable> {
 	使用数组实现的二叉堆
-	private Thread leader = null;//Leader-Follower 模式变体, 当前线程准备获取第一个位置的任务时会对leader赋值(变为leader),而其他线程只能wait(都是follower)，当前线程获得任务后leader=null
+	private Thread leader = null;//Leader-Follower 模式变体, 当前线程准备获取第一个位置的任务时会对leader赋值(变为leader),而其他线程只能wait(都是follower)，当前线程获得任务后leader=null; 获取第一个位置的任务时当前线程会wait(delay),其他线程全部无限期wait, 只有当插入的task是需要更早执行的才会去notify线程, 当第一个位置的任务开始执行时也会去notify线程(看take和poll)
 	
 	take(siftDown, 把最后一个元素放到第一个位置), remove(siftDown -> siftUp, 把最后一个元素放到当前位置,siftDown，如果元素还在当前位置，shitUp), offer(siftUp, 把元素放到最后一个位置)
 }
