@@ -334,3 +334,20 @@ public class FutureTask<V> implements RunnableFuture<V> {
         finishCompletion();return true;
 	}
 }
+
+com.google.common.util.concurrent.ListenableFuture:
+1. ListenableFutureTask继承自FutureTask，只是复写了done方法来触发listener
+2. AbstractFuture只是一个同步器，内置一个ASQ，有多种实现，在set方法里触发listener
+netty4.0:
+io.netty.util.concurrent.Future:
+1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
+2. ChannelFuture是三者的Void实现(Future<Void>)
+io.netty.util.concurrent.EventExecutorGroup:
+1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group
+2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
+3. SingleThreadEventExecutor有execute和run方法
+io.netty.channel.Channel:
+io.netty.channel.ChannelHandler:
+io.netty.bootstrap.AbstractBootstrap.bind{
+	
+}

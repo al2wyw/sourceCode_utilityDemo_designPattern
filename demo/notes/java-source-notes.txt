@@ -75,7 +75,10 @@ AbstractQueuedSynchronizer{
 					}
 	}
 	setHeadAndPropagate(){
-		setHead(node) -> propagate > 0 || h == null || h.waitStatus < 0 || (h = head) == null || h.waitStatus < 0 -> Node s = node.next; -> s == null || s.isShared() -> doReleaseShared() -> unparkSuccessor(head);
+		setHead(node)
+		propagate > 0 || h == null || h.waitStatus < 0 || (h = head) == null || h.waitStatus < 0 
+			Node s = node.next; 
+			s == null || s.isShared() -> doReleaseShared() -> unparkSuccessor(head);
 	}
 }
 sync queue的head指向一个空node!(thread=null) 看enq逻辑,enq返回predecessor!!!
@@ -210,9 +213,9 @@ Sync{
 	
 	tryAcquire{
 		int c = getState();int w = exclusiveCount(c);
-		c != 0 { w == 0 || current != getExclusiveOwnerThread() -> return false;
-				 w + exclusiveCount(acquires) > MAX_COUNT -> throw;
-				 setState(c + acquires); return true; }
+		c != 0 -> w == 0 || current != getExclusiveOwnerThread() -> return false;
+			   -> w + exclusiveCount(acquires) > MAX_COUNT -> throw;
+			   -> setState(c + acquires); return true;
 		writerShouldBlock() || !compareAndSetState(c, c + acquires) -> return false;
 		setExclusiveOwnerThread(current); return true;
 	}
@@ -255,7 +258,7 @@ Sync{
 	tryWriteLock(similar with tryAcquire except for lack of calls to writerShouldBlock)
 	
 	fullTryAcquireShared{
-		tryAcquireShared的for循环版,除了判断readerShouldBlock的逻辑不一样，为了避免死循环
+		tryAcquireShared的for循环版(对!readerShouldBlock(), r < MAX_COUNT, compareAndSetState(c, c + SHARED_UNIT)三个条件的重新判断),判断readerShouldBlock的逻辑不一样(为了避免死循环)
 	}
 }
 NonfairSync{
@@ -277,7 +280,22 @@ WriteLock{
 	unlock -> sync.release(1);
 }
 
+ReentrantReadWriteLock的某个线程获取读锁后可以重复进入(即使有写锁线程在等待),会导致写锁线程饥饿，有写锁线程在等待后新的读锁线程(HoldCounter为0)也无法获得读锁
 StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。因此，这就会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，就会发生疯狂占用CPU的情况。(先上writeLock，writeLock不释放，同时中断readLock就会导致readLock死循环)
+
+CopyOnWriteArrayList所有的写操作,包括set和add都会上锁, 读操作不加锁
+ConcurrentLinkedQueue所有的操作都是使用CAS，无锁
+ConcurrentHashMap进行分node，写操作加synchronize，读操作不加锁(1.8)
+ConcurrentHashMap进行分segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
+
+DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
+ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)
+LinkedBlockingQueue有takeLock和putLock两个锁控制take和put操作，take和put共同访问的count是一个原子integer
+SynchronousQueue无锁(fair ? new TransferQueue<E>() : new TransferStack<E>())
+TransferQueue实现: 使用cas去take head和put tail,queue的大小由参与操作同时被休眠的线程数量决定(take/put都会使线程休眠)
+TransferStack实现: 使用cas去take,put head, shouldSpin可以防止stack的head被休眠，stack的大小由参与操作同时被休眠的线程数量决定
+LinkedBlockingDeque所有操作共用一个锁,提供putFirst,putLast,takeFirst,takeLast等操作，内部是一个双向链表
+LinkedTransferQueue无锁,松弛型双重队列,head和tail节点相对较松，为了减少CAS操作的次数，如tail后面可以有多个node ...
 
 Striped64(false sharing伪共享)
 -XX:-RestrictContended
