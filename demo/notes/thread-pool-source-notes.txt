@@ -347,7 +347,70 @@ io.netty.util.concurrent.EventExecutorGroup:
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
 3. SingleThreadEventExecutor有execute和run方法
 io.netty.channel.Channel:
+1. 基本所有的要素都在channel里面，包括产生各种Future
+2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
 io.netty.channel.ChannelHandler:
-io.netty.bootstrap.AbstractBootstrap.bind{
-	
+1. 每个ChannelHandler都有一个ChannelHandlerContext,ChannelPipeLine里面包含ChannelHandlerContext，ChannelHandlerContext包含ChannelHandler
+2. ChannelPipeLine有两个内置ChannelHandler，其中一个是OutBoundHandler，处理了bind和connect
+io.netty.bootstrap.AbstractBootstrap:
+1. 只能配置一个handler和一个group和一个channel
+bind{
+	ChannelFuture regFuture = initAndRegister(){
+		init(channel){
+			ChannelPipeline p = channel.pipeline();
+			if (handler() != null) {
+				p.addLast(handler());
+			}
+			p.addLast(new ChannelInitializer<Channel>() {
+				@Override
+				public void initChannel(Channel ch) throws Exception {
+					ch.pipeline().addLast(new ServerBootstrapAcceptor(
+							currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));(ChannelInboundHandlerAdapter)
+				}
+			});
+		}
+		ChannelFuture regFuture = group().register(channel);
+		return regFuture;
+	}
+	if (regFuture.isDone()) {
+            promise = channel.newPromise();
+            doBind0(regFuture, channel, localAddress, promise);
+	} else {
+		// Registration future is almost always fulfilled already, but just in case it's not.
+		promise = new DefaultChannelPromise(channel, GlobalEventExecutor.INSTANCE);
+		regFuture.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				doBind0(regFuture, channel, localAddress, promise);
+			}
+		});
+	}
+}
+doBind0(){
+	channel.eventLoop().execute(() -> {
+			if (regFuture.isSuccess()) {
+				channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);{
+					pipeline.bind(localAddress, promise){
+						tail.bind(localAddress, promise){(DefaultChannelHandlerContext)
+							final AbstractChannelHandlerContext next = this.findContextOutbound();
+							EventExecutor executor = next.executor();
+							if(next.isHandlerAddedCalled() && executor.inEventLoop()) {
+								next.invokeBind(localAddress, promise);
+							} else {
+								safeExecute(executor, new OneTimeTask() {
+									public void run() {
+										next.invokeBind(localAddress, promise);
+									}
+								}, promise, (Object)null);
+							}
+						}
+					}
+				}
+			} else {
+				promise.setFailure(regFuture.cause());
+			}   
+        });
+}
+invokeBind(localAddress, promise){
+	((ChannelOutboundHandler)this.handler()).bind(this, localAddress, promise);
 }
