@@ -342,16 +342,23 @@ netty4.0:
 io.netty.util.concurrent.Future:
 1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
 2. ChannelFuture是三者的Void实现(Future<Void>)
+
 io.netty.util.concurrent.EventExecutorGroup:
-1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group
+1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group, 每个单体都是只有一个线程的ExecutorService(不是ThreadPoolExecutor)
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
 3. SingleThreadEventExecutor有execute和run方法
+
+io.netty.util.concurrent.GenericFutureListener:
+1. 只有一个方法
+
 io.netty.channel.Channel:
 1. 基本所有的要素都在channel里面，包括产生各种Future
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
+
 io.netty.channel.ChannelHandler:
 1. 每个ChannelHandler都有一个ChannelHandlerContext,ChannelPipeLine里面包含ChannelHandlerContext，ChannelHandlerContext包含ChannelHandler
 2. ChannelPipeLine有两个内置ChannelHandler，其中一个是OutBoundHandler，处理了bind和connect
+
 io.netty.bootstrap.AbstractBootstrap:
 1. 只能配置一个handler和一个group和一个channel
 bind{
@@ -369,7 +376,23 @@ bind{
 				}
 			});
 		}
-		ChannelFuture regFuture = group().register(channel);
+		ChannelFuture regFuture = group().register(channel);{
+			SingleThreadEventLoop.register(Channel channel, ChannelPromise promise){
+				channel.unsafe().register(this, promise);{
+					AbstractChannel.this.eventLoop = eventLoop;
+					register0(promise){
+						doRegister();//AbstractNioChannel register selector to java server channel
+						safeSetSuccess(promise);
+						pipeline.fireChannelRegistered();
+						// Only fire a channelActive if the channel has never been registered. This prevents firing
+						// multiple channel actives if the channel is deregistered and re-registered.
+						if (firstRegistration && isActive()) {
+							pipeline.fireChannelActive();
+						}
+					}
+				}
+			}
+		}
 		return regFuture;
 	}
 	if (regFuture.isDone()) {
