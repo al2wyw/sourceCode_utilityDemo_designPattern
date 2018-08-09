@@ -342,53 +342,45 @@ netty4.0:
 io.netty.util.concurrent.Future:
 1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
 2. ChannelFuture是三者的Void实现(Future<Void>)
-
 io.netty.util.concurrent.EventExecutorGroup:
-1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group, 每个单体都是只有一个线程的ExecutorService(不是ThreadPoolExecutor)
+1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
 3. SingleThreadEventExecutor有execute和run方法
-
-io.netty.util.concurrent.GenericFutureListener:
-1. 只有一个方法
-
 io.netty.channel.Channel:
 1. 基本所有的要素都在channel里面，包括产生各种Future
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
-
+3. Channel包含一个ChannelPipeLine，ChannelPipeLine里面包含多个ChannelHandlerContext，每个ChannelHandlerContext包含一个ChannelHandler(这是调用的顺序,doBind0就是例子)
 io.netty.channel.ChannelHandler:
-1. 每个ChannelHandler都有一个ChannelHandlerContext,ChannelPipeLine里面包含ChannelHandlerContext，ChannelHandlerContext包含ChannelHandler
+1. 每个ChannelHandler都有一个ChannelHandlerContext
 2. ChannelPipeLine有两个内置ChannelHandler，其中一个是OutBoundHandler，处理了bind和connect
-
+3. ChannelHandlerContext作为驱动器，调用ChannelHandler的方法
+4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等
 io.netty.bootstrap.AbstractBootstrap:
 1. 只能配置一个handler和一个group和一个channel
 bind{
 	ChannelFuture regFuture = initAndRegister(){
+		final Channel channel = channelFactory().newChannel(); -> NioServerSocketChannel(初始化,NON-BLOCK,设置OP_ACCEPT;Selector在EventLoop里面)
 		init(channel){
 			ChannelPipeline p = channel.pipeline();
 			if (handler() != null) {
-				p.addLast(handler());
+				p.addLast(handler()); -> handler(parent的handler)
 			}
 			p.addLast(new ChannelInitializer<Channel>() {
 				@Override
 				public void initChannel(Channel ch) throws Exception {
 					ch.pipeline().addLast(new ServerBootstrapAcceptor(
-							currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));(ChannelInboundHandlerAdapter)
+							currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
 				}
 			});
 		}
-		ChannelFuture regFuture = group().register(channel);{
-			SingleThreadEventLoop.register(Channel channel, ChannelPromise promise){
-				channel.unsafe().register(this, promise);{
-					AbstractChannel.this.eventLoop = eventLoop;
-					register0(promise){
-						doRegister();//AbstractNioChannel register selector to java server channel
-						safeSetSuccess(promise);
-						pipeline.fireChannelRegistered();
-						// Only fire a channelActive if the channel has never been registered. This prevents firing
-						// multiple channel actives if the channel is deregistered and re-registered.
-						if (firstRegistration && isActive()) {
-							pipeline.fireChannelActive();
-						}
+		ChannelFuture regFuture = group().register(channel); -> channel.unsafe().register(this, promise);{ -> this(EventLoop)
+			AbstractUnsafe.register(EventLoop eventLoop, final ChannelPromise promise){
+				AbstractChannel.this.eventLoop = eventLoop;
+				register0(promise){
+					doRegister(); -> selectionKey = javaChannel().register(eventLoop().selector, 0, this); -> this(AbstractNioUnsafe)
+					pipeline.fireChannelRegistered();
+					if (isActive()) {
+						pipeline.fireChannelActive();
 					}
 				}
 			}
@@ -414,7 +406,7 @@ doBind0(){
 			if (regFuture.isSuccess()) {
 				channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);{
 					pipeline.bind(localAddress, promise){
-						tail.bind(localAddress, promise){(DefaultChannelHandlerContext)
+						tail.bind(localAddress, promise){ -> tail(DefaultChannelHandlerContext)
 							final AbstractChannelHandlerContext next = this.findContextOutbound();
 							EventExecutor executor = next.executor();
 							if(next.isHandlerAddedCalled() && executor.inEventLoop()) {
@@ -435,5 +427,56 @@ doBind0(){
         });
 }
 invokeBind(localAddress, promise){
-	((ChannelOutboundHandler)this.handler()).bind(this, localAddress, promise);
+	((ChannelOutboundHandler)this.handler()).bind(this, localAddress, promise); -> HeadHandler的bind
+}
+ServerBootstrapAcceptor extends ChannelInboundHandlerAdapter{
+	channelRead(ChannelHandlerContext ctx, Object msg){
+		final Channel child = (Channel) msg;
+		child.pipeline().addLast(childHandler);
+		childGroup.register(child).addListener(new ChannelFutureListener() {
+				public void operationComplete(ChannelFuture future) throws Exception {
+					!future.isSuccess() -> forceClose(child, future.cause());{
+												child.unsafe().closeForcibly();
+											}
+				}
+			});
+	}
+}
+SingleThreadEventExecutor{
+	thread = threadFactory.newThread(() -> {
+		SingleThreadEventExecutor.this.run();{
+			processSelectedKey(SelectionKey k, AbstractNioChannel ch){
+				if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+					unsafe.read(); -> pipeline.fireChannelRead(readBuf); pipeline.fireChannelReadComplete();等等
+				}
+				if ((readyOps & SelectionKey.OP_WRITE) != 0) {
+					// Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write
+					ch.unsafe().forceFlush();
+				}
+				if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
+					unsafe.finishConnect();
+				}
+			}
+		}
+	});
+	
+	public void execute(Runnable task) {
+		if (inEventLoop) {
+            addTask(task);{
+				if (isShutdown()) {
+					reject();
+				}
+				taskQueue.add(task);
+			}
+        } else {
+            startThread();
+            addTask(task);
+            if (isShutdown() && removeTask(task)) {
+                reject();
+            }
+        }
+		if (!addTaskWakesUp && wakesUpForTask(task)) {
+            wakeup(inEventLoop); -> selector.wakeup()
+        }
+	}
 }
