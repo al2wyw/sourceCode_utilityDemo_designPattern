@@ -27,8 +27,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
                 return null;
             }
         });
+        channelHandlerContext.fireChannelRead(s);
         pool.submit(future);
     }
 
-
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println(ctx.channel().unsafe().remoteAddress());
+    }
 }

@@ -343,20 +343,20 @@ io.netty.util.concurrent.Future:
 1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
 2. ChannelFuture是三者的Void实现(Future<Void>)
 io.netty.util.concurrent.EventExecutorGroup:
-1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体的parent是group
+1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体是一个特殊的group，单体的parent是group，group拥有EventExecutorChooser来next选择一个单体
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
-3. SingleThreadEventExecutor有execute和run方法
 io.netty.channel.Channel:
-1. 基本所有的要素都在channel里面，包括产生各种Future
+1. 基本所有的要素都在channel里面，包括产生各种Future，默认使用eventLoop(ChannelHandlerContext也能产生各种Future,默认使用context自带的executor)
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
 3. Channel包含一个ChannelPipeLine，ChannelPipeLine里面包含多个ChannelHandlerContext，每个ChannelHandlerContext包含一个ChannelHandler(这是调用的顺序,doBind0就是例子)
 io.netty.channel.ChannelHandler:
-1. 每个ChannelHandler都有一个ChannelHandlerContext
-2. ChannelPipeLine有两个内置ChannelHandler，其中一个是OutBoundHandler，处理了bind和connect
-3. ChannelHandlerContext作为驱动器，调用ChannelHandler的方法
-4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等
+1. 每个ChannelHandler都有一个ChannelHandlerContext，ChannelHandlerContext的executor默认就是channel的eventLoop,除非addLast时传入executor
+2. ChannelPipeline的执行顺序: inbound -> 从head到tail, outbound -> 从tail到head， addLast是加到tail的前面
+3. ChannelHandlerContext作为驱动器，会判断线程是否在executor里面，然后调用ChannelHandler的方法
+4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等,其他的Handler都加到Head和Tail之间
 io.netty.bootstrap.AbstractBootstrap:
 1. 只能配置一个handler和一个group和一个channel
+2. 一个bind只能把一个ServerSocketChannel注册到一个EventLoop上面，又不能重复bind相同的socket，所以accept线程只有一个!!!
 bind{
 	ChannelFuture regFuture = initAndRegister(){
 		final Channel channel = channelFactory().newChannel(); -> NioServerSocketChannel(初始化,NON-BLOCK,设置OP_ACCEPT;Selector在EventLoop里面)
@@ -373,7 +373,7 @@ bind{
 				}
 			});
 		}
-		ChannelFuture regFuture = group().register(channel); -> channel.unsafe().register(this, promise);{ -> this(EventLoop)
+		ChannelFuture regFuture = group().register(channel); -> next().register(channel) -> channel.unsafe().register(this, promise);{ -> this(EventLoop)
 			AbstractUnsafe.register(EventLoop eventLoop, final ChannelPromise promise){
 				AbstractChannel.this.eventLoop = eventLoop;
 				register0(promise){
@@ -407,7 +407,7 @@ doBind0(){
 				channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);{
 					pipeline.bind(localAddress, promise){
 						tail.bind(localAddress, promise){ -> tail(DefaultChannelHandlerContext)
-							final AbstractChannelHandlerContext next = this.findContextOutbound();
+							final AbstractChannelHandlerContext next = this.findContextOutbound();//查找下一个HandlerContext
 							EventExecutor executor = next.executor();
 							if(next.isHandlerAddedCalled() && executor.inEventLoop()) {
 								next.invokeBind(localAddress, promise);
@@ -447,7 +447,7 @@ SingleThreadEventExecutor{
 		SingleThreadEventExecutor.this.run();{
 			processSelectedKey(SelectionKey k, AbstractNioChannel ch){
 				if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
-					unsafe.read(); -> pipeline.fireChannelRead(readBuf); pipeline.fireChannelReadComplete();等等
+					unsafe.read(); -> pipeline.fireChannelRead(readBuf); pipeline.fireChannelReadComplete();等等, 这里会创建NioSocketChannel(OP_READ)
 				}
 				if ((readyOps & SelectionKey.OP_WRITE) != 0) {
 					// Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write

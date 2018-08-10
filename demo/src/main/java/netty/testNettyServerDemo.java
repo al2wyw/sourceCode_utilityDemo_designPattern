@@ -2,15 +2,14 @@ package netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 import java.net.InetSocketAddress;
 
@@ -22,6 +21,8 @@ public class testNettyServerDemo {
         NioEventLoopGroup boss = new NioEventLoopGroup(0,new NamedThreadFactory("BOSS-THREAD",false));
         NioEventLoopGroup work = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,
                 new NamedThreadFactory("WORK-THREAD"));
+        EventExecutorGroup work2 = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2,
+                new NamedThreadFactory("EventExecutor-THREAD"));
         ServerBootstrap server = new ServerBootstrap();
         server.group(boss,work)
                 .channel(NioServerSocketChannel.class)//
@@ -38,12 +39,22 @@ public class testNettyServerDemo {
                         channelPipeline.addLast("encode",new StringEncoder());
                         channelPipeline.addLast("decode",new StringDecoder());
                         channelPipeline.addLast("handler", new ServerHandler());
+                        channelPipeline.addLast(work2,"handler2", new ServerHandler2());//work2跑ServerHandler2的逻辑，包括future的listener
                     }
                 });
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
         if (cf.isSuccess()) {
             System.out.println("Server started http transport, while listen at: " + 8088);
-            return;
+            cf.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    //Thread.sleep(9999999);//导致server无法accept，虽然client可以connect也可以write数据过来
+                }
+            });
+        }
+        cf = server.bind(new InetSocketAddress(8080)).sync();
+        if (cf.isSuccess()) {
+            System.out.println("Server started http transport, while listen at: " + 8080);
         }
     }
 }

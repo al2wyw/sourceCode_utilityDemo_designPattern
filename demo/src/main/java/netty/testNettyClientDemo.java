@@ -3,6 +3,7 @@ package netty;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
@@ -34,12 +35,14 @@ public class testNettyClientDemo {
                 });
         ChannelFuture connect = bootstrap.connect(new InetSocketAddress(8088)).sync();
         if(connect.isSuccess()){
-            ChannelFuture future = connect.channel().writeAndFlush("test");
-            future.addListener(new ChannelFutureListener(){
-                public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                    System.out.println("flush test to server");
-                }
-            });
+            for(int i = 0; i < 10; i++) {
+                ChannelFuture future = connect.channel().writeAndFlush("test");
+                future.addListener(new ChannelFutureListener() {
+                    public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                        System.out.println("flush test to server");
+                    }
+                });
+            }
         }
     }
 }
