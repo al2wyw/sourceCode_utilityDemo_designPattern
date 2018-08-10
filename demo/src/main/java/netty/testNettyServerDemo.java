@@ -8,6 +8,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
@@ -15,6 +17,7 @@ import java.net.InetSocketAddress;
 
 /**
  * Created by johnny.ly on 2016/4/25.
+ * Java NIO && Netty的epoll实现
  */
 public class testNettyServerDemo {
     public static void main(String args[]) throws Exception{
@@ -29,6 +32,7 @@ public class testNettyServerDemo {
                         // .option(ChannelOption.SO_BACKLOG,
                         // SystemPropertyUtil.getInt("hsf.backlog", 100000))//
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)//
+                .handler(new LoggingHandler(LogLevel.INFO))//还是使用NioServerSocketChannel的eventLoop,并没有实现主从线程池效果???
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)//
                 .childOption(ChannelOption.TCP_NODELAY, true)//
                 .childOption(ChannelOption.SO_REUSEADDR, true)
