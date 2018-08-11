@@ -23,7 +23,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
             public Void call() throws Exception {
                 ThreadUtils.sleep(3000);
                 ThreadUtils.printThreadName("in", t);
-                channel.writeAndFlush(t + System.currentTimeMillis());
+                channel.writeAndFlush(t + System.currentTimeMillis() + System.lineSeparator());
                 return null;
             }
         });

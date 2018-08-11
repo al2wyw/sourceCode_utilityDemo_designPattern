@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -18,6 +19,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by johnny.ly on 2016/4/25.
  * Java NIO && Netty的epoll实现
+ * Netty中的那些坑
  */
 public class testNettyServerDemo {
     public static void main(String args[]) throws Exception{
@@ -41,6 +43,7 @@ public class testNettyServerDemo {
                     public void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline channelPipeline = ch.pipeline();
                         channelPipeline.addLast("encode",new StringEncoder());
+                        channelPipeline.addLast("lineFrame",new LineBasedFrameDecoder(500));
                         channelPipeline.addLast("decode",new StringDecoder());
                         channelPipeline.addLast("handler", new ServerHandler());
                         channelPipeline.addLast(work2,"handler2", new ServerHandler2());//work2跑ServerHandler2的逻辑，包括future的listener

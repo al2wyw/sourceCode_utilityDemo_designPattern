@@ -14,7 +14,7 @@ public class ServerHandler2 extends SimpleChannelInboundHandler<String> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         System.out.println("ServerHandler2 receive msg " + msg);
-        ChannelFuture future = ctx.writeAndFlush("new test");
+        ChannelFuture future = ctx.writeAndFlush("new test" + System.lineSeparator());
         future.addListener(new ChannelFutureListener(){
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
