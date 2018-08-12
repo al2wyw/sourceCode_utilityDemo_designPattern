@@ -18,7 +18,7 @@ public class ClientHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(ChannelHandlerContext channelHandlerContext, Object s) throws Exception {
         String test = (String)s;
-        if(test.contains("$")){
+        if(test.contains("$")){//server handler2
             Message msg = new Message();
             msg.fromString((String)s);
             requestMap.get(msg.getUuid()).getAnswer().set(msg.getMsg());

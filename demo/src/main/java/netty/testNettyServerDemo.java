@@ -20,7 +20,8 @@ import java.net.InetSocketAddress;
  * Created by johnny.ly on 2016/4/25.
  * 写是channel主动写，读是selector驱动被动读
  * 服务器端先读后写不间断，客户端先写间断一段时间后读需要处理读写关联
- * Java NIO && Netty的epoll实现
+ * Java NIO selector由 selectorProvider提供，根据不同的系统有Epoll实现， Netty的epoll实现是edgeTrigger(更高效)而不是NIO2的epoll的levelTrigger???
+ *
  * Netty中的那些坑
  */
 public class testNettyServerDemo {
