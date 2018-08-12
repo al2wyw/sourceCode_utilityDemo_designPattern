@@ -13,11 +13,11 @@ public class Message implements Serializable {
 
     private static final String DELIMITER = "$";
 
-    private String uuid;
+    private String uuid; //client的请求和server的返回是断开的，使用uuid来作关联请求和返回
 
     private String msg;
 
-    SettableFuture<String> answer = SettableFuture.create();
+    SettableFuture<String> answer = SettableFuture.create();//client的biz线程可以用future和netty的io线程进行关联
 
     public SettableFuture<String> getAnswer() {
         return answer;
