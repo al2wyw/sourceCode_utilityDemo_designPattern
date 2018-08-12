@@ -1,15 +1,35 @@
 package netty;
 
+import com.google.common.collect.Maps;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelPromise;
 import utils.ThreadUtils;
+
+import java.util.Map;
 
 /**
  * Created by johnny.ly on 2016/5/10.
  */
-public class ClientHandler extends SimpleChannelInboundHandler<String> {
+public class ClientHandler extends ChannelDuplexHandler {
+
+    private Map<String, Message> requestMap = Maps.newHashMap();
+
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
-        ThreadUtils.printThreadName("in", s);
+    public void channelRead(ChannelHandlerContext channelHandlerContext, Object s) throws Exception {
+        String test = (String)s;
+        if(test.contains("$")){
+            Message msg = new Message();
+            msg.fromString((String)s);
+            requestMap.get(msg.getUuid()).getAnswer().set(msg.getMsg());
+        }
+        ThreadUtils.printThreadName("in", test);
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        Message message = (Message) msg;
+        requestMap.put(message.getUuid(),message);
+        ctx.write(message.toString(),promise);
     }
 }

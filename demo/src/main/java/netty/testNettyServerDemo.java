@@ -18,6 +18,8 @@ import java.net.InetSocketAddress;
 
 /**
  * Created by johnny.ly on 2016/4/25.
+ * 写是channel主动写，读是selector驱动被动读
+ * 服务器端先读后写不间断，客户端先写间断一段时间后读需要处理读写关联
  * Java NIO && Netty的epoll实现
  * Netty中的那些坑
  */

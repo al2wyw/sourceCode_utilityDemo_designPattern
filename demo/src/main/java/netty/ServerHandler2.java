@@ -19,7 +19,7 @@ public class ServerHandler2 extends SimpleChannelInboundHandler<String> {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 int i = 0;
-                System.out.println("ServerHandler2 receive msg " + i);
+                System.out.println("ServerHandler2 send successfully " + i);
             }
         });
     }
