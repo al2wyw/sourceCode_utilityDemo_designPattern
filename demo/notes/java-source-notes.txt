@@ -280,6 +280,7 @@ WriteLock{
 	unlock -> sync.release(1);
 }
 
+//to be done: StampedLock，TransferQueue，ConcurrentSkipListMap
 ReentrantReadWriteLock的某个线程获取读锁后可以重复进入(即使有写锁线程在等待),会导致写锁线程饥饿，有写锁线程在等待后新的读锁线程(HoldCounter为0)也无法获得读锁
 StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。因此，这就会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，就会发生疯狂占用CPU的情况。(先上writeLock，writeLock不释放，同时中断readLock就会导致readLock死循环)
 
