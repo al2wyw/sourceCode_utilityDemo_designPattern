@@ -21,8 +21,9 @@ import java.net.InetSocketAddress;
  * 写是channel主动写，读是selector驱动被动读
  * 服务器端先读后写不间断，客户端先写间断一段时间后读需要处理读写关联
  * Java NIO selector由 selectorProvider提供，根据不同的系统有Epoll实现， Netty的epoll实现是edgeTrigger(更高效)而不是NIO2的epoll的levelTrigger???
- *
- * Netty中的那些坑
+ * Socket的input,output stream在调用close时会调用Socket的close方法，Socket的shutdownInput,output(即使都调用了)都不会调用Socket的close方法(ALLOW_HALF_CLOSURE)
+ * Socket的close会关闭input,output stream和channel
+ * time_wait是主动发起关闭的一端，通过更改tcp参数可以优化，close_wait是被动关闭的一端，是代码逻辑出错导致没有关闭
  */
 public class testNettyServerDemo {
     public static void main(String args[]) throws Exception{
