@@ -14,9 +14,8 @@ public class testTransferQueue {
     };
 
     public static void main(String args[]) throws Exception{
-        testTransfer();
-        //testSynchronize();//SynchronousQueue not use too much, for threadpoolexecutor only
-        //SynchronousQueue are from abstractBlockingQueue from BlockingQueue, while TransferQueue from BlockingQueue
+        //testTransfer();
+        testSynchronize();
     }
 
     private static void testSynchronize()throws Exception{
