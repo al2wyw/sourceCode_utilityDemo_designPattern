@@ -40,19 +40,25 @@ public class testNettyServerDemo {
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)//
                 .handler(new LoggingHandler(LogLevel.INFO))//还是使用NioServerSocketChannel的eventLoop,并没有实现主从线程池效果???
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)//
-                .childOption(ChannelOption.TCP_NODELAY, true)//
-                .childOption(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                //TCP_NODELAY set true to disable Nagle's algorithm,
+                //Nagle will wait until the previous packet ack received(buffer the packet), DelayedAcknowledgment will buffer ack to send, which lead to low performance
+                .childOption(ChannelOption.SO_REUSEADDR, true)//in order to reuse time_wait socket, allow to bind the same socket more than once
+                .childOption(ChannelOption.SO_BACKLOG, 100)//syn -> syn queue -> ack -> accepted queue -> accept, the size of syn & accepted queue
+                .childOption(ChannelOption.SO_LINGER, 100)//wait to close the socket gracefully, packets can be all flushed out in time
+                .childOption(ChannelOption.SO_TIMEOUT, 400)//the time out of receiving data
+                .childOption(ChannelOption.SO_KEEPALIVE, false)//
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline channelPipeline = ch.pipeline();
-                        channelPipeline.addLast("encode",new StringEncoder());
-                        channelPipeline.addLast("lineFrame",new LineBasedFrameDecoder(500));
-                        channelPipeline.addLast("decode",new StringDecoder());
+                        channelPipeline.addLast("encode", new StringEncoder());
+                        channelPipeline.addLast("lineFrame", new LineBasedFrameDecoder(500));
+                        channelPipeline.addLast("decode", new StringDecoder());
                         channelPipeline.addLast("handler", new ServerHandler());
-                        channelPipeline.addLast(work2,"handler2", new ServerHandler2());//work2跑ServerHandler2的逻辑，包括future的listener
+                        channelPipeline.addLast(work2, "handler2", new ServerHandler2());//work2跑ServerHandler2的逻辑，包括future的listener
                     }
-                });
+        });
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
         if (cf.isSuccess()) {
             System.out.println("Server started http transport, while listen at: " + 8088);
