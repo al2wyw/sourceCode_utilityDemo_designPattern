@@ -427,14 +427,15 @@ CopyOnWriteArrayList所有的写操作,包括set和add都会上锁, 读操作不
 ConcurrentLinkedQueue所有的操作都是使用CAS，无锁
 ConcurrentHashMap进行分node，写操作加synchronize，读操作不加锁(1.8)
 ConcurrentHashMap进行分segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
+HashMap和ConcurrentHashMap的1.8版本对哈希碰撞元素进行tree优化避免链表过长
 
 DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
 ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)
 LinkedBlockingQueue有takeLock和putLock两个锁控制take和put操作，take和put共同访问的count是一个原子integer
-SynchronousQueue无锁(fair ? new TransferQueue<E>() : new TransferStack<E>())
+SynchronousQueue无锁(fair ? new TransferQueue<E>() : new TransferStack<E>()), 主要逻辑在Transfer的实现类的transfer方法(清晰简明)，采用spin来代替直接park
 TransferQueue实现: 使用cas去take head和put tail,queue的大小由参与操作同时被休眠的线程数量决定(take/put都会使线程休眠)
 TransferStack实现: 使用cas去take,put head, shouldSpin可以防止stack的head被休眠，stack的大小由参与操作同时被休眠的线程数量决定
-LinkedBlockingDeque所有操作共用一个锁,提供putFirst,putLast,takeFirst,takeLast等操作，内部是一个双向链表
+LinkedBlockingDeque所有操作共用一个锁,提供putFirst,putLast,takeFirst,takeLast等操作，内部是一个双向链表， 采用spin来代替直接park
 LinkedTransferQueue无锁,松弛型双重队列,head和tail节点相对较松，为了减少CAS操作的次数，如tail后面可以有多个node ...
 
 Striped64(false sharing伪共享)

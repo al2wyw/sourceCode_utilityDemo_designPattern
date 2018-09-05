@@ -50,24 +50,30 @@ ThreadPoolExecutor extends AbstractExecutorService
 
 	final void runWorker(Worker w) { //wt就是Woker的thread属性
 		Thread wt = Thread.currentThread(); Runnable task = w.firstTask; w.firstTask = null; w.unlock();//allow interrupts(call setState(0))
-		while (task != null || (task = getTask()) != null) {
-			w.lock();
-			(runStateAtLeast(ctl.get(), STOP) ||(Thread.interrupted() &&runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted()) -> wt.interrupt();
-			try{ 
-				beforeExecute(wt, task); 
-				try{task.run();}catch(Throwable x){throw x;}finally{afterExecute(task, thrown);} 
-			}finally{task = null; w.completedTasks++; w.unlock();}
-		}
-		completedAbruptly = false; 
-		finally{processWorkerExit(w, completedAbruptly);}
+		boolean completedAbruptly = true;
+		try{
+			while (task != null || (task = getTask()) != null) {
+				w.lock();
+				(runStateAtLeast(ctl.get(), STOP) ||(Thread.interrupted() &&runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted()) -> wt.interrupt();
+				try{ 
+					beforeExecute(wt, task); 
+					try{task.run();}catch(Throwable x){throw x;}finally{afterExecute(task, thrown);} 
+				}finally{task = null; w.completedTasks++; w.unlock();}
+			}
+			completedAbruptly = false; 
+		}finally{processWorkerExit(w, completedAbruptly);}
 	}
 	private Runnable getTask() {
 		boolean timedOut = false; // Did the last poll() time out?
 		for{
+			int c = ctl.get(); int rs = runStateOf(c);
 			rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty()) -> decrementWorkerCount(); return null;
+			int wc = workerCountOf(c);
 			boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
-			(wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty()) -> compareAndDecrementWorkerCount(c) -> return null;
-																							 -> continue;
+			if(wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty()){
+				compareAndDecrementWorkerCount(c) -> return null;
+				continue;
+			}
 			try{
 				Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
 				r != null -> return r;
@@ -78,31 +84,49 @@ ThreadPoolExecutor extends AbstractExecutorService
 	private void processWorkerExit(Worker w, boolean completedAbruptly) {
 		completedAbruptly -> decrementWorkerCount();
 		mainLock.lock(); completedTaskCount += w.completedTasks; workers.remove(w); mainLock.unlock();
-		tryTerminate();
-		runStateLessThan(c, STOP) -> !completedAbruptly -> workerCountOf(c) >= allowCoreThreadTimeOut ? 0 : corePoolSize -> return;
-								  -> addWorker(null, false);
+		tryTerminate(); int c = ctl.get();
+		if(runStateLessThan(c, STOP)){ 
+			if(!completedAbruptly){
+				workerCountOf(c) >= allowCoreThreadTimeOut ? 0 : corePoolSize -> return;
+			} 
+			addWorker(null, false);
+		}
 	}
 	tryTerminate(){
 		for{
+			int c = ctl.get();
 			isRunning(c) || runStateAtLeast(c, TIDYING) || (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()) -> return;
 			workerCountOf(c) != 0 -> interruptIdleWorkers(true); return;
-			mainLock.lock(); ctl.compareAndSet(c, ctlOf(TIDYING, 0) -> try{ terminated(); } finally{ctl.set(ctlOf(TERMINATED, 0));termination.signalAll();}
+			mainLock.lock(); 
+			ctl.compareAndSet(c, ctlOf(TIDYING, 0) -> try{ terminated(); }finally{ctl.set(ctlOf(TERMINATED, 0));termination.signalAll();} return;
 			mainLock.unlock();
 		}
 	}
 	private boolean addWorker(Runnable firstTask, boolean core){
 		retry: for{
+			int c = ctl.get(); int rs = runStateOf(c);
 			rs >= SHUTDOWN && (rs != SHUTDOWN || firstTask != null || workQueue.isEmpty()) -> return false;
 			for{
+				int wc = workerCountOf(c);
 				wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize) -> return false;
 				compareAndIncrementWorkerCount(c) -> break retry;
+				c = ctl.get();
 				runStateOf(c) != rs -> continue retry;
 			}
 		}
+		boolean workerStarted = false; boolean workerAdded = false;
 		try {
 			w = new Worker(firstTask); t = w.thread;
-			t != null -> mainLock.lock(); try{ rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null) -> workers.add(w); workerAdded = true; } finally{mainLock.unlock();}
-			workerAdded -> t.start(); workerStarted = true;
+			if(t != null){ 
+				mainLock.lock(); 
+				try{ 
+					if(rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null)){
+						t.isAlive() -> throw new IllegalThreadStateException();
+						workers.add(w); reset largestPoolSize; workerAdded = true; 
+					}
+				} finally{mainLock.unlock();}
+				workerAdded -> t.start(); workerStarted = true;
+			}
 		}finally{ ! workerStarted -> addWorkerFailed(w);}
 		return workerStarted;
 	}
@@ -111,11 +135,16 @@ ThreadPoolExecutor extends AbstractExecutorService
 	}
 	
 	public void execute(Runnable command) {
-		workerCountOf(c) < corePoolSize) -> addWorker(command, true)) -> return;
-										 ->	c = ctl.get();
-		if isRunning(c) && workQueue.offer(command) -> recheck = ctl.get(); -> ! isRunning(recheck) && remove(command) -> reject(command);
-																		 -> workerCountOf(recheck) == 0 -> addWorker(null, false);
-		else !addWorker(command, false) -> reject(command);
+		int c = ctl.get();
+		if(workerCountOf(c) < corePoolSize){
+			addWorker(command, true)) -> return;
+			c = ctl.get();
+		}
+		if(isRunning(c) && workQueue.offer(command)){
+			recheck = ctl.get();
+			if !isRunning(recheck) && remove(command) -> reject(command);
+			else if workerCountOf(recheck) == 0 -> addWorker(null, false);
+		}else if(!addWorker(command, false)) -> reject(command);
 	}
 	public boolean remove(Runnable task) {
         boolean removed = workQueue.remove(task); tryTerminate(); // In case SHUTDOWN and now empty
@@ -124,19 +153,22 @@ ThreadPoolExecutor extends AbstractExecutorService
 	final void reject(Runnable command) { handler.rejectedExecution(command, this);}
 	
 	public boolean awaitTermination(long timeout, TimeUnit unit){
+		long nanos = unit.toNanos(timeout);
 		mainLock.lock(); 
 		for{
 			if (runStateAtLeast(ctl.get(), TERMINATED)) return true;
 			if (nanos <= 0) return false;
 			nanos = termination.awaitNanos(nanos);
-		}finally{mainLock.unlock()}
+		}
+		finally{mainLock.unlock()}
 	}
 	public void shutdown() {
 		mainLock.lock();
         try {
 			checkShutdownAccess();//check the access permission to the thread of worker
-			advanceRunState(SHUTDOWN);//set run state to shutdown
+			advanceRunState(SHUTDOWN);//set run state to shutdown with for loop cas
 			interruptIdleWorkers();//interruptIdleWorkers(false);
+			onShutdown(); //for ScheduledThreadPoolExecutor
 		}finally{mainLock.unlock()}
 		tryTerminate();
 	}
@@ -144,6 +176,7 @@ ThreadPoolExecutor extends AbstractExecutorService
 		mainLock.lock(); 
 		try{
 			for(Worker w : workers){
+				Thread t = w.thread;
 				!t.isInterrupted() && w.tryLock() -> try{t.interrupt();}finally{w.unlock()}
 				onlyOne -> break;
 			}
@@ -153,16 +186,15 @@ ThreadPoolExecutor extends AbstractExecutorService
 		mainLock.lock();
         try {
 			checkShutdownAccess();//check the access permission to the thread of worker
-			advanceRunState(STOP);//set run state to shutdown
+			advanceRunState(STOP);//set run state to stop with for loop cas
 			interruptWorkers();//interrupt all workers with worker.interruptIfStarted();
 			tasks = drainQueue();//返回所有的未开始task
 		}finally{mainLock.unlock()}
 		tryTerminate();return tasks;
 	}
-	void onShutdown() {
-    }
 	
 	do nothing:
+	void onShutdown() {}
 	protected void beforeExecute(Thread t, Runnable r) { }
 	protected void afterExecute(Runnable r, Throwable t) { }
 	protected void terminated(){} 
@@ -178,7 +210,7 @@ private final class Worker extends AbstractQueuedSynchronizer implements Runnabl
 	volatile long completedTasks;
 
 	Worker(Runnable firstTask) {
-		setState(-1); // inhibit interrupts until runWorker ?????
+		setState(-1); // inhibit interrupts until runWorker
 		this.firstTask = firstTask;
 		this.thread = getThreadFactory().newThread(this);
 	}
@@ -313,25 +345,48 @@ public class FutureTask<V> implements RunnableFuture<V> {
 		throw new ExecutionException((Throwable)x);
 	}
 	private int awaitDone(boolean timed, long nanos){
+		deadline = timed ? System.nanoTime() + nanos : 0L;
 		WaitNode q = null;boolean queued = false;
 		for (;;) {
 			if Thread.interrupted() -> removeWaiter(q); throw new InterruptedException();
-			elseif s > COMPLETING -> { q != null -> q.thread = null;
-									return s;}
+			if s > COMPLETING { 
+				q != null -> q.thread = null;
+				return s;
+			}
 			elseif s == COMPLETING -> Thread.yield();
 			elseif q == null -> q = new WaitNode();
 			elseif !queued -> queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
-			elseif timed ->  { nanos = deadline - System.nanoTime(); nanos <= 0L -> removeWaiter(q); return state;
-							LockSupport.parkNanos(this, nanos);}
+			elseif timed { 
+				nanos = deadline - System.nanoTime(); 
+				nanos <= 0L -> removeWaiter(q); return state;
+				LockSupport.parkNanos(this, nanos);
+			}
 			else LockSupport.park(this);
 		}
 	}
-	private void removeWaiter(WaitNode node) { set node.thread to null and traverse all waiters to delete node with null thread }
+	private void removeWaiter(WaitNode node) { set node.thread to null and traverse all waiters to delete node with null thread 
+		if node != null{
+			node.thread = null;
+            retry:for{
+				for (WaitNode pred = null, q = waiters, s; q != null; q = s) {
+                    s = q.next;
+                    if (q.thread != null) pred = q;
+                    else if (pred != null) {
+                        pred.next = s;
+                        if (pred.thread == null) continue retry;
+                    }
+                    else if (!UNSAFE.compareAndSwapObject(this, waitersOffset, q, s)) continue retry;
+                }
+                break;
+			}
+		}
+	}
 	
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		!(state == NEW && UNSAFE.compareAndSwapInt(this, stateOffset, NEW, mayInterruptIfRunning ? INTERRUPTING : CANCELLED)) -> return false;
-        mayInterruptIfRunning ->  runner != null ? runner.interrupt() : nothing ; UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);
-        finishCompletion();return true;
+        try{mayInterruptIfRunning ->  try{ runner != null -> runner.interrupt(); } finally{ UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED); }
+        }finally{finishCompletion();}
+		return true;
 	}
 }
 
