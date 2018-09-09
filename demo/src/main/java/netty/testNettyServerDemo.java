@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
  * Socket的input,output stream在调用close时会调用Socket的close方法，Socket的shutdownInput,output(即使都调用了)都不会调用Socket的close方法(ALLOW_HALF_CLOSURE)
  * Socket的close会关闭input,output stream和channel
  * time_wait是主动发起关闭的一端，通过更改tcp参数可以优化，close_wait是被动关闭的一端，是代码逻辑出错导致没有关闭
+ * Selector的wakeUp可以被selectNow清除，wakeUp和LockSupport的unpark效果类似，可以先wakeUp保证下一次select立即返回
  */
 public class testNettyServerDemo {
     public static void main(String args[]) throws Exception{
