@@ -48,7 +48,11 @@ public class testNettyServerDemo {
                 .childOption(ChannelOption.SO_BACKLOG, 100)//syn -> syn queue -> ack -> accepted queue -> accept, the size of syn & accepted queue
                 .childOption(ChannelOption.SO_LINGER, 100)//wait to close the socket gracefully, packets can be all flushed out in time
                 .childOption(ChannelOption.SO_TIMEOUT, 400)//the time out of receiving data
-                .childOption(ChannelOption.SO_KEEPALIVE, false)//
+                .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)//socket不支持的参数，由netty schedule task实现(AbstractNioChannel)
+                .childOption(ChannelOption.SO_KEEPALIVE, false)//tcp send keep-alive hear beat
+                //tcp_keepalive_intvl,保活探测消息的发送频率,默认值为75s
+                //tcp_keepalive_probes,TCP发送保活探测消息以确定连接是否已断开的次数.默认值为9
+                //tcp_keepalive_time,TCP允许的持续空闲时间.默认值为7200s
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
@@ -59,7 +63,7 @@ public class testNettyServerDemo {
                         channelPipeline.addLast("handler", new ServerHandler());
                         channelPipeline.addLast(work2, "handler2", new ServerHandler2());//work2跑ServerHandler2的逻辑，包括future的listener
                     }
-        });
+                });
         ChannelFuture cf = server.bind(new InetSocketAddress(8088)).sync();
         if (cf.isSuccess()) {
             System.out.println("Server started http transport, while listen at: " + 8088);

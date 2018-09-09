@@ -419,6 +419,7 @@ io.netty.channel.ChannelHandler:
 2. ChannelPipeline的执行顺序: inbound -> 从head到tail, outbound -> 从tail到head， addLast是加到tail的前面
 3. ChannelHandlerContext作为驱动器，会判断线程是否在executor里面，然后调用ChannelHandler的方法
 4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等,其他的Handler都加到Head和Tail之间
+5. OutboundHandler有个read方法，貌似只是用来初始化selectionKey的interestOps
 io.netty.bootstrap.AbstractBootstrap:
 1. 只能配置一个handler和一个group和一个channel
 2. 一个bind只能把一个ServerSocketChannel注册到一个EventLoop上面，又不能重复bind相同的socket，所以accept线程只有一个!!!
