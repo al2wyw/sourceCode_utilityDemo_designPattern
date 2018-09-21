@@ -18,7 +18,7 @@ class BizClassLoader extends URLClassLoader {
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        if (name.contains("NotLoad")) {// ǿ�в����������
+        if (name.contains("NotLoad")) {
             System.out.println("NotLoad");
             return null;
         }

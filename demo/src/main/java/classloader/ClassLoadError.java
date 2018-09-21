@@ -9,13 +9,10 @@ import java.net.URL;
  * Date: 2017/1/25
  * Time: 16:05
  * Desc:
+ *
+ * sun.misc.Launcher 只是创建系统级class loader，并不是用来运行main方法的
  */
 public class ClassLoadError {
-    /**
-     * ClassNotFoundException �������ʱ���Ҳ���class�ļ���һ����classpath���ò��ԣ�������ȱ������
-     * NoClassDefFoundError ���Ǽ������ʱ�򱨵Ĵ��󣬶����ڳ�ʼ����ʱ�򱨵Ĵ��� ����ҪѰ��һ�����Class�����ʱ���ڵ�ǰ�����ռ��Ҳ������Class������ô���׳��������
-     * ClassCastException ����ǿ��ת����ʱ��Ŀ��Class�Ѿ��ҵ��ˣ���������Ҫ��ת�Ķ��������ز�һ��������ת������
-     * */
     public static void main(String[] args) throws Exception{
         test1();
         System.out.println("-------------------------------");
@@ -26,6 +23,9 @@ public class ClassLoadError {
     public static void test1() {
         System.out.println(System.getProperty("java.class.path"));
         try {
+            //sun.misc.Launcher源码
+            System.out.println(ClassLoader.getSystemClassLoader().getParent());//sun.misc.Launcher$ExtClassLoader
+            System.out.println(ClassLoader.getSystemClassLoader());//sun.misc.Launcher$AppClassLoader
             ClassLoader.getSystemClassLoader().loadClass("com.test.NotFound");//not exist
         } catch(Throwable th) {
             th.printStackTrace();

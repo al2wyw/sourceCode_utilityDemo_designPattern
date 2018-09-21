@@ -1,4 +1,4 @@
-package jvm;
+package gc;
 
 import demoObject.BigObject;
 import utils.GCUtils;

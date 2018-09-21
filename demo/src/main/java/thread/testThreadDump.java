@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by johnny.ly on 2016/5/27.
  *
- * BLOCKED(on object monitor) -> in Object.wait()           (wait set)
+ * BLOCKED(on object monitor) -> in Object.wait()           (wait set)  没有这一项看work1 dump???
  *                            -> waiting for monitor entry  (entry set)
  *
  * WAITING(on object monitor, parking, sleeping)  -> waiting on condition

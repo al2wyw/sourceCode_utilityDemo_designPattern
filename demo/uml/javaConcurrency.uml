@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.util.concurrent.atomic.AtomicBoolean</OriginalElement>
+  <nodes>
+    <node x="279.0" y="1170.0">java.util.concurrent.atomic.AtomicStampedReference</node>
+    <node x="510.0" y="1090.0">java.util.concurrent.atomic.LongAdder</node>
+    <node x="122.99999999999997" y="505.0">java.util.concurrent.locks.AbstractQueuedSynchronizer</node>
+    <node x="405.0" y="675.0">java.util.concurrent.locks.ReentrantReadWriteLock.FairSync</node>
+    <node x="46.75" y="170.0">java.util.concurrent.AbstractExecutorService</node>
+    <node x="260.0" y="675.0">java.util.concurrent.locks.ReentrantReadWriteLock.NonfairSync</node>
+    <node x="0.0" y="840.0">java.util.concurrent.ScheduledFuture</node>
+    <node x="150.0" y="255.0">java.util.concurrent.ThreadPoolExecutor</node>
+    <node x="275.25" y="925.0">java.util.concurrent.FutureTask</node>
+    <node x="541.75" y="840.0">java.util.concurrent.CompletableFuture</node>
+    <node x="554.0" y="1170.0">java.util.concurrent.locks.ReentrantReadWriteLock</node>
+    <node x="893.75" y="840.0">java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock</node>
+    <node x="0.0" y="1250.0">java.util.concurrent.atomic.AtomicReference</node>
+    <node x="396.99999999999994" y="505.0">java.util.concurrent.locks.AbstractQueuedLongSynchronizer</node>
+    <node x="820.0" y="1170.0">java.util.concurrent.atomic.AtomicReferenceArray</node>
+    <node x="334.75" y="755.0">java.util.concurrent.Future</node>
+    <node x="22.25" y="925.0">java.util.concurrent.RunnableScheduledFuture</node>
+    <node x="280.75" y="170.0">java.util.concurrent.ScheduledExecutorService</node>
+    <node x="266.0" y="420.0">java.util.concurrent.locks.AbstractOwnableSynchronizer</node>
+    <node x="199.25" y="85.0">java.util.concurrent.ExecutorService</node>
+    <node x="217.74999999999997" y="840.0">java.util.concurrent.RunnableFuture</node>
+    <node x="0.0" y="675.0">java.util.concurrent.locks.ReentrantLock.FairSync</node>
+    <node x="391.75" y="840.0">java.util.concurrent.ForkJoinTask</node>
+    <node x="1018.75" y="840.0">java.util.concurrent.locks.ReentrantLock</node>
+    <node x="765.75" y="840.0">java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock</node>
+    <node x="0.0" y="1090.0">java.util.concurrent.BlockingDeque</node>
+    <node x="225.75" y="0.0">java.util.concurrent.Executor</node>
+    <node x="671.0" y="1005.0">java.util.concurrent.atomic.AtomicReferenceFieldUpdater</node>
+    <node x="79.0" y="590.0">java.util.concurrent.locks.ReentrantLock.Sync</node>
+    <node x="82.5" y="1005.0">java.util.concurrent.BlockingQueue</node>
+    <node x="204.75" y="340.0">java.util.concurrent.ScheduledThreadPoolExecutor</node>
+    <node x="357.0" y="1090.0">java.util.concurrent.atomic.DoubleAdder</node>
+    <node x="167.0" y="1090.0">java.util.concurrent.TransferQueue</node>
+    <node x="443.75" y="1005.0">java.util.concurrent.atomic.Striped64</node>
+    <node x="0.0" y="1170.0">java.util.concurrent.atomic.AtomicMarkableReference</node>
+    <node x="387.0" y="1250.0">java.util.concurrent.locks.LockSupport</node>
+    <node x="912.75" y="755.0">java.util.concurrent.locks.Lock</node>
+    <node x="0.0" y="255.0">java.util.concurrent.ForkJoinPool</node>
+    <node x="354.0" y="590.0">java.util.concurrent.locks.ReentrantReadWriteLock.Sync</node>
+    <node x="115.0" y="675.0">java.util.concurrent.locks.ReentrantLock.NonfairSync</node>
+    <node x="207.0" y="1250.0">java.util.concurrent.locks.StampedLock</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.util.concurrent.AbstractExecutorService" target="java.util.concurrent.ExecutorService">
+      <point x="0.0" y="-17.5" />
+      <point x="153.75" y="145.0" />
+      <point x="237.0" y="145.0" />
+      <point x="-37.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ForkJoinPool" target="java.util.concurrent.AbstractExecutorService">
+      <point x="0.0" y="-17.5" />
+      <point x="65.0" y="230.0" />
+      <point x="100.25" y="230.0" />
+      <point x="-53.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.atomic.DoubleAdder" target="java.util.concurrent.atomic.Striped64">
+      <point x="0.0" y="-17.5" />
+      <point x="423.5" y="1065.0" />
+      <point x="469.75" y="1065.0" />
+      <point x="-26.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.atomic.LongAdder" target="java.util.concurrent.atomic.Striped64">
+      <point x="0.0" y="-17.5" />
+      <point x="568.0" y="1065.0" />
+      <point x="521.75" y="1065.0" />
+      <point x="26.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ExecutorService" target="java.util.concurrent.Executor">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ScheduledThreadPoolExecutor" target="java.util.concurrent.ScheduledExecutorService">
+      <point x="66.0" y="-17.5" />
+      <point x="402.75" y="315.0" />
+      <point x="395.75" y="315.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantReadWriteLock.FairSync" target="java.util.concurrent.locks.ReentrantReadWriteLock.Sync">
+      <point x="0.0" y="-17.5" />
+      <point x="452.5" y="650.0" />
+      <point x="404.25" y="650.0" />
+      <point x="16.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.RunnableScheduledFuture" target="java.util.concurrent.RunnableFuture">
+      <point x="58.25" y="-17.5" />
+      <point x="197.0" y="900.0" />
+      <point x="256.25" y="900.0" />
+      <point x="-38.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantLock.Sync" target="java.util.concurrent.locks.AbstractQueuedSynchronizer">
+      <point x="0.0" y="-17.5" />
+      <point x="112.5" y="565.0" />
+      <point x="186.49999999999997" y="565.0" />
+      <point x="-63.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantReadWriteLock.Sync" target="java.util.concurrent.locks.AbstractQueuedSynchronizer">
+      <point x="0.0" y="-17.5" />
+      <point x="387.5" y="565.0" />
+      <point x="313.5" y="565.0" />
+      <point x="63.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantReadWriteLock.NonfairSync" target="java.util.concurrent.locks.ReentrantReadWriteLock.Sync">
+      <point x="0.0" y="-17.5" />
+      <point x="322.5" y="650.0" />
+      <point x="370.75" y="650.0" />
+      <point x="-16.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock" target="java.util.concurrent.locks.Lock">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.RunnableFuture" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="294.75" y="820.0" />
+      <point x="365.5" y="820.0" />
+      <point x="-10.25" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.BlockingDeque" target="java.util.concurrent.BlockingQueue">
+      <point x="0.0" y="-17.5" />
+      <point x="73.5" y="1065.0" />
+      <point x="119.5" y="1065.0" />
+      <point x="-37.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ThreadPoolExecutor" target="java.util.concurrent.AbstractExecutorService">
+      <point x="0.0" y="-17.5" />
+      <point x="242.5" y="230.0" />
+      <point x="207.25" y="230.0" />
+      <point x="53.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantLock.FairSync" target="java.util.concurrent.locks.ReentrantLock.Sync">
+      <point x="0.0" y="-17.5" />
+      <point x="47.5" y="650.0" />
+      <point x="95.75" y="650.0" />
+      <point x="-16.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.TransferQueue" target="java.util.concurrent.BlockingQueue">
+      <point x="0.0" y="-17.5" />
+      <point x="239.5" y="1065.0" />
+      <point x="193.5" y="1065.0" />
+      <point x="37.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ScheduledFuture" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="80.5" y="810.0" />
+      <point x="345.0" y="810.0" />
+      <point x="-30.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.AbstractQueuedSynchronizer" target="java.util.concurrent.locks.AbstractOwnableSynchronizer">
+      <point x="0.0" y="-17.5" />
+      <point x="249.99999999999997" y="480.0" />
+      <point x="331.25" y="480.0" />
+      <point x="-65.25" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ForkJoinTask" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="456.75" y="820.0" />
+      <point x="386.0" y="820.0" />
+      <point x="10.25" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.FutureTask" target="java.util.concurrent.RunnableFuture">
+      <point x="0.0" y="-17.5" />
+      <point x="38.5" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ScheduledExecutorService" target="java.util.concurrent.ExecutorService">
+      <point x="0.0" y="-17.5" />
+      <point x="395.75" y="145.0" />
+      <point x="312.5" y="145.0" />
+      <point x="37.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.AbstractQueuedLongSynchronizer" target="java.util.concurrent.locks.AbstractOwnableSynchronizer">
+      <point x="0.0" y="-17.5" />
+      <point x="543.0" y="480.0" />
+      <point x="461.75" y="480.0" />
+      <point x="65.25" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.ScheduledThreadPoolExecutor" target="java.util.concurrent.ThreadPoolExecutor">
+      <point x="-66.0" y="-17.5" />
+      <point x="270.75" y="315.0" />
+      <point x="242.5" y="315.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.RunnableScheduledFuture" target="java.util.concurrent.ScheduledFuture">
+      <point x="-58.25" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.CompletableFuture" target="java.util.concurrent.Future">
+      <point x="0.0" y="-17.5" />
+      <point x="631.25" y="810.0" />
+      <point x="406.5" y="810.0" />
+      <point x="30.75" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantLock" target="java.util.concurrent.locks.Lock">
+      <point x="0.0" y="-17.5" />
+      <point x="1089.75" y="815.0" />
+      <point x="968.5833333333334" y="815.0" />
+      <point x="22.33333333333337" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock" target="java.util.concurrent.locks.Lock">
+      <point x="0.0" y="-17.5" />
+      <point x="819.75" y="815.0" />
+      <point x="923.9166666666666" y="815.0" />
+      <point x="-22.33333333333337" y="17.5" />
+    </edge>
+    <edge source="java.util.concurrent.locks.ReentrantLock.NonfairSync" target="java.util.concurrent.locks.ReentrantLock.Sync">
+      <point x="0.0" y="-17.5" />
+      <point x="177.5" y="650.0" />
+      <point x="129.25" y="650.0" />
+      <point x="16.75" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.6574712643678161" x="581.4947552447552" y="782.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>public</VISIBILITY>
+</Diagram>
+

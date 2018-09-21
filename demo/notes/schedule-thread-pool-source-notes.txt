@@ -153,3 +153,5 @@ static class DelayedWorkQueue extends AbstractQueue<Runnable> implements Blockin
 	
 	take(siftDown, 把最后一个元素放到第一个位置), remove(siftDown -> siftUp, 把最后一个元素放到当前位置,siftDown，如果元素还在当前位置，shitUp), offer(siftUp, 把元素放到最后一个位置)
 }
+
+HashedWheelTimer和ScheduledThreadPoolExecutor都有对MAX_VALUE/MIN_VALUE的溢出处理，但是理解不了 ??? (setNextRunTime虽然会溢出,但是逻辑没有问题???)

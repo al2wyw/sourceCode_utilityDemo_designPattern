@@ -51,7 +51,7 @@ public class NioServerSocket extends Thread {
                 Iterator<SelectionKey> it = selectionKeys.iterator();
                 while (it.hasNext()){
                     SelectionKey sk = it.next();
-                    it.remove();
+                    it.remove(); //不删除的话SelectionKey还是在ready set里面，下次还会被select出来
                     try {
                         if (sk.isAcceptable()) {
                             ServerSocketChannel ssc = (ServerSocketChannel) sk.channel();

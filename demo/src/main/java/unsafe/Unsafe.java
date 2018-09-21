@@ -10,7 +10,7 @@ import java.util.concurrent.CyclicBarrier;
  * User: johnny.ly
  * Date: 2018/5/25
  * Time: 15:19
- * Desc:
+ * Desc:  unsafe 带 ordered， volatile，cas的操作都是native
  */
 public class Unsafe {
 

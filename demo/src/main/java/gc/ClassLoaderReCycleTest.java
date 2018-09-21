@@ -1,4 +1,4 @@
-package classloader;
+package gc;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ import java.util.concurrent.locks.LockSupport;
  *      2. class对象和classLoader对象互相引用，必须同时被回收。Class unload的条件确实是三个，已验证
  *      3.
  */
-public class Main {
+public class ClassLoaderReCycleTest {
 
     public static void main( String args[] ) throws Exception{
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
