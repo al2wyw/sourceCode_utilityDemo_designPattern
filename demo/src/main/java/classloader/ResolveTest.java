@@ -14,10 +14,10 @@ import java.net.URL;
 public class ResolveTest {
 
     public static void main(String[] args) throws Exception {
-        //Class.forName("classloader.StaticLoadTest");
+        //Class.forName("classloader.StaticLoadTest");//will initialize the class by default
         ClassLoader cl = new ResolveWhenLoadClassLoader(new URL[]{new File(findTarget()).toURI().toURL()}, null);
-        cl.loadClass("classloader.StaticLoadTest");
-        System.out.println("test");
+        Class staticLoad = cl.loadClass("classloader.StaticLoadTest");
+        System.out.println(staticLoad.getName());
     }
 
     public static String findTarget(){
