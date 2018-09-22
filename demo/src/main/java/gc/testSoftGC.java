@@ -11,7 +11,6 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * Created by johnny.ly on 2016/6/26.
- * 1. 不知道为什么过了一段时间SoftReference被回收了,明明不缺空间啊???
  */
 public class testSoftGC {
 
