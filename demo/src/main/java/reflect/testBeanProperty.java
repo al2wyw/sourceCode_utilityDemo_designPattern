@@ -1,4 +1,4 @@
-package reflection;
+package reflect;
 
 import demoObject.HcrmXiaoerSettlePerformancePO;
 import org.apache.commons.lang3.StringUtils;

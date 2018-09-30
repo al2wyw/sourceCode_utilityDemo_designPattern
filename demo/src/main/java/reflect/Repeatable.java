@@ -1,4 +1,4 @@
-package reflection;
+package reflect;
 
 import annotation.Role;
 import annotation.Roles;
@@ -13,6 +13,7 @@ import java.lang.annotation.Annotation;
  * Desc:
  */
 //java编译器隐式的在该注解使用中加入@Roles -> @Roles(value = {@Role(name="test"),@Role(name="bbbb",level = 2)})
+//Roles的type字段如果没有default，则无法编译
 @Role(name="test")
 @Role(name="bbbb",level = 2)
 public class Repeatable {
@@ -29,13 +30,22 @@ public class Repeatable {
             System.out.println(an.annotationType());
         }
 
+        annotations = claz.getAnnotationsByType(Roles.class);
+        for(Annotation an : annotations){
+            System.out.println(an.annotationType());
+        }
+
         System.out.println();
         Annotation annotation = claz.getAnnotation(Roles.class);
-        System.out.println(annotation.annotationType());
+        System.out.println("Annotation: " + annotation.annotationType());
 
         System.out.println();
         annotation = claz.getDeclaredAnnotation(Roles.class);
-        System.out.println(annotation.annotationType());
+        System.out.println("DeclaredAnnotation: " + annotation.annotationType());
+
+        //System.out.println();
+        //annotation = claz.getAnnotation(Target.class);
+        //System.out.println("Annotation: " + annotation.annotationType());//npe
 
         System.out.println();
         //annotation = claz.getAnnotation(Role.class);
@@ -48,8 +58,4 @@ public class Repeatable {
             System.out.println("roles present");
         }
     }
-}
-@Roles(value = {@Role(name="test"),@Role(name="bbbb",level = 2)})
-class Test{
-
 }

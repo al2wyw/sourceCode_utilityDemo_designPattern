@@ -15,9 +15,10 @@ io.netty.util.concurrent.EventExecutorGroup:
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
 io.netty.channel.nio.NioEventLoop:
 1. rebuildSelector解决jdk不停空select的bug
-2. cancel key时调用selectNow为了解决time wait问题，cancel只会把key放到cancelKeySet里面，selectNow会真正关闭socketfd ???
-3. SelectedSelectionKeySet是个1024大小的array，如果channel太多，不会塞爆吗 ???
+2. cancel key时调用selectNow为了解决time wait问题，cancel只会把key放到cancelKeySet里面，selectNow会真正关闭socketfd (看了源码，确实如此)
+3. SelectedSelectionKeySet是个1024大小的array，如果channel太多，不会塞爆吗 (add方法会扩容)
 4. OneTimeTask，AbstractWriteTask等等的使用 ??? (都继承于MpscLinkedQueueNode)
+5. io.netty.util.internal.MpscLinkedQueue使用的pading为什么是16个long，而不是8个long ???
 io.netty.channel.Channel:
 1. 基本所有的要素都在channel里面，包括产生各种Future，默认使用eventLoop(ChannelHandlerContext也能产生各种Future,默认使用context自带的executor)
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
@@ -160,8 +161,9 @@ SingleThreadEventExecutor{
 	}
 }
 
-Selector的MAX_SELECTABLE_FDS = 1024???
+WindowsSelectorImpl的MAX_SELECTABLE_FDS = 1024，windows的特殊实现，每1024个channel会分配一个线程去做select
 Selector的wakeUp可以被selectNow清除，wakeUp和LockSupport的unpark效果类似，可以先wakeUp保证下一次select立即返回
+Selector各个系统会实现四个方法: doSelect, implClose, implRegister, implDereg
 sun.nio.ch.WindowsSelectorImpl extends SelectorImpl extends AbstractSelector extends Selector{
 	protected Set<SelectionKey> selectedKeys = new HashSet(); //在doSelect时会往里填充ready的SelectionKey -> this.selectedKeys.contains(var10) -> this.selectedKeys.add(var10)
     protected HashSet<SelectionKey> keys = new HashSet();
@@ -176,7 +178,7 @@ sun.nio.ch.WindowsSelectorImpl extends SelectorImpl extends AbstractSelector ext
         }
     }
 
-	protected int doSelect(long var1) throws IOException {
+	protected int doSelect(long var1) throws IOException { //WindowsSelectorImpl
         if(this.channelArray == null) {
             throw new ClosedSelectorException();
         } else {
@@ -225,7 +227,7 @@ sun.nio.ch.WindowsSelectorImpl extends SelectorImpl extends AbstractSelector ext
 		}
 	}
 
-	protected void implDereg(SelectionKeyImpl var1) throws IOException {
+	protected void implDereg(SelectionKeyImpl var1) throws IOException { //WindowsSelectorImpl
 		...
 		this.fdMap.remove(var1);
         this.keys.remove(var1);
@@ -252,17 +254,22 @@ sun.nio.ch.WindowsSelectorImpl extends SelectorImpl extends AbstractSelector ext
         if (!open)
             return;
         implCloseSelector();{
-				...
-				for(int var7 = 1; var7 < this.totalChannels; ++var7) {
-                    if(var7 % 1024 != 0) {
-                        this.deregister(this.channelArray[var7]);//SelectionKeyImpl[] channelArray
-                        SelectableChannel var3 = this.channelArray[var7].channel();
-                        if(!var3.isOpen() && !var3.isRegistered()) {
-                            ((SelChImpl)var3).kill();
-                        }
-                    }
-                }
-				...
+			wakeup();
+			three locks{
+				implClose(){//WindowsSelectorImpl
+					...
+					for(int var7 = 1; var7 < this.totalChannels; ++var7) {
+						if(var7 % 1024 != 0) {
+							this.deregister(this.channelArray[var7]);//SelectionKeyImpl[] channelArray
+							SelectableChannel var3 = this.channelArray[var7].channel();
+							if(!var3.isOpen() && !var3.isRegistered()) {
+								((SelChImpl)var3).kill();
+							}
+						}
+					}
+					...
+				}
+			}
 		}
     }
 }

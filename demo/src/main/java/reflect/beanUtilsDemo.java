@@ -1,4 +1,4 @@
-package reflection;
+package reflect;
 
 import demoObject.UserInfo;
 import demoObject.UserInfoExt;
