@@ -4,10 +4,11 @@ package reflect;
 import annotation.Test;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 
 public class test_annotation_reflect {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
 		Class<Anno> klass = Anno.class;
 
@@ -47,20 +48,38 @@ public class test_annotation_reflect {
 		System.out.println("Annotation: " + an.annotationType());
 		//an = klassb.getDeclaredAnnotation(Test.class);
 		//System.out.println("DeclaredAnnotation: " + an.annotationType());//npe
+
+		/*
+		Method get = klassb.getMethod("get");
+		an = get.getAnnotation(Test.class);
+		System.out.println("Annotation: " + an.annotationType());//npe
+		an = get.getDeclaredAnnotation(Test.class);
+		System.out.println("DeclaredAnnotation: " + an.annotationType());//npe
+		*/
+		test(klassb);
 	}
-	//AnnotatedType since 1.8
+	//get class object of Class
+	private static void test(Class aClass) throws Exception{
+		Field field = aClass.getClass().getDeclaredField("annotationData");
+		field.setAccessible(true);
+		Object value = field.get(aClass);
+		System.out.println();
+	}
 }
 
 @Test
 class Anno{
 	private Object test;
 	
-
+	@Test
 	public Object get(){
 		return null;
 	}
 }
 
 class Bnno extends Anno{
-
+	@Override
+	public Object get() {
+		return super.get();
+	}
 }
