@@ -51,7 +51,7 @@ public class test_annotation_reflect {
 
 		/*
 		Method get = klassb.getMethod("get");
-		an = get.getAnnotation(Test.class);
+		an = get.getAnnotation(Test.class);//method，construct，field cannot inherit, check the implementation
 		System.out.println("Annotation: " + an.annotationType());//npe
 		an = get.getDeclaredAnnotation(Test.class);
 		System.out.println("DeclaredAnnotation: " + an.annotationType());//npe

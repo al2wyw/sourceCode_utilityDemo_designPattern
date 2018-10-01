@@ -13,8 +13,10 @@ import java.util.Map;
 public class GenericPractice<E> {
     private List<String> myParams;
 
+    private E obj;
+
     @Test
-    public final <T> List<? extends String> getMyParams(Map<String, Object> params){return myParams;}
+    public final <T> List<? extends String> getMyParams(Map<String, T> params){return myParams;}
 
     public static void main(String args[]){
         Class<?> claz= GenericPractice.class;
@@ -53,6 +55,12 @@ public class GenericPractice<E> {
                }
 
             System.out.println("Type: " + type.toString());
+
+            Field obj = claz.getDeclaredField("obj");
+            Class objKlass = obj.getType();
+            System.out.println("obj type: " + objKlass.getName());
+            Type objType = obj.getGenericType();
+            System.out.println("obj generic type: " + objType.getTypeName());
         } catch (Exception e) {
             e.printStackTrace();
         }

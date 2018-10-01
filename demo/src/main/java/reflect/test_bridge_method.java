@@ -1,6 +1,7 @@
 package reflect;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  *  volatile方法并不存在，其实就是bridge方法，是老jdk的一个bug，一个bridge方法在反编译后会显示成volatile
@@ -14,8 +15,12 @@ public class test_bridge_method {
 		Object t = test.id(new Object());
 		System.out.println(t);*/
 		Class<D> k = D.class;
-		Method[] arr = k.getDeclaredMethods();
-		System.out.println(arr.length);//it is two
+		Method[] arr = k.getDeclaredMethods();//会返回bridge方法
+		System.out.println(arr.length);//it is 2
+		Arrays.asList(arr).forEach(ar -> System.out.println(ar.getName()));
+		arr = k.getMethods();//会返回bridge方法
+		System.out.println(arr.length);
+		Arrays.asList(arr).forEach(ar -> System.out.println(ar.getName()));
 	}
 
 }
@@ -33,11 +38,11 @@ class B<T>{
 }
 
 abstract class C<T> {
-    abstract T id(T x); // -> Object id(Object x)
+    public abstract T id(T x); // -> Object id(Object x)
 }
 
 class D extends C<String> {
-	String id(String x) {
+	public String id(String x) {
 		return x;
 	}
 	//编译时根据模板C的方法多生成一个synthetic bridge 方法:
