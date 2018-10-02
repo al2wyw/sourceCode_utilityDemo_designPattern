@@ -25,18 +25,6 @@ public class test_bridge_method {
 
 }
 
-class B<T>{
-	private T object;
-
-	public T getObject() {
-		return object;
-	}
-
-	public void setObject(T object) {
-		this.object = object;
-	}
-}
-
 abstract class C<T> {
     public abstract T id(T x); // -> Object id(Object x)
 }

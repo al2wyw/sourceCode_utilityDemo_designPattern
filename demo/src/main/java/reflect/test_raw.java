@@ -1,6 +1,7 @@
 package reflect;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,10 @@ public class test_raw {
 		PersonDAO dao = new PersonDAO();
         Person p = dao.createInstance();
         System.out.println(p.toString());
-		
+
+        NewPersonDAO newPersonDAO = new NewPersonDAO();
+        p = newPersonDAO.createInstance();
+        System.out.println(p.toString());
 	}
 
 }
@@ -37,6 +41,9 @@ class Person {
     }
 }
 
+class NewPersonDAO extends PersonDAO{
+
+}
 class PersonDAO extends TypeExtractor<Person> {
 }
 
@@ -48,8 +55,15 @@ class TypeExtractor<T> {
 
     @SuppressWarnings("unchecked")
     public Class<T> getBeanClass() {
-        return (Class<T>)
-               ((ParameterizedType)(getClass().getGenericSuperclass()))
-               .getActualTypeArguments()[0];
+        Type type = getClass().getGenericSuperclass();
+        while(type != null) {
+            if (type instanceof ParameterizedType) {
+                return (Class<T>) ((ParameterizedType) type).getActualTypeArguments()[0];
+            }
+            type = ((Class) type).getGenericSuperclass();
+            //根据源码，getGenericSuperclass只会返回Class和ParameterizedType
+            //sun.reflect.generics.visitor.Reifier.visitClassTypeSignature 会初始化 resultType
+        }
+        return null;
     }
 }

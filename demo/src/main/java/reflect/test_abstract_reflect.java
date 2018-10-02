@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 public class test_abstract_reflect {
     public static void main(String[] args) throws NoSuchMethodException {
         Class k = test.class;
-        Method m = k.getMethod("use",new Class<?>[0]);
+        Method m = k.getMethod("use");
         if(m!=null){
             System.out.println("can get use method");
         }

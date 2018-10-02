@@ -31,7 +31,7 @@ public class testSecurityManager {
 
         //singleton不在是single了
         Constructor<Singleton> factory = Singleton.class.getDeclaredConstructor(null);
-        if((!Modifier.isPublic(i.getModifiers()) || !Modifier.isPublic(i.getDeclaringClass().getModifiers())) && !factory.isAccessible()){
+        if((!Modifier.isPublic(factory.getModifiers()) || !Modifier.isPublic(factory.getDeclaringClass().getModifiers())) && !factory.isAccessible()){
             factory.setAccessible(true);
         }
         Singleton singleton = factory.newInstance(null);

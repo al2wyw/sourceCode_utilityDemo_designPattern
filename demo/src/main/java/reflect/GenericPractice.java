@@ -4,13 +4,14 @@ import annotation.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by johnny.ly on 2016/2/2.
  */
-public class GenericPractice<E> {
+public class GenericPractice<E extends GenericPractice> {
     private List<String> myParams;
 
     private E obj;
@@ -21,6 +22,8 @@ public class GenericPractice<E> {
     public static void main(String args[]){
         Class<?> claz= GenericPractice.class;
         try {
+            TypeVariable<?>[] testTypes = claz.getTypeParameters();
+            Arrays.asList(testTypes).forEach(type -> System.out.println(type.getTypeName() + " " + type.getBounds()[0].getTypeName()));
             Method method = claz.getMethod("getMyParams",new Class[]{Map.class});
             Annotation[] annotations = Test.class.getAnnotations();
             for(Annotation an : annotations){
