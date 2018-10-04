@@ -10,6 +10,7 @@ out: channel -> channelPipeline -> channelHandlerContext -> channelHandler -> un
 io.netty.util.concurrent.Future:
 1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
 2. ChannelFuture是三者的Void实现(Future<Void>)
+3. AbstractFuture只是两个get方法的实现，没有其他内容，DefaultPromise才是Future的真正实现
 io.netty.util.concurrent.EventExecutorGroup:
 1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体是一个特殊的group，单体的parent是group，group拥有EventExecutorChooser来next选择一个单体
 2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
@@ -19,6 +20,8 @@ io.netty.channel.nio.NioEventLoop:
 3. SelectedSelectionKeySet是个1024大小的array，如果channel太多，不会塞爆吗 (add方法会扩容)
 4. OneTimeTask，AbstractWriteTask等等的使用 ??? (都继承于MpscLinkedQueueNode)
 5. io.netty.util.internal.MpscLinkedQueue使用的pading为什么是16个long，而不是8个long ???
+6. NioEventLoop extends SingleThreadEventLoop extends SingleThreadEventExecutor extends AbstractScheduledEventExecutor extends AbstractEventExecutor extends AbstractExecutorService(juc)
+7. SingleThreadEventExecutor复写了execute方法(AbstractExecutorService在submit时调用execute方法)，会先addTask然后调用NioEventLoop的wakeup方法; AbstractScheduledEventExecutor调用schedule时只是往scheduledTaskQueue进行add操作，最后NioEventLoop的runAllTasks方法会fetch触发时间小于超时时间的task; NioEventLoop的select方法会循环的select(使用短timeout来控制)，select完后会判断wakeup/hasTasks/hasScheduledTasks等来结束select;其实IOratio的设定是假设task的运行不需要时间的
 io.netty.channel.Channel:
 1. 基本所有的要素都在channel里面，包括产生各种Future，默认使用eventLoop(ChannelHandlerContext也能产生各种Future,默认使用context自带的executor)
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
