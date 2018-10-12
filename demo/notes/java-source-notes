@@ -1,0 +1,17 @@
+1.lock & thread pool
+2.thread
+3.class loader
+4.reflection & proxy
+5.nio & byte buffer
+
+Thread:
+1.init方法继承了很多parent thread(当前线程的创建线程)的字段，threadGroup一定会有，也是来自parent thread
+2.start的时候会把当前thread加入到group
+3.parkBlocker是给park使用的，blocker是给interrupt使用的
+4.inheritableThreadLocals继承自parent thread的inheritableThreadLocals
+5.join调用时caller线程进行 while (isAlive()) { wait(0); } 操作，等待目标线程死亡，目标线程死亡后会notifyAll
+6.public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+        return uncaughtExceptionHandler != null ?
+            uncaughtExceptionHandler : group; (group的默认实现 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(t, e))
+    }
+7.isCCLOverridden 跟getContextClassLoader有关???
