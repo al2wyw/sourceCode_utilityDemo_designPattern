@@ -15,3 +15,12 @@ Thread:
             uncaughtExceptionHandler : group; (group的默认实现 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(t, e))
     }
 7.isCCLOverridden 跟getContextClassLoader有关???
+
+
+Exception:
+1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。
+如果一个异常是可以恢复的，可以被调用者正确处理的，使用checked异常。
+在使用unChecked异常时，必须在在方法声明中详细的说明该方法可能会抛出的unChekced异常。由调用者自己去决定是否捕获unChecked异常
+2.为了避免系统级的checked异常对业务系统的深度侵入，我们可以为业务方法定义一个业务系统自己的异常。针对像SQLException,RemoteException这些非常严重的异常，我们可以新定义一个unChecked的异常，然后把SQLException，RemoteException封装成unChecked异常后抛出。如果这个系统级的异常是要交由上一级调用者处理的，可以新定义一个checked的业务异常，然后把系统级的异常封存装成业务级的异常后再抛出。
+3. 整个业务层只定义了一个异常类 (不同的异常应该有不同的实现，参考spring的异常设计)，业务异常不应该是Unchecked Exception。 顶层处理异常时只有catch一个Exception。
+4. 关于异常控制业务流程，参考"Java异常处理和设计"网页
