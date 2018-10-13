@@ -16,6 +16,76 @@ Thread:
     }
 7.isCCLOverridden 跟getContextClassLoader有关???
 
+ClassLoader:
+1. ParallelLoaders: 并行加载class，每个class都有一个锁，URLClassLoader和ClassLoader都是并行加载器
+2. loadClass: findLoadedClass(current loader is initiating classloader) -> parent -> findClass(defineClass,current loader is defining classloader) -> resolveClass
+3. initiating class loader/defining class loader
+4. protected final Class<?> defineClass(String name, byte[] b, int off, int len, ProtectionDomain protectionDomain) throws ClassFormatError
+{
+	protectionDomain = preDefineClass(name, protectionDomain); // ProtectionDomain has CodeSource has Certificate
+	String source = defineClassSourceLocation(protectionDomain); //get URL from CodeSource
+	Class<?> c = defineClass1(name, b, off, len, protectionDomain, source);//native call defineClass
+	postDefineClass(c, protectionDomain); //set Certificate to Class
+	return c;
+}
+5. getResource: parent -> findResource (getResourceAsStream 就是调用 getResource 然后return URL.openStream)
+6. getSystemClassLoader 会从sun.misc.Launcher获取classLoader(AppClassLoader), 如果java.system.class.loader有设置的话会用这个作为systemClassLoader(parent是AppClassLoader)
+7. AssertionStatus ???
+8. package 处理 ???
+SecureClassLoader: 
+1.只是作一些创建CL的permission检查
+2. ProtectionDomain getProtectionDomain(CodeSource cs){
+	ProtectionDomain pd = pdcache.get(cs);
+	if (pd == null) {
+		PermissionCollection perms = getPermissions(cs);// return new Permissions();返回默认的permission列表
+		pd = new ProtectionDomain(cs, perms, this, null); pdcache.put(cs, pd);
+	}
+	return pd;
+}
+URLClassLoader:
+1. 字段: AccessControlContext(创建CL时创建), URLClassPath(承接了所有的find resouce的操作)
+2. 复写getResourceAsStream，把inputStream放入closeables, URLClassLoader本身是Closable，close方法会关闭这些closeables以及ucp.closeLoaders()->loader.close()
+3. findClass: 
+	String path = name.replace('.', '/').concat(".class");
+	Resource res = ucp.getResource(path, false);
+	if (res != null) {
+		try {
+			return defineClass(name, res);{
+				int i = name.lastIndexOf('.'); URL url = res.getCodeSourceURL();
+				if (i != -1) -> definePackageInternal(name.substring(0, i), res.getManifest(), url);//package 校验??? package sealed ???
+				CodeSource cs = new CodeSource(url, res.getCodeSigners());
+				return defineClass(name, res.getByteBuffer(), cs);
+			}
+		} catch (IOException e) {
+			throw new ClassNotFoundException(name, e);
+		}
+	}
+4. findResource : URL url= ucp.findResource(name, true);ucp.checkURL(url);(permission校验) //findResources可以把所有URL里面的匹配的resource找出来
+5. protected PermissionCollection getPermissions(CodeSource codesource){
+	PermissionCollection perms = super.getPermissions(codesource); URL url = codesource.getLocation(); URLConnection urlConnection = url.openConnection();
+    Permission  p = urlConnection.getPermission(); 对p进行处理,转换成FilePermission或者SocketPermission;
+	check permission; perms.add(p); return perms;
+}
+URLClassPath: (path <= urls == loaders)
+1. public Resource getResource(String name, boolean check) {
+        for (int i = 0; (loader = getLoader(i)) != null; i++) {//getLoader 根据URL的数量和schema创建不同的Loader(Loader,FileLoader,JarLoader), 注意JarLoader可能会根据manifest新增一些URL
+            Resource res = loader.getResource(name, check);//JarLoader的实现比较复杂 ???
+            if (res != null) -> return res;
+        }
+        return null;
+    }
+2. public URL findResource(String name, boolean check) {
+        for (int i = 0; (loader = getLoader(i)) != null; i++) {
+            URL url = loader.findResource(name, check);//调用loader.getResource(name, check)
+            if (url != null) -> return url;
+        }
+        return null;
+    }
+Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值
+
+URL: 只有一种，但是会根据不同的URLStreamHandler创建不同的URLConnection
+URLStreamHandler:
+URLConnection:
 
 Exception:
 1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。

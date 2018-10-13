@@ -10,6 +10,10 @@ import java.lang.String;
  * Desc:
  */
 public class StaticLoadTest {
+
+    static {
+        System.out.println("StaticLoadTest init");
+    }
     public static void main(String[] args) {
         int i = Test.A;
         i = Test.B;

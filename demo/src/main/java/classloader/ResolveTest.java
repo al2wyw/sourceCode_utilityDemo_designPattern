@@ -16,8 +16,17 @@ public class ResolveTest {
     public static void main(String[] args) throws Exception {
         //Class.forName("classloader.StaticLoadTest");//will initialize the class by default
         ClassLoader cl = new ResolveWhenLoadClassLoader(new URL[]{new File(findTarget()).toURI().toURL()}, null);
-        Class staticLoad = cl.loadClass("classloader.StaticLoadTest");
-        System.out.println(staticLoad.getName());
+        testClassLoad(cl);
+        testClassLoad(Thread.currentThread().getContextClassLoader());
+    }
+
+    private static void testClassLoad(ClassLoader cl) throws Exception{
+        System.out.println("testClassLoad start");
+        Class staticClass = cl.loadClass("classloader.StaticLoadTest");
+        System.out.println(staticClass.getName());
+        System.out.println(staticClass.getClassLoader());
+        staticClass.newInstance();
+        System.out.println("testClassLoad end");
     }
 
     public static String findTarget(){
