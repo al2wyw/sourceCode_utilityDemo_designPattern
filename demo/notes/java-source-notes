@@ -69,7 +69,7 @@ URLClassLoader:
 URLClassPath: (path <= urls == loaders)
 1. public Resource getResource(String name, boolean check) {
         for (int i = 0; (loader = getLoader(i)) != null; i++) {//getLoader 根据URL的数量来创建对等的Loader(Loader,FileLoader,JarLoader), 注意JarLoader可能会根据manifest新增一些URL
-            Resource res = loader.getResource(name, check);//JarLoader的实现比较复杂 ???
+            Resource res = loader.getResource(name, check);
             if (res != null) -> return res;
         }
         return null;
@@ -88,8 +88,8 @@ URLClassPath: (path <= urls == loaders)
 		else return new Loader(url);
 	} else return new JarLoader(url, jarHandler, lmap);
 }
-C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader
-D:\demo\target\classes -> file:/D:/demo/target/classes/ -> FileLoader
+C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂 ???
+D:\demo\target\classes -> file:/D:/demo/target/classes/ -> FileLoader -> getResource根据目录和name直接创建File并判断是否exist
 Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值
 
 URL: 只有一种，但是会根据不同的URLStreamHandler创建不同的URLConnection
