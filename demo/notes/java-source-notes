@@ -31,7 +31,7 @@ ClassLoader:
 5. getResource: parent -> findResource (getResourceAsStream 就是调用 getResource 然后return URL.openStream)
 6. getSystemClassLoader 会从sun.misc.Launcher获取classLoader(AppClassLoader), 如果java.system.class.loader有设置的话会用这个作为systemClassLoader(parent是AppClassLoader)
 7. AssertionStatus ???
-8. package 处理 ???
+8. NativeLibrary ???
 SecureClassLoader: 
 1.只是作一些创建CL的permission检查
 2. ProtectionDomain getProtectionDomain(CodeSource cs){
@@ -52,7 +52,7 @@ URLClassLoader:
 		try {
 			return defineClass(name, res);{
 				int i = name.lastIndexOf('.'); URL url = res.getCodeSourceURL();
-				if (i != -1) -> definePackageInternal(name.substring(0, i), res.getManifest(), url);//package 校验??? package sealed ???
+				if (i != -1) -> definePackageInternal(name.substring(0, i), res.getManifest(), url);
 				CodeSource cs = new CodeSource(url, res.getCodeSigners());
 				return defineClass(name, res.getByteBuffer(), cs);//defineClass(name, b, getProtectionDomain(cs))
 			}
@@ -65,6 +65,24 @@ URLClassLoader:
 	PermissionCollection perms = super.getPermissions(codesource); URL url = codesource.getLocation(); URLConnection urlConnection = url.openConnection();
     Permission  p = urlConnection.getPermission(); 对p进行处理,转换成FilePermission或者SocketPermission;
 	check permission; perms.add(p); return perms;
+}
+6. void definePackageInternal(String pkgname, Manifest man, URL url){//第一次加载package不做校验，只是保持到packages
+	if (getAndVerifyPackage(pkgname, man, url) == null) {
+		definePackage(pkgname, man, url);//创建package实例，放到缓存packages
+	}
+}
+7. Package getAndVerifyPackage(String pkgname, Manifest man, URL url){
+	Package pkg = getPackage(pkgname); // packages -> parent.getPackage(name)
+	if (pkg != null) {
+		if (pkg.isSealed()) {
+			if (!pkg.isSealed(url)) throw new SecurityException("sealing violation");
+			//已经加载的package是sealed的, 现在加载的package不是来自同一个jar包，报错
+		} else {
+			if ((man != null) && isSealed(pkgname, man)) throw new SecurityException("sealing violation");
+			//已经加载的package不是sealed的，现在加载的相同package是sealed的，报错
+		}
+	}
+	return pkg;
 }
 URLClassPath: (path <= urls == loaders)
 1. public Resource getResource(String name, boolean check) {
