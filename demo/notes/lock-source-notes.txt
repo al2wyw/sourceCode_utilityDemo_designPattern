@@ -425,7 +425,7 @@ StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。�
 
 CopyOnWriteArrayList所有的写操作,包括set和add都会上锁, 读操作不加锁
 ConcurrentLinkedQueue所有的操作都是使用CAS，无锁
-ConcurrentHashMap进行分node，写操作加synchronize，读操作不加锁(1.8)
+ConcurrentHashMap进行分node，写操作加synchronize，读操作不加锁(1.8) ???
 ConcurrentHashMap进行分segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
 HashMap和ConcurrentHashMap的1.8版本对哈希碰撞元素进行tree优化避免链表过长
 

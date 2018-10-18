@@ -16,9 +16,9 @@ Thread:
     }
 7.isCCLOverridden 跟getContextClassLoader有关???
 
-ClassLoader:
+ClassLoader: (class, resource, package的加载机制都是一致的)
 1. ParallelLoaders: 并行加载class，每个class都有一个锁，URLClassLoader和ClassLoader都是并行加载器
-2. loadClass: findLoadedClass(current loader is initiating classloader) -> parent -> findClass(defineClass,current loader is defining classloader) -> resolveClass
+2. loadClass: findLoadedClass(current loader is initiating classloader) -> parent -> findBootstrapClass -> findClass(defineClass,current loader is defining classloader) -> resolveClass
 3. initiating class loader/defining class loader
 4. protected final Class<?> defineClass(String name, byte[] b, int off, int len, ProtectionDomain protectionDomain) throws ClassFormatError
 {
@@ -28,10 +28,11 @@ ClassLoader:
 	postDefineClass(c, protectionDomain); //set Certificate to Class
 	return c;
 }
-5. getResource: parent -> findResource (getResourceAsStream 就是调用 getResource 然后return URL.openStream)
-6. getSystemClassLoader 会从sun.misc.Launcher获取classLoader(AppClassLoader), 如果java.system.class.loader有设置的话会用这个作为systemClassLoader(parent是AppClassLoader)
-7. AssertionStatus ???
-8. NativeLibrary ???
+5. getResource: parent -> getBootstrapResource (从bootstrap的URLClassPath里面加载资源getResource) -> findResource (getResourceAsStream 就是调用 getResource 然后return URL.openStream)
+6. getSystemResource: SystemClassLoader == null ? getBootstrapResource : SystemClassLoader.getResource
+7. getSystemClassLoader 会从sun.misc.Launcher获取classLoader(AppClassLoader), 如果java.system.class.loader有设置的话会用这个作为systemClassLoader(parent是AppClassLoader)
+8. AssertionStatus ???
+9. NativeLibrary ???
 SecureClassLoader: 
 1.只是作一些创建CL的permission检查
 2. ProtectionDomain getProtectionDomain(CodeSource cs){
@@ -44,7 +45,7 @@ SecureClassLoader:
 }
 URLClassLoader:
 1. 字段: AccessControlContext(创建CL时创建), URLClassPath(承接了所有的find resouce的操作)
-2. 复写getResourceAsStream，把inputStream放入closeables, URLClassLoader本身是Closable，close方法会关闭这些closeables以及ucp.closeLoaders()->loader.close()
+2. 复写getResourceAsStream，把inputStream/jarFile放入closeables, URLClassLoader本身是Closable，close方法会关闭这些closeables以及ucp.closeLoaders()->loader.close()
 3. findClass: 
 	String path = name.replace('.', '/').concat(".class");
 	Resource res = ucp.getResource(path, false);
@@ -72,7 +73,7 @@ URLClassLoader:
 	}
 }
 7. Package getAndVerifyPackage(String pkgname, Manifest man, URL url){
-	Package pkg = getPackage(pkgname); // packages -> parent.getPackage(name)
+	Package pkg = getPackage(pkgname); // packages -> parent.getPackage(name) -> Package.getSystemPackage(name)
 	if (pkg != null) {
 		if (pkg.isSealed()) {
 			if (!pkg.isSealed(url)) throw new SecurityException("sealing violation");
@@ -108,11 +109,233 @@ URLClassPath: (path <= urls == loaders)
 }
 C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂 ???
 D:\demo\target\classes -> file:/D:/demo/target/classes/ -> FileLoader -> getResource根据目录和name直接创建File并判断是否exist
+其他 -> http://www.baidu.com -> Loader -> getResource会进行pre load test，校验链接有效性
 Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值
 
 URL: 只有一种，但是会根据不同的URLStreamHandler创建不同的URLConnection
 URLStreamHandler:
-URLConnection:
+URLConnection: getInputStream才真正发起连接
+
+Class: (ClassRepository genericInfo, ReflectionData reflectionData, AnnotationData annotationData)
+1. public static Class<?> forName(String className) throws ClassNotFoundException {
+        Class<?> caller = Reflection.getCallerClass(); return forName0(className, true, ClassLoader.getClassLoader(caller), caller);//initialize is true
+    }
+2. Class 无法实例化，包括反射class.newInstance和construct.newInstance也会报错
+3. 如果设置了SecurityManager，很多地方会做权限检查 !!!
+4. classRedefinedCount: Incremented by the VM on each call to JVM TI RedefineClasses() that redefines this class or a superclass
+5. reflectionData: reflection data that might get invalidated when JVM TI RedefineClasses() is called (其实就是缓存，防止每次调用native方法取method，field和constructor)
+annotationData: annotation data that might get invalidated when JVM TI RedefineClasses() is called (其实也是缓存)
+6. ClassRepository genericInfo: 所有跟generic有关的接口都是从genericInfo里面获取，如果没有相应的数据则调用原来的接口获取 (getGenericInterfaces -> getInterfaces), 自带缓存
+7. getEnclosingMethod，getEnclosingConstructor，getEnclosingClass (getDeclaringClass if current class is a member of another class)
+8. getTypeName (如果是Array则转换 [ 到 []，或者调用getName) getName(native call) getSimpleName(截取.最后的名字,如果是array则做转换[],如果是匿名类则返回"") getCanonicalName(getName(), 如果内部类则enclosingName + "." + getSimpleName(), 如果是array则做转换[], 如果是匿名类则为null) 内部类名: OuterClass$InnerClass, OuterClass$1
+9. 所有的getXXXX方法获取Class内部member，都会调用checkMemberAccess
+10. getField 和 getMethod 的处理机制一样，都要考虑继承问题
+11. getXXXX和getDeclaredXXXX的处理核心都是调用privateGetDeclaredXXXXX，只是一个要考虑继承，一个不用
+12. getSuperclass, getInterfaces 获取class的extends和implements
+13. getMethod/getMethods 不包含来自interface的static的方法
+14. annotation 其他的接口 ???
+public T newInstance(){
+	checkMemberAccess -> checkPackageAccess// 根据SecurityManager的有无进行检查访问权限
+	if (this == Class.class) -> throw IllegalAccessException
+	Constructor<T> c = getConstructor0(empty, Member.DECLARED);
+	c.setAccessible(true);int modifiers = c.getModifiers();
+	if(!Reflection.quickCheckMemberAccess(this, modifiers)){ // Modifier.isPublic(getClassAccessFlags(memberClass) & modifiers)
+		Reflection.ensureMemberAccess(Reflection.getCallerClass(), this, null, modifiers);// 检查当前caller是否可以调用此构造函数，否则报错
+	}
+	return c.newInstance((Object[])null);
+}
+Constructor<T> getConstructor0(Class<?>[] parameterTypes, int which){
+	Constructor<T>[] constructors = privateGetDeclaredConstructors((which == Member.PUBLIC));
+	for (Constructor<T> constructor : constructors) {
+		if (arrayContentsEq(parameterTypes, constructor.getParameterTypes())) {// a1 == a2
+			return getReflectionFactory().copyConstructor(constructor);// ReflectAccess.copyConstructor(constructor) -> constructor.copy()
+		}
+	}
+}
+public Constructor<?>[] getConstructors() throws SecurityException {
+    return copyConstructors(privateGetDeclaredConstructors(true));
+}
+public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
+	return copyConstructors(privateGetDeclaredConstructors(false));
+}
+private Constructor<T>[] privateGetDeclaredConstructors(boolean publicOnly){
+	Constructor<T>[] res; ReflectionData<T> rd = reflectionData(); // 使用classRedefinedCount创建新的ReflectionData,但是里面的数据其实是空的
+	if (rd != null) {
+		res = publicOnly ? rd.publicConstructors : rd.declaredConstructors;
+		if (res != null) return res;
+	}
+	isInterface() ? res = (Constructor<T>[]) new Constructor<?>[0] : res = getDeclaredConstructors0(publicOnly);
+	if (rd != null) -> publicOnly ? rd.publicConstructors = res : rd.declaredConstructors = res; // 设置ReflectionData里面的数据
+}
+public Class<?>[] getClasses() { // Returns all the public classes and interfaces that are members of the class
+	Class<?> currentClass = Class.this;
+	while (currentClass != null) {
+		Class<?>[] members = currentClass.getDeclaredClasses(); // getDeclaredClasses0
+		for (int i = 0; i < members.length; i++) {
+			if (Modifier.isPublic(members[i].getModifiers())) -> list.add(members[i]);
+		}
+		currentClass = currentClass.getSuperclass();
+	}
+	return list.toArray(new Class<?>[0]);
+}
+public Class<?>[] getDeclaredClasses() throws SecurityException {
+	return getDeclaredClasses0();
+}
+public Field[] getFields() throws SecurityException {
+	return copyFields(privateGetPublicFields(null));// copyFields -> ReflectAccess.copyField(arg) -> arg.copy()
+}
+public Field[] getDeclaredFields() throws SecurityException {
+	return copyFields(privateGetDeclaredFields(false));
+}
+private Field[] privateGetPublicFields(Set<Class<?>> traversedInterfaces) {
+	Field[] res;ReflectionData<T> rd = reflectionData();
+	if (rd != null) {
+		res = rd.publicFields;
+		if (res != null) return res;
+	}
+	Field[] tmp = privateGetDeclaredFields(true);
+    addAll(fields, tmp);
+	调用 privateGetPublicFields 获取interface superClass的field
+	rd.publicFields = fields;
+}
+private Field[] privateGetDeclaredFields(boolean publicOnly) {
+	Field[] res;ReflectionData<T> rd = reflectionData();
+	if (rd != null) {
+		res = publicOnly ? rd.declaredPublicFields : rd.declaredFields;
+		if (res != null) return res;
+	}
+	res = Reflection.filterFields(this, getDeclaredFields0(publicOnly));//Reflection 提供过滤fields和methods的机制，保护敏感member，需要调用registerFilter进行注册
+    if (rd != null) -> publicOnly ? rd.declaredPublicFields = res : rd.declaredFields = res; 
+}
+public Method[] getMethods() throws SecurityException {
+	return copyMethods(privateGetPublicMethods());// ReflectAccess.copyMethod(arg) -> arg.copy()
+}
+public Method[] getDeclaredMethods() throws SecurityException {
+	return copyMethods(privateGetDeclaredMethods(false));
+}
+private Method[] privateGetPublicMethods() {
+	Method[] res;ReflectionData<T> rd = reflectionData();
+	if (rd != null) {
+		res = rd.publicMethods;
+		if (res != null) return res;
+	}
+	MethodArray methods = new MethodArray();
+    methods.addAll(privateGetDeclaredMethods(true));
+	MethodArray inheritedMethods = new MethodArray();
+	for (Class<?> i : getInterfaces()) {
+		inheritedMethods.addInterfaceMethods(i.privateGetPublicMethods());
+	}
+	if (!isInterface()) {
+		Class<?> c = getSuperclass();
+		if (c != null) {
+			MethodArray supers = new MethodArray();
+			supers.addAll(c.privateGetPublicMethods());
+			for (int i = 0; i < supers.length(); i++) {
+				Method m = supers.get(i);
+				if (m != null &&!Modifier.isAbstract(m.getModifiers()) &&!m.isDefault()) {
+					inheritedMethods.removeByNameAndDescriptor(m);
+				}
+			}
+			supers.addAll(inheritedMethods);
+			inheritedMethods = supers;
+		}
+	}
+	for (int i = 0; i < methods.length(); i++) {
+		Method m = methods.get(i);
+		inheritedMethods.removeByNameAndDescriptor(m);
+	}
+	methods.addAllIfNotPresent(inheritedMethods);methods.removeLessSpecifics();methods.compactAndTrim();
+	res = methods.getArray();
+	rd.publicMethods = res;
+}
+private Method[] privateGetDeclaredMethods(boolean publicOnly) {
+	Method[] res;ReflectionData<T> rd = reflectionData();
+	if (rd != null) {
+		res = publicOnly ? rd.declaredPublicMethods : rd.declaredMethods;
+		if (res != null) return res;
+	}
+	res = Reflection.filterMethods(this, getDeclaredMethods0(publicOnly));
+	if (rd != null) -> publicOnly ? rd.declaredPublicMethods = res : rd.declaredMethods = res; 
+}
+static class MethodArray{
+	void addInterfaceMethods(Method[] methods) // if (!Modifier.isStatic(candidate.getModifiers())) add(candidate)
+	void removeByNameAndDescriptor(Method toRemove) //比较return type的class，name， parameter types的class，不涉及generic
+	void compactAndTrim() // remove null method from array
+	void removeLessSpecifics() // remove less specific default method
+	static boolean hasMoreSpecificClass(Method m1, Method m2) {
+		Class<?> m1Class = m1.getDeclaringClass(); Class<?> m2Class = m2.getDeclaringClass();
+		return m1Class != m2Class && m2Class.isAssignableFrom(m1Class);
+	}
+}
+//getField(String)和getDeclaField(String)最后调用此函数
+private static Field searchFields(Field[] fields, String name) {
+	if (fields[i].getName() == name.intern()) return getReflectionFactory().copyField(fields[i]);
+}
+//getMethod(String, Class...)和getDeclaredMethod(String,Class...)最后调用此函数
+private static Method searchMethods(Method[] methods,String name,Class<?>[] parameterTypes){
+	for (int i = 0; i < methods.length; i++) {
+		Method m = methods[i];
+		if (m.getName() == name.intern()
+			&& arrayContentsEq(parameterTypes, m.getParameterTypes())
+			&& (res == null || res.getReturnType().isAssignableFrom(m.getReturnType())))
+			res = m;
+	}
+	return (res == null ? res : getReflectionFactory().copyMethod(res));
+}
+private native Field[]       getDeclaredFields0(boolean publicOnly);
+private native Method[]      getDeclaredMethods0(boolean publicOnly);
+private native Constructor<T>[] getDeclaredConstructors0(boolean publicOnly);
+private native Class<?>[]   getDeclaredClasses0();
+
+public InputStream getResourceAsStream(String name) { //getResource相似
+	name = resolveName(name); // name starts wtih '/' then name.substring(1) otherwise package_name/name
+	ClassLoader cl = getClassLoader0();
+	if (cl==null) -> return ClassLoader.getSystemResourceAsStream(name);
+	return cl.getResourceAsStream(name);
+}
+
+GenericDeclRepository(typeParams) // 依靠TypeTreeVisitor来解析Signature(class文件里关于generic的内容)，解析结果交给GenericsFactory来创建各种generic Type
+-> ClassRepository(superClass,interfaces)
+-> ConstructorRepository(paramTypes,exceptionTypes) -> MethodRepository (returnType)
+
+public <A extends Annotation> A getAnnotation(Class<A> annotationClass) // return (A) annotationData().annotations.get(annotationClass);
+public Annotation[] getAnnotations() // return AnnotationParser.toArray(annotationData().annotations);
+public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) // return (A) annotationData().declaredAnnotations.get(annotationClass);
+public Annotation[] getDeclaredAnnotations() // return AnnotationParser.toArray(annotationData().declaredAnnotations);
+
+private AnnotationData createAnnotationData(int classRedefinedCount) { // annotationData() 会调用此方法
+	Map<Class<? extends Annotation>, Annotation> declaredAnnotations =
+		AnnotationParser.parseAnnotations(getRawAnnotations(), getConstantPool(), this);
+	Class<?> superClass = getSuperclass();
+	Map<Class<? extends Annotation>, Annotation> annotations = null;
+	if (superClass != null) {
+		Map<Class<? extends Annotation>, Annotation> superAnnotations = superClass.annotationData().annotations;
+		for (Map.Entry<Class<? extends Annotation>, Annotation> e : superAnnotations.entrySet()) {
+			Class<? extends Annotation> annotationClass = e.getKey();
+			if (AnnotationType.getInstance(annotationClass).isInherited()) { //这一点判断是否inherited很重要
+				//AnnotationType.getInstance(annotationClass) 会把annotationClass的 AnnotationType annotationType 字段设上值, AnnotationType 是对Annotation的抽象
+				if (annotations == null) -> annotations = new LinkedHashMap<>();
+				annotations.put(annotationClass, e.getValue());
+			}
+		}
+	}
+	annotations == null ? annotations = declaredAnnotations : annotations.putAll(declaredAnnotations);
+	return new AnnotationData(annotations, declaredAnnotations, classRedefinedCount);
+}
+
+AccessibleObject:
+public boolean isAccessible() // return override;
+public void setAccessible(boolean flag){
+	setAccessible0(this, flag);{
+		if (obj instanceof Constructor && flag == true) {
+            Constructor<?> c = (Constructor<?>)obj;
+            if (c.getDeclaringClass() == Class.class) -> throw new SecurityException("Cannot make a java.lang.Class constructor accessible");
+        }
+        obj.override = flag;
+	}
+}
+Field:
+
 
 Exception:
 1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。
@@ -121,3 +344,12 @@ Exception:
 2.为了避免系统级的checked异常对业务系统的深度侵入，我们可以为业务方法定义一个业务系统自己的异常。针对像SQLException,RemoteException这些非常严重的异常，我们可以新定义一个unChecked的异常，然后把SQLException，RemoteException封装成unChecked异常后抛出。如果这个系统级的异常是要交由上一级调用者处理的，可以新定义一个checked的业务异常，然后把系统级的异常封存装成业务级的异常后再抛出。
 3. 整个业务层只定义了一个异常类 (不同的异常应该有不同的实现，参考spring的异常设计)，业务异常不应该是Unchecked Exception。 顶层处理异常时只有catch一个Exception。
 4. 关于异常控制业务流程，参考"Java异常处理和设计"网页
+
+静态代理: 编译时织入（特殊编译器实现）、类加载时织入（特殊的类加载器实现）
+动态代理: 运行时织入（jdk动态代理（基于接口来实现）、CGlib（基于类实现））
+类加载时织入: 
+1.agent方式，使用JVMTI将aspectjweaver.jar作为agent
+2.替换系统加载器，AppClassLoader -> WeavingURLClassLoader
+3.自定义类加载器，可以精细化控制织入的类
+运行时织入:
+通过动态生成class文件，替换原来的类
