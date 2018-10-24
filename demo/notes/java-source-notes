@@ -133,7 +133,9 @@ annotationData: annotation data that might get invalidated when JVM TI RedefineC
 11. getXXXX和getDeclaredXXXX的处理核心都是调用privateGetDeclaredXXXXX，只是一个要考虑继承，一个不用
 12. getSuperclass, getInterfaces 获取class的extends和implements
 13. getMethod/getMethods 不包含来自interface的static的方法
-14. annotation 其他的接口 ???
+15. reflectionFactory 就是sun.reflect.ReflectionFactory，是一个singleton，整个反射领域内全局唯一
+16. Annotation的实现其实使用了jdk proxy,看AnnotationInvocationHandler, AnnotationParser.parseAnnotations会创建这种proxy，数据则来源于AnnotationBytes
+17. Field, Method, Constructor的equal和hashCode有特殊逻辑，Class没有覆写equal和hashCode方法
 public T newInstance(){
 	checkMemberAccess -> checkPackageAccess// 根据SecurityManager的有无进行检查访问权限
 	if (this == Class.class) -> throw IllegalAccessException
@@ -148,7 +150,7 @@ Constructor<T> getConstructor0(Class<?>[] parameterTypes, int which){
 	Constructor<T>[] constructors = privateGetDeclaredConstructors((which == Member.PUBLIC));
 	for (Constructor<T> constructor : constructors) {
 		if (arrayContentsEq(parameterTypes, constructor.getParameterTypes())) {// a1 == a2
-			return getReflectionFactory().copyConstructor(constructor);// ReflectAccess.copyConstructor(constructor) -> constructor.copy()
+			return getReflectionFactory().copyConstructor(constructor);// ReflectAccess.copyConstructor(constructor) -> constructor.copy(深拷贝,拷贝后的root指向当前constructor)
 		}
 	}
 }
@@ -294,10 +296,6 @@ public InputStream getResourceAsStream(String name) { //getResource相似
 	return cl.getResourceAsStream(name);
 }
 
-GenericDeclRepository(typeParams) // 依靠TypeTreeVisitor来解析Signature(class文件里关于generic的内容)，解析结果交给GenericsFactory来创建各种generic Type
--> ClassRepository(superClass,interfaces)
--> ConstructorRepository(paramTypes,exceptionTypes) -> MethodRepository (returnType)
-
 public <A extends Annotation> A getAnnotation(Class<A> annotationClass) // return (A) annotationData().annotations.get(annotationClass);
 public Annotation[] getAnnotations() // return AnnotationParser.toArray(annotationData().annotations);
 public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) // return (A) annotationData().declaredAnnotations.get(annotationClass);
@@ -322,6 +320,7 @@ private AnnotationData createAnnotationData(int classRedefinedCount) { // annota
 	annotations == null ? annotations = declaredAnnotations : annotations.putAll(declaredAnnotations);
 	return new AnnotationData(annotations, declaredAnnotations, classRedefinedCount);
 }
+annotation 其他的接口 ???
 
 AccessibleObject:
 public boolean isAccessible() // return override;
@@ -334,8 +333,123 @@ public void setAccessible(boolean flag){
         obj.override = flag;
 	}
 }
+void checkAccess(Class<?> caller, Class<?> clazz, Object obj, int modifiers) throws IllegalAccessException //检查access权限并保存结果
 Field:
+public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException{//所有的get/set方法 都依靠FieldAccessor来获取值或者设置值，且都会先判断override
+	if (!override) {
+		if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
+			checkAccess(Reflection.getCallerClass(), clazz, obj, modifiers);
+		}
+	}
+	return getFieldAccessor(obj).get(obj);
+}
+private FieldAccessor getFieldAccessor(Object obj) throws IllegalAccessException{
+	FieldAccessor a = (override) ? overrideFieldAccessor : fieldAccessor;
+	return (a != null) ? a : acquireFieldAccessor(override);
+}
+private FieldAccessor acquireFieldAccessor(boolean overrideFinalCheck) {
+	if (root != null) tmp = root.getFieldAccessor(overrideFinalCheck);
+	if (tmp != null) {
+		overrideFinalCheck ? overrideFieldAccessor = tmp : fieldAccessor = tmp;
+	} else {
+		tmp = reflectionFactory.newFieldAccessor(this, overrideFinalCheck);
+		setFieldAccessor(tmp, overrideFinalCheck);// 根据overrideFinalCheck设置到fieldAccessor或者overrideFieldAccessor,同时调用root的setFieldAccessor
+	}
+	return tmp;
+}
+//method和constructor的相对应的Annotation方法也是这样实现的:
+public <T extends Annotation> T getAnnotation(Class<T> annotationClass) // annotationClass.cast(declaredAnnotations().get(annotationClass));
+public Annotation[] getDeclaredAnnotations()  // return AnnotationParser.toArray(declaredAnnotations());
+public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) //AnnotationSupport获取对应的Annotation 复杂???
+public AnnotatedType getAnnotatedType() //TypeAnnotationParser.buildAnnotatedType创建对应的AnnotatedTypeImpl 复杂???
+private synchronized  Map<Class<? extends Annotation>, Annotation> declaredAnnotations() {
+	if (declaredAnnotations == null) {
+		root != null ? declaredAnnotations = root.declaredAnnotations() : declaredAnnotations = AnnotationParser.parseAnnotations(getAnnotationBytes(),
+					sun.misc.SharedSecrets.getJavaLangAccess().getConstantPool(getDeclaringClass()),getDeclaringClass());  
+	}
+	return declaredAnnotations;
+}
+Method:
+public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException,InvocationTargetException{
+	//override 校验
+	MethodAccessor ma = methodAccessor; 
+	if (ma == null) -> ma = acquireMethodAccessor();
+	return ma.invoke(obj, args);
+}
+private MethodAccessor acquireMethodAccessor() {
+	if (root != null) tmp = root.getMethodAccessor();
+	if (tmp != null) {
+		methodAccessor = tmp;
+	} else {
+		tmp = reflectionFactory.newMethodAccessor(this);
+		setMethodAccessor(tmp);// 设置到methodAccessor,同时调用root的setMethodAccessor
+	}
+	return tmp;
+}
+其他的方法 ???
+Constructor:
+public T newInstance(Object ... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	//override 校验
+	if ((clazz.getModifiers() & Modifier.ENUM) != 0) -> throw new IllegalArgumentException("Cannot reflectively create enum objects");
+	ConstructorAccessor ca = constructorAccessor; 
+	if (ca == null) -> ca = acquireConstructorAccessor();
+	return (T) ca.newInstance(initargs);
+}
+其他的方法 ???
+ReflectionFactory:
+public FieldAccessor newFieldAccessor(Field field, boolean override) {
+	return UnsafeFieldAccessorFactory.newFieldAccessor(field, override);{
+		boolean isStatic = Modifier.isStatic(field.getModifiers());
+        boolean isFinal = Modifier.isFinal(field.getModifiers());
+        boolean isVolatile = Modifier.isVolatile(field.getModifiers());
+        boolean isQualified = isFinal || isVolatile;
+        boolean isReadOnly = isFinal && (isStatic || !override);
+		//根据isStatic创建不同的UnsafeFieldAccessorImpl(使用unsafe访问offset地址获取field的值)
+		//isReadOnly的UnsafeFieldAccessorImpl不支持set操作，会报错
+	}
+}
+public MethodAccessor newMethodAccessor(Method method) {
+	if (noInflation && !ReflectUtil.isVMAnonymousClass(method.getDeclaringClass())) {//VM define的匿名类(Unsafe#defineAnonymousClass)，和普通的匿名内部类不同
+		return new MethodAccessorGenerator().generateMethod(method.getDeclaringClass(), method.getName(), method.getParameterTypes(), method.getReturnType(),method.getExceptionTypes(),method.getModifiers());
+		//动态生成class结构byte数组并使用declaringClass.getClassLoader()加载, Class:sun/reflect/MethodAccessorImpl, name:"sun/reflect/GeneratedMethodAccessor"+num
+	} else {
+		NativeMethodAccessorImpl acc = new NativeMethodAccessorImpl(method);
+		DelegatingMethodAccessorImpl res = new DelegatingMethodAccessorImpl(acc);
+		acc.setParent(res);
+		return res;
+	}
+}
+public ConstructorAccessor newConstructorAccessor(Constructor<?> c) {
+	Class<?> declaringClass = c.getDeclaringClass();
+	if (Modifier.isAbstract(declaringClass.getModifiers())) -> return new InstantiationExceptionConstructorAccessorImpl(null);
+	if (declaringClass == Class.class) -> return new InstantiationExceptionConstructorAccessorImpl("Can not instantiate java.lang.Class");
+	//we use Class.newInstance() in the ConstructorAccessor generation process, we have to break the cycle here.
+	if (Reflection.isSubclassOf(declaringClass, ConstructorAccessorImpl.class)) -> return new BootstrapConstructorAccessorImpl(c);
+	if (noInflation && !ReflectUtil.isVMAnonymousClass(c.getDeclaringClass())) {
+		return new MethodAccessorGenerator().generateConstructor(c.getDeclaringClass(),c.getParameterTypes(),c.getExceptionTypes(),c.getModifiers());
+	} else {
+		NativeConstructorAccessorImpl acc =new NativeConstructorAccessorImpl(c);
+		DelegatingConstructorAccessorImpl res = new DelegatingConstructorAccessorImpl(acc);
+		acc.setParent(res);
+		return res;
+	}
+}
 
+AbstractRepository
+-> FieldRepository(genericType)
+-> GenericDeclRepository(typeParams) // 依靠TypeTreeVisitor来解析Signature(class文件里关于generic的内容)，解析结果交给GenericsFactory来创建各种generic Type
+	-> ClassRepository(superClass,interfaces)
+	-> ConstructorRepository(paramTypes,exceptionTypes) -> MethodRepository (returnType)
+
+MagicAccessorImpl
+-> FieldAccessorImpl -> UnsafeFieldAccessorImpl
+-> MethodAccessorImpl
+	-> DelegatingMethodAccessorImpl
+	-> NativeMethodAccessorImpl
+-> ConstructorAccessorImpl
+	-> DelegatingConstructorAccessorImpl
+	-> NativeConstructorAccessorImpl
+	-> BootstrapConstructorAccessorImpl
 
 Exception:
 1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。

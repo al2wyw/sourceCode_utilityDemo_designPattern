@@ -419,24 +419,37 @@ WriteLock{
 	unlock -> sync.release(1);
 }
 
-//to be done: StampedLock，TransferQueue，ConcurrentSkipListMap
+//to be done: StampedLock，TransferQueue，ConcurrentHashMap, ConcurrentSkipListMap
 ReentrantReadWriteLock的某个线程获取读锁后可以重复进入(即使有写锁线程在等待),会导致写锁线程饥饿，有写锁线程在等待后新的读锁线程(HoldCounter为0)也无法获得读锁
 StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。因此，这就会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，就会发生疯狂占用CPU的情况。(先上writeLock，writeLock不释放，同时中断readLock就会导致readLock死循环)
 
 CopyOnWriteArrayList所有的写操作,包括set和add都会上锁, 读操作不加锁
 ConcurrentLinkedQueue所有的操作都是使用CAS，无锁
-ConcurrentHashMap进行分node，写操作加synchronize，读操作不加锁(1.8) ???
-ConcurrentHashMap进行分segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
-HashMap和ConcurrentHashMap的1.8版本对哈希碰撞元素进行tree优化避免链表过长
+ConcurrentHashMap进行锁node节点(链表的head或者树的root)，写操作加synchronize，读操作不加锁(1.8)
+ConcurrentHashMap进行锁segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
+1.8版本: HashMap和ConcurrentHashMap都使用数组作为数据存储，数据结构是一致的，同时对哈希碰撞元素进行红黑tree优化避免链表过长
+1.7版本: HashMap使用数组存储，ConcurrentHashMap使用Segment数组，每个Segment又使用数组存储数据
 
 DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
 ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)
 LinkedBlockingQueue有takeLock和putLock两个锁控制take和put操作，take和put共同访问的count是一个原子integer
-SynchronousQueue无锁(fair ? new TransferQueue<E>() : new TransferStack<E>()), 主要逻辑在Transfer的实现类的transfer方法(清晰简明)，采用spin来代替直接park
-TransferQueue实现: 使用cas去take head和put tail,queue的大小由参与操作同时被休眠的线程数量决定(take/put都会使线程休眠)
-TransferStack实现: 使用cas去take,put head, shouldSpin可以防止stack的head被休眠，stack的大小由参与操作同时被休眠的线程数量决定
+SynchronousQueue无锁(fair ? new TransferQueue<E>() : new TransferStack<E>()), 主要逻辑在Transfer的实现类的transfer方法(清晰简明)，采用先spin再park来代替直接park
+TransferQueue实现: 使用cas去take head和put tail,queue的大小由参与操作同时被休眠的线程数量决定(take/put都会使线程休眠), 基本不spin, 除非queue里只有当前一个元素
+TransferStack实现: 使用cas去take,put head, shouldSpin可以防止stack的head被休眠，stack的大小由参与操作同时被休眠的线程数量决定, transfer操作会先把当前fullfilling元素放入栈顶，然后和匹配的元素一起出栈(第三个else是帮助fullfilling的元素和匹配的元素出栈)，为什么不直接把匹配的元素出栈(TransferQueue的transfer就是直接把匹配的元素出栈) ???
 LinkedBlockingDeque所有操作共用一个锁,提供putFirst,putLast,takeFirst,takeLast等操作，内部是一个双向链表， 采用spin来代替直接park
-LinkedTransferQueue无锁,松弛型双重队列,head和tail节点相对较松，为了减少CAS操作的次数，如tail后面可以有多个node ...
+LinkedTransferQueue:
+无锁,松弛型双重队列(dual queue with slack),head和tail节点相对较松，为了减少CAS操作的次数，如tail后面可以有多个node:
+head           tail
+ |              |
+ v              v
+ M -> M -> U -> U -> U -> U (M: matched U: unmatched)
+The best value for this "slack" (the targeted maximum distance between the value of "head" and the first unmatched node, and similarly for "tail") is an empirical matter.
+拥有SynchronousQueue的transfer能力(spin再park)，也有普通BlockingQueue的add，take等能力，是两种Queue的集合
+xfer方法有接受4个不同的how操作：
+NOW = 0; //用于没有超时的poll和tryTransfer方法
+ASYNC = 1; //用于offer，put，add
+SYNC = 2; //用于transfer，take方法
+TIMED = 3; //用于有超时的poll，tryTransfer方法
 
 Striped64(false sharing伪共享)
 -XX:-RestrictContended

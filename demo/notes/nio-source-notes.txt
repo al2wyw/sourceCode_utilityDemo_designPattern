@@ -26,6 +26,7 @@ io.netty.channel.Channel:
 1. 基本所有的要素都在channel里面，包括产生各种Future，默认使用eventLoop(ChannelHandlerContext也能产生各种Future,默认使用context自带的executor)
 2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
 3. Channel包含一个ChannelPipeLine，ChannelPipeLine里面包含多个ChannelHandlerContext，每个ChannelHandlerContext包含一个ChannelHandler(这是调用的顺序,doBind0就是例子)
+4. 主要是三种实现: AbstractOioChannel(old blocking io) AbstractNioChannel AbstractEpollChannel(edge-triggered epoll)
 io.netty.channel.Channel.Unsafe:
 1. 每个channel带一个unsafe实现，unsafe的实现又会调用channel的接口，NioUnsafe的close和disconnect都是调用NioChannel的doClose方法
 2. channel和unsafe的设计采用了模板方法模式，把各个不同的channel实现封装在channel接口，unsafe调用channel接口达到多种实现
