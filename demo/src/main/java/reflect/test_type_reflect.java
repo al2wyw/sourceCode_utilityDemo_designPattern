@@ -36,6 +36,13 @@ public class test_type_reflect {
 			for(Type type: m.getParameterTypes()){
 				test(type);
 			}
+
+			System.out.println(m.toGenericString());
+			Parameter[] ps = m.getParameters();
+			for (Parameter p : ps) { //跟方法声明的顺序一致
+				System.out.println(p + " " + p.getName());
+			}
+
 		}
 	}
 	
