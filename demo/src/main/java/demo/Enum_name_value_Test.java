@@ -12,10 +12,13 @@ public class Enum_name_value_Test {
         }
         System.out.println("Hello World!");
 
-        Integer itest = null;
-        int ii = itest;
-        if (ii == 0)
-            System.out.println("null is 0");
+        switch (test){
+            case MAN:     System.out.println("a man");
+                break;
+            case WOMEN:   System.out.println("a woman");
+                break;
+            default: System.out.println("not found");
+        }
     }
 
     public enum Gender{
