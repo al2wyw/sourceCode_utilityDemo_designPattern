@@ -5,7 +5,7 @@ import sun.reflect.MethodAccessor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
+//package private access flag is 0x00, Modifier has no constant or method to check
 public class MethodAccessorTest {
 
     public static void main(String args[]) throws Exception{
