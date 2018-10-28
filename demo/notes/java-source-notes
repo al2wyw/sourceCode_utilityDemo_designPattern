@@ -323,6 +323,7 @@ private AnnotationData createAnnotationData(int classRedefinedCount) { // annota
 annotation 其他的接口 ???
 
 AccessibleObject:
+volatile Object securityCheckCache;//A more complicated security check cache can be either null (empty cache), a 2-array of {caller,target},or a caller
 public boolean isAccessible() // return override;
 public void setAccessible(boolean flag){
 	setAccessible0(this, flag);{
@@ -333,7 +334,21 @@ public void setAccessible(boolean flag){
         obj.override = flag;
 	}
 }
-void checkAccess(Class<?> caller, Class<?> clazz, Object obj, int modifiers) throws IllegalAccessException //检查access权限并保存结果
+void checkAccess(Class<?> caller, Class<?> clazz, Object obj, int modifiers) throws IllegalAccessException{ //检查access权限并保存结果
+	if (caller == clazz) -> return;  
+	Object cache = securityCheckCache;  // read volatile
+	Class<?> targetClass = clazz;
+	if (obj != null && Modifier.isProtected(modifiers) && ((targetClass = obj.getClass()) != clazz)) { // Must match a 2-array of { caller, targetClass }.
+		if (cache instanceof Class[]) {
+			Class<?>[] cache2 = (Class<?>[]) cache;
+			if (cache2[1] == targetClass && cache2[0] == caller) -> return;	
+		}
+	} else if (cache == caller) {// Non-protected case (or obj.class == this.clazz).
+		return;
+	}
+	Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
+	securityCheckCache = ((targetClass == clazz) ? caller : new Class<?>[] { caller, targetClass });
+}
 Field:
 public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException{//所有的get/set方法 都依靠FieldAccessor来获取值或者设置值，且都会先判断override
 	if (!override) {
