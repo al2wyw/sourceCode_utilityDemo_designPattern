@@ -4,6 +4,8 @@
 4.reflection & proxy
 5.nio & byte buffer
 
+native Class<?> defineClass is in ClassLoader, Proxy, Unsafe
+
 Thread:
 1.init方法继承了很多parent thread(当前线程的创建线程)的字段，threadGroup一定会有，也是来自parent thread
 2.start的时候会把当前thread加入到group
@@ -465,6 +467,9 @@ MagicAccessorImpl
 	-> DelegatingConstructorAccessorImpl
 	-> NativeConstructorAccessorImpl
 	-> BootstrapConstructorAccessorImpl
+
+Proxy:
+
 
 Exception:
 1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。
