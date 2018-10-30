@@ -4,7 +4,11 @@
 4.reflection & proxy
 5.nio & byte buffer
 
-native Class<?> defineClass is in ClassLoader, Proxy, Unsafe
+native Class<?> defineClass is in ClassLoader, Proxy, Unsafe 源码 ???
+private native Class<?> defineClass0(String name, byte[] b, int off, int len, ProtectionDomain pd);
+private native Class<?> defineClass1(String name, byte[] b, int off, int len, ProtectionDomain pd, String source);
+private static native Class<?> defineClass0(ClassLoader loader, String name, byte[] b, int off, int len);
+public native Class<?> defineClass(String name, byte[] b, int off, int len, ClassLoader loader, ProtectionDomain protectionDomain);
 
 Thread:
 1.init方法继承了很多parent thread(当前线程的创建线程)的字段，threadGroup一定会有，也是来自parent thread
@@ -19,22 +23,24 @@ Thread:
 7.isCCLOverridden 跟getContextClassLoader有关???
 
 ClassLoader: (class, resource, package的加载机制都是一致的)
+private final ProtectionDomain defaultDomain = new ProtectionDomain(new CodeSource(null, (Certificate[]) null), null, this, null);//when ProtectionDomain is null
 1. ParallelLoaders: 并行加载class，每个class都有一个锁，URLClassLoader和ClassLoader都是并行加载器
-2. loadClass: findLoadedClass(current loader is initiating classloader) -> parent -> findBootstrapClass -> findClass(defineClass,current loader is defining classloader) -> resolveClass
-3. initiating class loader/defining class loader
+2. loadClass: findLoadedClass(Returns the class if this loader has been recorded by the JVM as an initiating loader of a class) -> parent -> findBootstrapClass -> findClass(defineClass,current loader is defining loader) -> resolveClass
+3. initiating class loader/defining class loader: 真正完成类的加载工作是通过调用 defineClass来实现的；而启动类的加载过程是通过调用 loadClass来实现的。前者称为定义加载器，后者称为初始加载器。两种类加载器的关联之处在于：一个类的定义加载器是它引用的其它类的初始加载器。直接调用loadClass的话JVM不知道类的初始加载器，此时类的初始加载器就是类的定义加载器。
 4. protected final Class<?> defineClass(String name, byte[] b, int off, int len, ProtectionDomain protectionDomain) throws ClassFormatError
 {
-	protectionDomain = preDefineClass(name, protectionDomain); // ProtectionDomain has CodeSource has Certificate
-	String source = defineClassSourceLocation(protectionDomain); //get URL from CodeSource
+	protectionDomain = preDefineClass(name, protectionDomain); // ProtectionDomain has CodeSource has Certificate, return defaultDomain when ProtectionDomain is null
+	String source = defineClassSourceLocation(protectionDomain); //get URL from CodeSource, is null when ProtectionDomain is null
 	Class<?> c = defineClass1(name, b, off, len, protectionDomain, source);//native call defineClass
 	postDefineClass(c, protectionDomain); //set Certificate to Class
 	return c;
-}
+}//defineClass(String name, byte[] b, int off, int len) -> defineClass(name,b,off,len,null)
 5. getResource: parent -> getBootstrapResource (从bootstrap的URLClassPath里面加载资源getResource) -> findResource (getResourceAsStream 就是调用 getResource 然后return URL.openStream)
 6. getSystemResource: SystemClassLoader == null ? getBootstrapResource : SystemClassLoader.getResource
 7. getSystemClassLoader 会从sun.misc.Launcher获取classLoader(AppClassLoader), 如果java.system.class.loader有设置的话会用这个作为systemClassLoader(parent是AppClassLoader)
 8. AssertionStatus ???
 9. NativeLibrary ???
+10. 一些被JVM直接调用的方法 ???
 SecureClassLoader: 
 1.只是作一些创建CL的permission检查
 2. ProtectionDomain getProtectionDomain(CodeSource cs){
@@ -138,6 +144,18 @@ annotationData: annotation data that might get invalidated when JVM TI RedefineC
 15. reflectionFactory 就是sun.reflect.ReflectionFactory，是一个singleton，整个反射领域内全局唯一
 16. Annotation的实现其实使用了jdk proxy,看AnnotationInvocationHandler, AnnotationParser.parseAnnotations会创建这种proxy，数据则来源于AnnotationBytes
 17. Field, Method, Constructor的equal和hashCode有特殊逻辑，Class没有覆写equal和hashCode方法
+public java.security.ProtectionDomain getProtectionDomain() {
+	java.security.ProtectionDomain pd = getProtectionDomain0();//native call
+	if (pd == null) {
+		if (allPermDomain == null) {
+			java.security.Permissions perms = new java.security.Permissions();
+			perms.add(SecurityConstants.ALL_PERMISSION);
+			allPermDomain = new java.security.ProtectionDomain(null, perms);
+		}
+		pd = allPermDomain;
+	}
+	return pd;
+}
 public T newInstance(){
 	checkMemberAccess -> checkPackageAccess// 根据SecurityManager的有无进行检查访问权限
 	if (this == Class.class) -> throw IllegalAccessException
@@ -469,7 +487,62 @@ MagicAccessorImpl
 	-> BootstrapConstructorAccessorImpl
 
 Proxy:
-
+Cache mapping pairs of {(key, sub-key) -> value},Keys and values are weakly but sub-keys are strongly referenced.
+private static final WeakCache<ClassLoader, Class<?>[], Class<?>> proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory());
+ProxyClassFactory(valueFactory)使用ClassLoader加载生成的Proxy class文件最终生成Class；KeyFactory(subKeyFactory)使用Class<?>[]接口数组生成key；
+ClassLoaderA -> interfacesA -> ProxyA1
+			 -> interfacesB -> ProxyB1
+ClassLoaderB -> interfacesA	-> ProxyA2
+			 -> interfacesB	-> ProxyB2
+所有生成的proxy class都extends java.lang.reflect.Proxy，并且implements 所有的interfaces，
+public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h){
+	Class<?> cl = getProxyClass0(loader, interfaces);//KeyFactory.apply + ProxyClassFactory.apply
+	final Constructor<?> cons = cl.getConstructor(constructorParams);//Class<?>[] constructorParams = { InvocationHandler.class };
+	return cons.newInstance(new Object[]{h});
+}
+KeyFactory:
+public Object apply(ClassLoader classLoader, Class<?>[] interfaces) {
+	switch (interfaces.length) {
+		case 1: return new Key1(interfaces[0]); // the most frequent
+		case 2: return new Key2(interfaces[0], interfaces[1]);
+		case 0: return key0; //key0 = new Object()
+		default: return new KeyX(interfaces);
+	}
+}
+ProxyClassFactory: just Methods are intercepted by InvocationHandler
+public Class<?> apply(ClassLoader loader, Class<?>[] interfaces) {
+	for (Class<?> intf : interfaces) {
+		load the intf with loader, Verify that the intf is visible to the loader.
+		Verify that the intf is interface,Verify that the intf is not repeat.
+	}
+	int accessFlags = Modifier.PUBLIC | Modifier.FINAL;
+	for (Class<?> intf : interfaces) {
+		check the intf is package private, proxyPkg = pkg(package of the intf, endsWith ".");accessFlags=Modifier.FINAL;
+		if more than one intf is package private throw exception
+	}
+	if(proxyPkg == null) -> proxyPkg = "com.sun.proxy.";
+	String proxyName = proxyPkg + "$Proxy" + num;
+	byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);{
+		addProxyMethod(hashCodeMethod, Object.class);
+        addProxyMethod(equalsMethod, Object.class);
+        addProxyMethod(toStringMethod, Object.class);
+        for (Class<?> intf : interfaces) {
+            for (Method m : intf.getMethods()) {
+                addProxyMethod(m, intf);
+            }
+        }
+		check the method signture make sure no conflicts
+		methods.add(generateConstructor());//new MethodInfo("<init>", "(Ljava/lang/reflect/InvocationHandler;)V",ACC_PUBLIC)
+		for (List<ProxyMethod> sigmethods : proxyMethods.values()) {
+			for (ProxyMethod pm : sigmethods) {
+				fields.add(new FieldInfo(pm.methodFieldName,"Ljava/lang/reflect/Method;",ACC_PRIVATE | ACC_STATIC));//methodFieldName = "m" + proxyMethodCount++;
+				methods.add(pm.generateMethod());//new MethodInfo(methodName, desc, ACC_PUBLIC | ACC_FINAL); desc create from parameterTypes and returnType
+			}
+		}
+		methods.add(generateStaticInitializer());//new MethodInfo("<clinit>", "()V", ACC_STATIC)
+	}
+    return defineClass0(loader, proxyName, proxyClassFile, 0, proxyClassFile.length);
+}
 
 Exception:
 1.如果一个异常是致命的，不可恢复的。或者调用者去捕获它没有任何益处，使用unChecked异常。
