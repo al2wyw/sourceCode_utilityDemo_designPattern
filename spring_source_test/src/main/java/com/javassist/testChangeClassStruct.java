@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 public class testChangeClassStruct {
     public static void main( String args[] ) throws Exception{
         startTreadA();
+        //Thread.sleep(3000);
         startTreadB();
     }
 
@@ -35,7 +36,7 @@ public class testChangeClassStruct {
                     Class clazz = cc.toClass();
                     testChangeClassStruct test = new testChangeClassStruct();
                     if(test.getClass().isAssignableFrom(clazz)){
-                        System.out.println("son");
+                        System.out.println("son A");
                     }
                     invokeMethod(clazz);
                 }catch (Exception e){
@@ -64,7 +65,7 @@ public class testChangeClassStruct {
                     Class clazz = cc.toClass();
                     testChangeClassStruct test = new testChangeClassStruct();
                     if(test.getClass().isAssignableFrom(clazz)){
-                        System.out.println("son");
+                        System.out.println("son B");
                     }
                     invokeMethod(clazz);
                 }catch (Exception e){
