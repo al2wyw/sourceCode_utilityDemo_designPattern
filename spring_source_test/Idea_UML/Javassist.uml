@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>javassist.bytecode.AttributeInfo</OriginalElement>
+  <nodes>
+    <node x="27.0" y="170.0">javassist.CtNewClass</node>
+    <node x="632.0" y="845.0">javassist.LoaderClassPath</node>
+    <node x="159.0" y="505.0">javassist.CtMethod</node>
+    <node x="469.0" y="845.0">javassist.ClassClassPath</node>
+    <node x="169.5" y="85.0">javassist.CtPrimitiveType</node>
+    <node x="26.5" y="85.0">javassist.CtClassType</node>
+    <node x="0.0" y="255.0">javassist.CtNewNestedClass</node>
+    <node x="144.75" y="335.0">javassist.CtMember</node>
+    <node x="322.5" y="760.0">javassist.ClassPath</node>
+    <node x="374.0" y="680.0">javassist.bytecode.ExceptionsAttribute</node>
+    <node x="788.0" y="680.0">javassist.bytecode.SignatureAttribute</node>
+    <node x="201.5" y="0.0">javassist.CtClass</node>
+    <node x="575.0" y="680.0">javassist.bytecode.AnnotationsAttribute</node>
+    <node x="219.25" y="420.0">javassist.CtField</node>
+    <node x="0.0" y="680.0">javassist.bytecode.InnerClassesAttribute</node>
+    <node x="981.0" y="680.0">javassist.bytecode.LocalVariableAttribute</node>
+    <node x="214.0" y="680.0">javassist.bytecode.CodeAttribute</node>
+    <node x="340.5" y="85.0">javassist.CtArray</node>
+    <node x="0.0" y="505.0">javassist.CtConstructor</node>
+    <node x="84.25" y="420.0">javassist.CtBehavior</node>
+    <node x="502.50000000000006" y="585.0">javassist.bytecode.AttributeInfo</node>
+    <node x="301.0" y="845.0">javassist.JarDirClassPath</node>
+    <node x="155.0" y="845.0">javassist.JarClassPath</node>
+    <node x="0.0" y="845.0">javassist.URLClassPath</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="javassist.CtPrimitiveType" target="javassist.CtClass">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.InnerClassesAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="0.0" y="-17.5" />
+      <point x="97.0" y="640.0" />
+      <point x="513.4166666666667" y="640.0" />
+      <point x="-54.58333333333337" y="17.5" />
+    </edge>
+    <edge source="javassist.LoaderClassPath" target="javassist.ClassPath">
+      <point x="0.0" y="-17.5" />
+      <point x="710.5" y="815.0" />
+      <point x="417.0" y="815.0" />
+      <point x="42.0" y="17.5" />
+    </edge>
+    <edge source="javassist.CtBehavior" target="javassist.CtMember">
+      <point x="0.0" y="-17.5" />
+      <point x="141.75" y="395.0" />
+      <point x="173.25" y="395.0" />
+      <point x="-28.5" y="17.5" />
+    </edge>
+    <edge source="javassist.ClassClassPath" target="javassist.ClassPath">
+      <point x="0.0" y="-17.5" />
+      <point x="540.5" y="825.0" />
+      <point x="396.0" y="825.0" />
+      <point x="21.0" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.ExceptionsAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="5.6843418860808015E-14" y="-17.5" />
+      <point x="464.5000000000001" y="660.0" />
+      <point x="557.0833333333335" y="660.0" />
+      <point x="-10.916666666666629" y="17.5" />
+    </edge>
+    <edge source="javassist.CtConstructor" target="javassist.CtBehavior">
+      <point x="0.0" y="-17.5" />
+      <point x="69.5" y="480.0" />
+      <point x="113.0" y="480.0" />
+      <point x="-28.75" y="17.5" />
+    </edge>
+    <edge source="javassist.CtNewClass" target="javassist.CtClassType">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.LocalVariableAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="0.0" y="-17.5" />
+      <point x="1081.5" y="640.0" />
+      <point x="622.5833333333333" y="640.0" />
+      <point x="54.58333333333326" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.AnnotationsAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="0.0" y="-17.5" />
+      <point x="671.5" y="660.0" />
+      <point x="578.9166666666667" y="660.0" />
+      <point x="10.916666666666629" y="17.5" />
+    </edge>
+    <edge source="javassist.CtMethod" target="javassist.CtBehavior">
+      <point x="0.0" y="-17.5" />
+      <point x="214.0" y="480.0" />
+      <point x="170.5" y="480.0" />
+      <point x="28.75" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.SignatureAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="0.0" y="-17.5" />
+      <point x="874.5" y="650.0" />
+      <point x="600.75" y="650.0" />
+      <point x="32.75" y="17.5" />
+    </edge>
+    <edge source="javassist.URLClassPath" target="javassist.ClassPath">
+      <point x="0.0" y="-17.5" />
+      <point x="67.5" y="815.0" />
+      <point x="333.0" y="815.0" />
+      <point x="-42.0" y="17.5" />
+    </edge>
+    <edge source="javassist.CtNewNestedClass" target="javassist.CtNewClass">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="javassist.JarClassPath" target="javassist.ClassPath">
+      <point x="0.0" y="-17.5" />
+      <point x="218.0" y="825.0" />
+      <point x="354.0" y="825.0" />
+      <point x="-21.0" y="17.5" />
+    </edge>
+    <edge source="javassist.JarDirClassPath" target="javassist.ClassPath">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="javassist.bytecode.CodeAttribute" target="javassist.bytecode.AttributeInfo">
+      <point x="0.0" y="-17.5" />
+      <point x="284.0" y="650.0" />
+      <point x="535.25" y="650.0" />
+      <point x="-32.75" y="17.5" />
+    </edge>
+    <edge source="javassist.CtClassType" target="javassist.CtClass">
+      <point x="0.0" y="-17.5" />
+      <point x="88.0" y="60.0" />
+      <point x="216.0" y="60.0" />
+      <point x="-29.0" y="17.5" />
+    </edge>
+    <edge source="javassist.CtField" target="javassist.CtMember">
+      <point x="0.0" y="-17.5" />
+      <point x="261.75" y="395.0" />
+      <point x="230.25" y="395.0" />
+      <point x="28.5" y="17.5" />
+    </edge>
+    <edge source="javassist.CtArray" target="javassist.CtClass">
+      <point x="0.0" y="-17.5" />
+      <point x="385.0" y="60.0" />
+      <point x="274.0" y="60.0" />
+      <point x="29.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="403.0" y="197.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

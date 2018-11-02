@@ -18,10 +18,10 @@ import java.lang.reflect.Type;
  * Time: 23:57
  * Desc:
  */
-public class testAnnotation {
+public class testAnnotationAndGeneric {
     public static void main( String args[] ) throws Exception{
         ClassPool pool = ClassPool.getDefault();//appendClassPath(new ClassClassPath(Object.class));
-        pool.appendClassPath(new ClassClassPath(testAnnotation.class));
+        pool.appendClassPath(new ClassClassPath(testAnnotationAndGeneric.class));//use testAnnotationAndGeneric.getResource() to load resource
         CtClass personKlass = pool.get("com.model.Person");
         System.out.println(personKlass.getName());
 
@@ -36,7 +36,6 @@ public class testAnnotation {
         attr.addAnnotation(annot);
         ccFile.addAttribute(attr);
 
-
         CtMethod method = CtNewMethod.make("public int code(Object c){ return 10;}", cc);//直接把字符码parse成字节码,不用javac
         //对反射来说，动态生成generic signature没有什么意义，反射调用根本用不到generic
         SignatureAttribute.TypeParameter typeParameter = new SignatureAttribute.TypeParameter("E");
@@ -44,7 +43,8 @@ public class testAnnotation {
         SignatureAttribute.MethodSignature methodSignature =
                 new SignatureAttribute.MethodSignature(new SignatureAttribute.TypeParameter[]{typeParameter},
                         new SignatureAttribute.Type[]{typeVariable},new SignatureAttribute.BaseType("int"),null);
-        method.setGenericSignature(methodSignature.encode());
+        method.getMethodInfo().addAttribute(new SignatureAttribute(constpool, methodSignature.encode()));//method.setGenericSignature(methodSignature.encode());
+        method.getMethodInfo().addAttribute(attr);
         //插入方法代码
         method.insertBefore("System.out.println(\"I'm a Programmer\");");
         cc.addMethod(method);
@@ -60,6 +60,7 @@ public class testAnnotation {
         for(Type type: types){
             System.out.println("GenericParameter " + type.getTypeName());
         }
+        System.out.println(method1.isAnnotationPresent(Resource.class));
         System.out.println(method1.invoke(clazz.newInstance(), (Object) null));
     }
 }

@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 public class Main {
     public static void main( String args[] ) throws Exception{
         startTread("Coding");//correct
+        //Thread.sleep(1000); //make Sleeping error
         startTread("Sleeping");//correct
 
         testSameClass();//error
