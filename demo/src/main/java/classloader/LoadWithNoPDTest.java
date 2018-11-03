@@ -1,9 +1,5 @@
 package classloader;
 
-import org.apache.cxf.helpers.FileUtils;
-import org.apache.cxf.helpers.IOUtils;
-
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 

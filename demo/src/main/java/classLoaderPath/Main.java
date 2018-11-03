@@ -3,6 +3,8 @@ package classLoaderPath;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,58 +14,37 @@ import java.net.URLClassLoader;
  * Desc:
  */
 public class Main {
-    public static void main(String[] args){
-        //URLClassLoader has URLClassPath(ucp) has URLClassPath.Loader has base -> "jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/"
-        URL l1 = Main.class.getResource("/");
-        URL l2 = Main.class.getResource("");
-        URL l3 = Main.class.getClassLoader().getResource(""); // l3 equal to l1
-        URL l4 = Main.class.getClassLoader().getResource("/"); // null
-        URL l5 = Thread.currentThread().getContextClassLoader().getResource("./");// "./" equal to ""
+    public static void main(String[] args) throws Exception{
+        List<URL> urlList = new ArrayList<>();
+        //由于Main是在classes/目录下面，所以getResource返回的URL是一个FileURL
+        urlList.add(Main.class.getResource("/"));
+        urlList.add(Main.class.getResource(""));
+        urlList.add(Main.class.getClassLoader().getResource("")); // l3 equal to l1
+        urlList.add(Main.class.getClassLoader().getResource("/")); // null
+
+        urlList.add(Main.class.getClassLoader().getResource("./"));// "./" equal to ""
+        urlList.forEach(System.out::println);
 
         System.out.println("MainClass getClassLoader: " + Main.class.getClassLoader());
         System.out.println("MainClass getContextClassLoader: " + Thread.currentThread().getContextClassLoader());
-        new InnerThread1().start();
-    }
-}
 
-class InnerThread1 extends Thread{
-    @Override
-    public void run() {
-        try {
-            URL[] urls = new URL[1];
-            urls[0] = new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/");
-            URLClassLoader urlClassLoader = new URLClassLoader(urls);
-            Class<?> clazz = urlClassLoader.loadClass("demo.decimal_parse_test");
-            System.out.println(clazz.newInstance());
 
-            System.out.println("InnerThread1 getClassLoader: " + clazz.getClassLoader() +" " + clazz.getResource("") + " " + clazz.getClassLoader().getResource(""));
-            System.out.println("InnerThread1 getContextClassLoader: " + Thread.currentThread().getContextClassLoader());
+        URL[] urls = new URL[1];
+        //new URL("file:/D:/non-java-standard-1.0-SNAPSHOT.jar");
+        urls[0] = new URL("file:/D:/non-java-standard-1.0-SNAPSHOT.jar");//new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/");// !/ is needed
+        URLClassLoader urlClassLoader = new URLClassLoader(urls, null);
+        Class<?> clazz = urlClassLoader.loadClass("demo.decimal_parse_test");
+        System.out.println(clazz.newInstance());
 
-            this.setContextClassLoader(urlClassLoader);//comment out will cause thread2 error
+        System.out.println("InnerThread1 getClassLoader: " + clazz.getClassLoader());
+        urlList = new ArrayList<>();
+        urlList.add(clazz.getResource("/")); // null
+        urlList.add(clazz.getResource(""));
+        urlList.add(clazz.getClassLoader().getResource("")); // null
+        urlList.add(clazz.getClassLoader().getResource("/")); // null
+        urlList.add(clazz.getClassLoader().getResource("./"));// null
+        urlList.add(clazz.getClassLoader().getResource("reflect/name"));
+        urlList.forEach(System.out::println);
 
-            Thread innerThread2 = new InnerThread2();
-            innerThread2.start();
-        }catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
-class InnerThread2 extends Thread{
-    @Override
-    public void run() {
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            classLoader.loadClass("demo.IntegerArrayList");
-            System.out.println("InnerThread2 getContextClassLoader: " + Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -115,14 +115,81 @@ URLClassPath: (path <= urls == loaders)
 		else return new Loader(url);
 	} else return new JarLoader(url, jarHandler, lmap);
 }
-C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂 ???
+-clasapath  ->  URL  ->  Loader
+C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂, 还可以在manifest里面引入更多的URL
 D:\demo\target\classes -> file:/D:/demo/target/classes/ -> FileLoader -> getResource根据目录和name直接创建File并判断是否exist
 其他 -> http://www.baidu.com -> Loader -> getResource会进行pre load test，校验链接有效性
-Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值
+Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值，其中URL都是根据各个Loader的base url来生成
+JarLoader 的 base url: jar:file:/C:/jre/lib/ext/zipfs.jar!/
+FileLoader 的 base url 和 原来的URL一致
+
+在jar包里面getResource返回的url格式: jar:file:/C:/jre/lib/ext/zipfs.jar!/java/junit (protocol:"jar",file:"file:/C:/jre/lib/ext/zipfs.jar!/java/junit") 此时openConnection会自动截取 jarFileURL为jar:file:/C:/jre/lib/ext/zipfs.jar 来进行getJarFile操作
 
 URL: 只有一种，但是会根据不同的URLStreamHandler创建不同的URLConnection
-URLStreamHandler:
+URLStreamHandler: 各种protocol的handler的抽象类
 URLConnection: getInputStream才真正发起连接
+scheme:[//[user[:password]@]host[:port]][/path][?query][#ref]
+URL = protocol | userinfo @ host : port | path ? query # ref
+	= protocol | authority   			| file         | ref
+public URL(URL context, String spec, URLStreamHandler handler) throws MalformedURLException {
+	start = 0; limit = spec.length();
+	eliminate trailing & leading whitespace (adjust start,limit)
+	skip "url:" prefix if exists (start += 4;)
+	if (start < spec.length() && spec.charAt(start) == '#') -> aRef=true;
+	for (i = start ; !aRef && (i < limit) && ((c = spec.charAt(i)) != '/') ; i++) {
+		if (c == ':') {
+			String s = spec.substring(start, i).toLowerCase();
+			if (isValidProtocol(s)) {
+				newProtocol = s; start = i + 1;
+			}
+			break;
+		}
+	}
+	protocol = newProtocol;
+	if ((context != null) &&    ((newProtocol == null) || newProtocol.equalsIgnoreCase(context.protocol))) {
+		copy field from context
+	}
+	if (protocol == null) -> throw new MalformedURLException("no protocol: "+original);
+	if (handler == null && (handler = getURLStreamHandler(protocol)) == null) {
+		throw new MalformedURLException("unknown protocol: "+protocol);
+	}
+	this.handler = handler;
+	i = spec.indexOf('#', start);
+	if (i >= 0) {
+		ref = spec.substring(i + 1, limit); limit = i;
+	}
+	handler.parseURL(this, spec, start, limit);//URLStreamHandler parse 非常复杂 ??? !!!
+
+}
+public URL(String protocol, String host, int port, String file, URLStreamHandler handler) throws MalformedURLException{
+protocol = protocol.toLowerCase();
+	this.protocol = protocol;
+	if (host != null) {
+		if (host.indexOf(':') >= 0 && !host.startsWith("[")) -> host = "["+host+"]";	
+		this.host = host;
+		if (port < -1) -> throw new MalformedURLException("Invalid port number :" + port);
+		this.port = port;
+		authority = (port == -1) ? host : host + ":" + port;
+	}
+	Parts parts = new Parts(file); path = parts.getPath(); query = parts.getQuery();ref = parts.getRef();
+	query != null ? this.file = path + "?" + query : this.file = path;
+	if (handler == null && (handler = getURLStreamHandler(protocol)) == null) {
+		//URLStreamHandlerFactory创建handler 或者 根据Protocol加载对应handler(clsName = packagePrefix + "." + protocol + ".Handler";)
+		//packagePrefix 可以通过java.protocol.handler.pkgs设置 或者 默认的 sun.net.www.protocol (for循环解析)
+		throw new MalformedURLException("unknown protocol: " + protocol);
+	}
+	this.handler = handler;
+}
+Parts(String file) {
+	int ind = file.indexOf('#'); ref = ind < 0 ? null: file.substring(ind + 1); file = ind < 0 ? file: file.substring(0, ind);
+	int q = file.lastIndexOf('?');
+	if (q != -1) {
+		query = file.substring(q+1);
+		path = file.substring(0, q);
+	} else {
+		path = file;
+	}
+}
 
 Class: (ClassRepository genericInfo, ReflectionData reflectionData, AnnotationData annotationData)
 1. public static Class<?> forName(String className) throws ClassNotFoundException {
