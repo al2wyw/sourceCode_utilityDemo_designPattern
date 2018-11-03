@@ -30,7 +30,6 @@ public class Main {
 
 
         URL[] urls = new URL[1];
-        //new URL("file:/D:/non-java-standard-1.0-SNAPSHOT.jar");
         urls[0] = new URL("file:/D:/non-java-standard-1.0-SNAPSHOT.jar");//new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/");// !/ is needed
         URLClassLoader urlClassLoader = new URLClassLoader(urls, null);
         Class<?> clazz = urlClassLoader.loadClass("demo.decimal_parse_test");
@@ -46,5 +45,8 @@ public class Main {
         urlList.add(clazz.getClassLoader().getResource("reflect/name"));
         urlList.forEach(System.out::println);
 
+        URL test = new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/");
+        URL test1 = new URL(test,"/reflect/name");
+        System.out.println(test1.getFile());
     }
 }

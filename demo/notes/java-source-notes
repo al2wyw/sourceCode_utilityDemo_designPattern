@@ -93,7 +93,7 @@ URLClassLoader:
 	}
 	return pkg;
 }
-URLClassPath: (path <= urls == loaders)
+URLClassPath: (paths <= urls == loaders)
 1. public Resource getResource(String name, boolean check) {
         for (int i = 0; (loader = getLoader(i)) != null; i++) {//getLoader 根据URL的数量来创建对等的Loader(Loader,FileLoader,JarLoader), 注意JarLoader可能会根据manifest新增一些URL
             Resource res = loader.getResource(name, check);
@@ -108,18 +108,40 @@ URLClassPath: (path <= urls == loaders)
         }
         return null;
     }
-3. Loader getLoader(final URL url){
+3. private synchronized Loader getLoader(int index) {
+	while (loaders.size() < index + 1) {
+		synchronized (urls) {
+			if (urls.empty()) {
+				return null;
+			} else {
+				url = urls.pop();
+			}
+		}
+		String urlNoFragString = URLUtil.urlNoFragString(url);//移除ref字段
+		if (lmap.containsKey(urlNoFragString)) -> continue;
+		try {
+			loader = getLoader(url);
+			URL[] urls = loader.getClassPath();
+			if (urls != null) -> push(urls); //扩充urls
+		} catch (IOException e) {
+			continue;
+		}
+		loaders.add(loader);lmap.put(urlNoFragString, loader);
+	}
+}
+4. Loader getLoader(final URL url){
 	String file = url.getFile();
 	if (file != null && file.endsWith("/")) {
 		if ("file".equals(url.getProtocol())) return new FileLoader(url);
 		else return new Loader(url);
 	} else return new JarLoader(url, jarHandler, lmap);
 }
+5. loader.getResource : jar.getJarEntry(name)存在 / new File(dir, name.replace('/', File.separatorChar))存在 -> return new URL(getBaseURL(), ParseUtil.encodePath(name, false));
 -clasapath  ->  URL  ->  Loader
-C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂, 还可以在manifest里面引入更多的URL
+C:\jre\lib\ext\zipfs.jar -> file:/C:/jre/lib/ext/zipfs.jar -> JarLoader -> getResourc的实现比较复杂, manifest引入更多的URL (JarIndex MetaIndex ???)
 D:\demo\target\classes -> file:/D:/demo/target/classes/ -> FileLoader -> getResource根据目录和name直接创建File并判断是否exist
 其他 -> http://www.baidu.com -> Loader -> getResource会进行pre load test，校验链接有效性
-Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值，其中URL都是根据各个Loader的base url来生成
+Resource: 由Loader.getResource返回内部匿名类，封装getResource本地变量的值，其中URL都是根据各个Loader的 base url来生成
 JarLoader 的 base url: jar:file:/C:/jre/lib/ext/zipfs.jar!/
 FileLoader 的 base url 和 原来的URL一致
 
@@ -128,7 +150,7 @@ FileLoader 的 base url 和 原来的URL一致
 URL: 只有一种，但是会根据不同的URLStreamHandler创建不同的URLConnection
 URLStreamHandler: 各种protocol的handler的抽象类
 URLConnection: getInputStream才真正发起连接
-scheme:[//[user[:password]@]host[:port]][/path][?query][#ref]
+scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]
 URL = protocol | userinfo @ host : port | path ? query # ref
 	= protocol | authority   			| file         | ref
 public URL(URL context, String spec, URLStreamHandler handler) throws MalformedURLException {
@@ -158,7 +180,31 @@ public URL(URL context, String spec, URLStreamHandler handler) throws MalformedU
 	if (i >= 0) {
 		ref = spec.substring(i + 1, limit); limit = i;
 	}
-	handler.parseURL(this, spec, start, limit);//URLStreamHandler parse 非常复杂 ??? !!!
+	handler.parseURL(this, spec, start, limit);{
+		URLStreamHandler.parseURL(URL u, String spec, int start, int limit) {
+			Strip off the query part (spec = spec.substring(0, queryStart))
+			Parse the authority part if any
+			Parse the file path if any 
+			if isRelPath remove /./, /../, trailing .. , starting . , trailing .
+			setURL(....)
+		}
+		JarHandler.parseURL(URL u, String spec, int start, int limit) {
+			// 1. absolute (jar:) 2. relative (i.e. url + foo/bar/baz.ext) 3. ref-only (i.e. url + #foo)
+			if (absolute) {
+				file = parseAbsoluteSpec(spec);// create url of spec to check the validation
+			} else if (relative) {
+				file = parseContextSpec(url, spec); // if spec startWith '/', chop '/' off, if spec not startWith '/' and url.getFile not endWith '/', chop the trailing component of url.getFile
+				int bangSlash = indexOfBangSlash(file); // return index of !, if index + 1 == '/' return index + 1
+				String toBangSlash = file.substring(0, bangSlash); String afterBangSlash = file.substring(bangSlash);
+				afterBangSlash = canonizer.canonizeString(afterBangSlash); // remove /./, /../, trailing .. , trailing .
+				file = toBangSlash + afterBangSlash;
+			}else{
+				file = url.getFile(); 
+				setup ref
+			}
+			setURL(url, "jar", "", -1, file, ref);
+		}
+	}
 
 }
 public URL(String protocol, String host, int port, String file, URLStreamHandler handler) throws MalformedURLException{
