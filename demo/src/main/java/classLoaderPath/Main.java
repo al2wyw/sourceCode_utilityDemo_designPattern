@@ -1,6 +1,5 @@
 package classLoaderPath;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -45,8 +44,11 @@ public class Main {
         urlList.add(clazz.getClassLoader().getResource("reflect/name"));
         urlList.forEach(System.out::println);
 
-        URL test = new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/");
+        URL test = new URL("jar:file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/reflect/proxy");
         URL test1 = new URL(test,"/reflect/name");
         System.out.println(test1.getFile());
+        test1.openConnection();
+        URL test2 = new URL(test,"reflect/name");//JarHandler parseContextSpec 的第二个if有问题
+        System.out.println(test2.getFile());// file:/D:/non-java-standard-1.0-SNAPSHOT.jar!/reflect/reflect/name
     }
 }
