@@ -1,9 +1,6 @@
 package annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,6 +11,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface Roles {
     Role[] value();
     String type() default "test";

@@ -11,6 +11,7 @@ import java.lang.annotation.*;
  */
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 @Repeatable(Roles.class)
 public @interface Role {
     String name();

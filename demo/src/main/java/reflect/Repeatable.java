@@ -14,11 +14,9 @@ import java.lang.annotation.Annotation;
  */
 //java编译器隐式的在该注解使用中加入@Roles -> @Roles(value = {@Role(name="test"),@Role(name="bbbb",level = 2)})
 //Roles的type字段如果没有default，则无法编译
-@Role(name="test")
-@Role(name="bbbb",level = 2)
 public class Repeatable {
     public static void main(String args[]) throws Exception{
-        Class claz = Repeatable.class;
+        Class claz = father.class;
         Annotation[] annotations = claz.getAnnotations();
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
@@ -29,8 +27,19 @@ public class Repeatable {
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
         }
-
+        System.out.println();
         annotations = claz.getAnnotationsByType(Roles.class);
+        for(Annotation an : annotations){
+            System.out.println(an.annotationType());
+        }
+
+        System.out.println();
+        annotations = claz.getDeclaredAnnotationsByType(Role.class);
+        for(Annotation an : annotations){
+            System.out.println(an.annotationType());
+        }
+        System.out.println();
+        annotations = claz.getDeclaredAnnotationsByType(Roles.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
         }
@@ -57,5 +66,27 @@ public class Repeatable {
         if(claz.isAnnotationPresent(Roles.class)){
             System.out.println("roles present");
         }
+
+        Class klas = son.class;
+        System.out.println();
+        annotations = klas.getAnnotationsByType(Role.class);
+        for(Annotation an : annotations){
+            System.out.println(an.annotationType());
+        }
+        System.out.println();
+        annotations = klas.getAnnotationsByType(Roles.class);
+        for(Annotation an : annotations){
+            System.out.println(an.annotationType());
+        }
+    }
+
+    @Role(name="test")
+    @Role(name="bbbb",level = 2)
+    class father{
+
+    }
+
+    class son extends father{
+
     }
 }

@@ -434,6 +434,30 @@ public Annotation[] getAnnotations() // return AnnotationParser.toArray(annotati
 public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) // return (A) annotationData().declaredAnnotations.get(annotationClass);
 public Annotation[] getDeclaredAnnotations() // return AnnotationParser.toArray(annotationData().declaredAnnotations);
 
+public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) { 		
+	return AnnotationSupport.getAssociatedAnnotations(annotationData.declaredAnnotations,this,annotationClass);{
+		A[] result = getDirectlyAndIndirectlyPresent(declaredAnnotations, annoClass);
+		if(AnnotationType.getInstance(annoClass).isInherited()) {
+            Class<?> superDecl = decl.getSuperclass();
+            while (result.length == 0 && superDecl != null) {
+                result = getDirectlyAndIndirectlyPresent(LANG_ACCESS.getDeclaredAnnotationMap(superDecl), annoClass);superDecl = superDecl.getSuperclass();
+            }
+        }
+        return result; // result is overriden ???
+	}
+}
+public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationClass){
+	return AnnotationSupport.getDirectlyAndIndirectlyPresent(annotationData().declaredAnnotations,annotationClass);{
+		A direct = (A) annotations.get(annoClass); result.add(direct);
+		A[] indirect = getIndirectlyPresent(annotations, annoClass);{
+			Repeatable repeatable = annoClass.getDeclaredAnnotation(Repeatable.class);Class<? extends Annotation> containerClass = repeatable.value();
+			Annotation container = annotations.get(containerClass);
+			A[] valueArray = getValueArray(container); return valueArray;
+		}
+		result.addAll(Arrays.asList(indirect)); return result;
+	}
+}
+
 private AnnotationData createAnnotationData(int classRedefinedCount) { // annotationData() 会调用此方法
 	Map<Class<? extends Annotation>, Annotation> declaredAnnotations =
 		AnnotationParser.parseAnnotations(getRawAnnotations(), getConstantPool(), this);
@@ -444,7 +468,7 @@ private AnnotationData createAnnotationData(int classRedefinedCount) { // annota
 		for (Map.Entry<Class<? extends Annotation>, Annotation> e : superAnnotations.entrySet()) {
 			Class<? extends Annotation> annotationClass = e.getKey();
 			if (AnnotationType.getInstance(annotationClass).isInherited()) { //这一点判断是否inherited很重要
-				//AnnotationType.getInstance(annotationClass) 会把annotationClass的 AnnotationType annotationType 字段设上值, AnnotationType 是对Annotation的抽象
+				//AnnotationType.getInstance(annotationClass) 会把annotationClass的 AnnotationType annotationType 字段设上值
 				if (annotations == null) -> annotations = new LinkedHashMap<>();
 				annotations.put(annotationClass, e.getValue());
 			}
@@ -453,7 +477,13 @@ private AnnotationData createAnnotationData(int classRedefinedCount) { // annota
 	annotations == null ? annotations = declaredAnnotations : annotations.putAll(declaredAnnotations);
 	return new AnnotationData(annotations, declaredAnnotations, classRedefinedCount);
 }
-annotation 其他的接口 ???
+public AnnotatedType getAnnotatedSuperclass() {
+	if (this == Object.class || isInterface() || isArray() || isPrimitive() || this == Void.TYPE) return null;
+	return TypeAnnotationParser.buildAnnotatedSuperclass(getRawTypeAnnotations(), getConstantPool(), this);
+}
+public AnnotatedType[] getAnnotatedInterfaces() {
+	 return TypeAnnotationParser.buildAnnotatedInterfaces(getRawTypeAnnotations(), getConstantPool(), this);
+}
 
 AccessibleObject:
 volatile Object securityCheckCache;//A more complicated security check cache can be either null (empty cache), a 2-array of {caller,target},or a caller
@@ -508,8 +538,8 @@ private FieldAccessor acquireFieldAccessor(boolean overrideFinalCheck) {
 //method和constructor的相对应的Annotation方法也是这样实现的:
 public <T extends Annotation> T getAnnotation(Class<T> annotationClass) // annotationClass.cast(declaredAnnotations().get(annotationClass));
 public Annotation[] getDeclaredAnnotations()  // return AnnotationParser.toArray(declaredAnnotations());
-public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) //AnnotationSupport获取对应的Annotation 复杂???
-public AnnotatedType getAnnotatedType() //TypeAnnotationParser.buildAnnotatedType创建对应的AnnotatedTypeImpl 复杂???
+public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) //AnnotationSupport获取对应的Annotation
+public AnnotatedType getAnnotatedType() //TypeAnnotationParser.buildAnnotatedType创建对应的AnnotatedTypeImpl
 private synchronized  Map<Class<? extends Annotation>, Annotation> declaredAnnotations() {
 	if (declaredAnnotations == null) {
 		root != null ? declaredAnnotations = root.declaredAnnotations() : declaredAnnotations = AnnotationParser.parseAnnotations(getAnnotationBytes(),
@@ -583,7 +613,12 @@ public ConstructorAccessor newConstructorAccessor(Constructor<?> c) {
 	}
 }
 
-AbstractRepository
+protected Reifier getReifier(){return Reifier.make(getFactory());}
+protected AbstractRepository(String rawSig, GenericsFactory f) {
+    tree = parse(rawSig); //get the instance of subclass of Tree
+    factory = f;
+}
+AbstractRepository has GenericsFactory and Tree(AST subtree), Tree and subclasses have only one TypeTreeVisitor(Reifier, all methods are using GenericsFactory to create Type impl)
 -> FieldRepository(genericType)
 -> GenericDeclRepository(typeParams) // 依靠TypeTreeVisitor来解析Signature(class文件里关于generic的内容)，解析结果交给GenericsFactory来创建各种generic Type
 	-> ClassRepository(superClass,interfaces)
@@ -598,6 +633,11 @@ MagicAccessorImpl
 	-> DelegatingConstructorAccessorImpl
 	-> NativeConstructorAccessorImpl
 	-> BootstrapConstructorAccessorImpl
+	
+annotation数据(raw byte array RawAnnotations AnnotationParser)放到了attribute里面，generic数据(String)放到了signature里面(AST subtree visitor)
+annotatedType数据(raw byte array RawTypeAnnotations TypeAnnotationParser)放到了attribute里面
+Type,AnnotatedType都有对应的impl, CoreReflectionFactory(GenericsFactory), AnnotatedTypeFactory
+AnnotationType 是对Annotation的抽象
 
 Proxy:
 Cache mapping pairs of {(key, sub-key) -> value},Keys and values are weakly but sub-keys are strongly referenced.
