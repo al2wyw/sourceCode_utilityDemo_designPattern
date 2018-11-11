@@ -3,11 +3,7 @@ package com.test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.*;
 
 import com.qualifier.customQ;
 
@@ -15,6 +11,7 @@ import com.qualifier.customQ;
 @Configuration
 @ComponentScan(basePackages="com.componentScan")
 @ImportResource("classpath:properties-config.xml")
+@Import(ImportedService.class)
 public class service {
 	//@Autowired
 	private Config config;

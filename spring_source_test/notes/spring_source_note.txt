@@ -2,8 +2,8 @@ RootBeanDefinition -> ConfigurationClassBeanDefinition(AnnotatedBeanDefinition)
 GenericBeanDefinition -> ScannedGenericBeanDefinition(AnnotatedBeanDefinition)/AnnotatedGenericBeanDefinition(AnnotatedBeanDefinition)
 ConfigurationClassBeanDefinition 来自@Configuration的Class中的bean method创建
 ScannedGenericBeanDefinition 来自scan机制扫描创建(functionally equivalent to AnnotatedGenericBeanDefinition)
-AnnotatedGenericBeanDefinition 是AnnotatedBeanDefinition的缺省实现，所有的被标注的类都可以创建
-RootBeanDefinition: A root bean definition represents the merged bean definition,It might have been created from multiple original bean definitions that inherit from each other
+AnnotatedGenericBeanDefinition 是AnnotatedBeanDefinition的缺省实现，所有的被标注的类都可以创建 (@Import的class)
+RootBeanDefinition: A root bean definition represents the merged bean definition,It might have been created from multiple original bean definitions that inherit from each other(worked with ChildBeanDefinition)
 GenericBeanDefinition: registering user-visible bean definitions (which a post-processor might operate on, potentially even reconfiguring the parent name).
 
 beanPostProcessors list is inside AbstractBeanFactory while beanFactoryPostProcessors list is inside AbstractApplicationContext
