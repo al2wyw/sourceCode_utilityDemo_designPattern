@@ -1616,7 +1616,7 @@ ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor: 
 	enhanceConfigurationClasses{
 		find Configuration class (full) 
 		
-		ConfigurationClassEnhancer enhancer = new ConfigurationClassEnhancer();
+		ConfigurationClassEnhancer enhancer = new ConfigurationClassEnhancer(); // objenesis is used
 		
 		//enhancedClass has no annotations on the overrided methods which are declared within itself !!!
 		enhancedClass = enhancer.enhance(){
