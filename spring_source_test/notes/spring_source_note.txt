@@ -398,8 +398,8 @@ AbstractApplicationContext.refresh(){
 						MetadataReader metadataReader = this.metadataReaderFactory.getMetadataReader(resource){
 							new SimpleMetadataReader(resource, this.resourceLoader.getClassLoader()){
 								classReader = new ClassReader(is);
+								//StandardAnnotationMetadata is java reflect implementation, while AnnotationMetadataReadingVisitor is spring implementation
 								AnnotationMetadataReadingVisitor visitor = new AnnotationMetadataReadingVisitor(classLoader);
-								//read this accept !!! how to get all metadata
 								classReader.accept(visitor, ClassReader.SKIP_DEBUG);
 								this.annotationMetadata = visitor;
 								this.classMetadata = visitor;
@@ -410,7 +410,7 @@ AbstractApplicationContext.refresh(){
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
-							if (isCandidateComponent(sbd))//verify whether sbd is concrete and independent !!!
+							if (isCandidateComponent(sbd))//verify whether AnnotationMetadata of sbd is concrete(not interface/abstract) and independent(outer class or static inner class) !!!
 								candidates.add(sbd);
 						}
 						}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.core.type.ClassMetadata</OriginalElement>
+  <nodes>
+    <node x="200.5250000000001" y="87.0">org.springframework.core.type.MethodMetadata</node>
+    <node x="577.875" y="87.0">org.springframework.core.type.AnnotationMetadata</node>
+    <node x="326.00000000000006" y="174.0">org.springframework.core.type.StandardMethodMetadata</node>
+    <node x="818.875" y="87.0">org.springframework.core.type.StandardClassMetadata</node>
+    <node x="853.375" y="0.0">org.springframework.core.type.ClassMetadata</node>
+    <node x="634.2750000000001" y="174.0">org.springframework.core.type.StandardAnnotationMetadata</node>
+    <node x="1003.25" y="174.0">org.springframework.core.type.classreading.AnnotationMetadataReadingVisitor</node>
+    <node x="0.0" y="174.0">org.springframework.core.type.classreading.MethodMetadataReadingVisitor</node>
+    <node x="25.5" y="256.0">org.springframework.core.type.classreading.MetadataReaderFactory</node>
+    <node x="365.5" y="256.0">org.springframework.core.type.classreading.MetadataReader</node>
+    <node x="0.0" y="343.0">org.springframework.core.type.classreading.SimpleMetadataReaderFactory</node>
+    <node x="1110.0" y="87.0">org.springframework.core.type.classreading.ClassMetadataReadingVisitor</node>
+    <node x="259.15" y="0.0">org.springframework.core.type.AnnotatedTypeMetadata</node>
+    <node x="340.0" y="343.0">org.springframework.core.type.classreading.SimpleMetadataReader</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.core.type.StandardAnnotationMetadata" target="org.springframework.core.type.StandardClassMetadata">
+      <point x="72.5" y="-18.5" />
+      <point x="851.7750000000001" y="154.0" />
+      <point x="939.875" y="154.0" />
+      <point x="0.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.MethodMetadata" target="org.springframework.core.type.AnnotatedTypeMetadata">
+      <point x="0.0" y="-18.5" />
+      <point x="298.5250000000001" y="62.0" />
+      <point x="322.15" y="62.0" />
+      <point x="-63.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.SimpleMetadataReaderFactory" target="org.springframework.core.type.classreading.MetadataReaderFactory">
+      <point x="0.0" y="-18.5" />
+      <point x="0.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.StandardMethodMetadata" target="org.springframework.core.type.MethodMetadata">
+      <point x="0.0" y="-18.5" />
+      <point x="458.50000000000006" y="154.0" />
+      <point x="347.5250000000001" y="154.0" />
+      <point x="49.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.AnnotationMetadata" target="org.springframework.core.type.ClassMetadata">
+      <point x="55.25" y="-18.5" />
+      <point x="743.625" y="62.0" />
+      <point x="882.2083333333334" y="62.0" />
+      <point x="-57.666666666666686" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.AnnotationMetadataReadingVisitor" target="org.springframework.core.type.classreading.ClassMetadataReadingVisitor">
+      <point x="82.75" y="-18.5" />
+      <point x="0.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.StandardClassMetadata" target="org.springframework.core.type.ClassMetadata">
+      <point x="0.0" y="-18.5" />
+      <point x="0.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.ClassMetadataReadingVisitor" target="org.springframework.core.type.ClassMetadata">
+      <point x="0.0" y="-18.5" />
+      <point x="1251.5" y="62.0" />
+      <point x="997.5416666666667" y="62.0" />
+      <point x="57.666666666666686" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.MethodMetadataReadingVisitor" target="org.springframework.core.type.MethodMetadata">
+      <point x="0.0" y="-18.5" />
+      <point x="153.0" y="154.0" />
+      <point x="249.5250000000001" y="154.0" />
+      <point x="-49.0" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.AnnotationMetadata" target="org.springframework.core.type.AnnotatedTypeMetadata">
+      <point x="-55.25" y="-18.5" />
+      <point x="633.125" y="62.0" />
+      <point x="448.1500000000001" y="62.0" />
+      <point x="63.000000000000114" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.AnnotationMetadataReadingVisitor" target="org.springframework.core.type.AnnotationMetadata">
+      <point x="-82.75" y="-18.5" />
+      <point x="1086.0" y="144.0" />
+      <point x="743.625" y="144.0" />
+      <point x="55.25" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.StandardAnnotationMetadata" target="org.springframework.core.type.AnnotationMetadata">
+      <point x="-72.5" y="-18.5" />
+      <point x="706.7750000000001" y="154.0" />
+      <point x="633.125" y="154.0" />
+      <point x="-55.25" y="18.5" />
+    </edge>
+    <edge source="org.springframework.core.type.classreading.SimpleMetadataReader" target="org.springframework.core.type.classreading.MetadataReader">
+      <point x="0.0" y="-18.5" />
+      <point x="0.0" y="18.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="816.0" y="227.0" />
+  <SelectedNodes>
+    <node>org.springframework.core.type.StandardClassMetadata</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
