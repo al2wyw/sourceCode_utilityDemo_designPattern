@@ -11,6 +11,10 @@
 	<!-- used for generate cglib class files, make it parent's beanfactorypostprocessor -->
 	<!--<bean class="com.cglib.CGLIB_Generated_Class_Setting"/> does not work -->
 
+	<bean id="test" class="com.test.test_factorybean">
+		<property name="test3" ref="test3"/>
+	</bean>
+
 	<bean id="test1" class="com.test.test1">
 		<property name="test2" ref="test2"/>
 	</bean>
@@ -21,10 +25,7 @@
 	
 	<bean id="test3" class="com.test.test3">
 		<property name="test1" ref="test1"/>
-	</bean>
-	
-	<bean id="test" class="com.test.test_factorybean">
-		
+		<property name="test4" ref="test"/>
 	</bean>
 	
 	<bean id="test123" class="com.test.test_lazy" lazy-init="true">

@@ -15,19 +15,18 @@ beanFactory.registerResolvableDependency(ApplicationContext.class, beanFactory)?
 
 InstantiationStrategy(default ctor,ctor,factory method) -> SimpleInstantiationStrategy -> CglibSubclassingInstantiationStrategy
 
-FactoryBean is used in BeanFactory(getObjectForBeanInstance) while ObjectFactory is a normal object generator
+FactoryBean is used in BeanFactory(getObjectForBeanInstance) while ObjectFactory is a normal object generator(used in dependency injection), they are similar.
 
 Bug ? Indexer will change Properties to Map and get value from a Map. see getValue of MapIndexingValueRef in Indexer.
 However, Properties has a default Properties which created by Properties(Properties default), when Properties can not get 
 the value, it will query from default Properties. Map will not do this!
 
-how it works???
 parserContext.pushContainingComponent(compositeDef)
 parserContext.popAndRegisterContainingComponent()
 
 CglibSubclassingInstantiationStrategy is used by method-overrides to instatiate bean
 
-getLazyResolutionProxyIfNecessary what does the xml do with this ??? (just instantiate the bean later, and then let it pass through all the beanPostProcessors)
+getLazyResolutionProxyIfNecessary what does the xml do with this (just instantiate the bean later, and then let it pass through all the beanPostProcessors)
 
 @Lazy with @Autowired will create lazyProxy, but the target should be tagged with @Lazy to instantiate later. @Lazy with aop getTarget (jdk/cglib) 
 
@@ -323,8 +322,8 @@ AbstractApplicationContext.refresh(){
 				if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 					if (isFactoryBean(beanName)) {
 						final FactoryBean<?> factory = (FactoryBean<?>) getBean("&" + beanName);
-						boolean isEagerInit = (factory instanceof SmartFactoryBean && ((SmartFactoryBean<?>) factory).isEagerInit()); 
-						if (isEagerInit) {
+						boolean isEagerInit = (factory instanceof SmartFactoryBean && ((SmartFactoryBean<?>) factory).isEagerInit());
+						if (isEagerInit) { //EagerInit is special setup only within SmartFactoryBean, normal FactoryBean expects to initialize when being accessed
 							getBean(beanName);
 						}
 					}else{
@@ -385,78 +384,68 @@ AbstractApplicationContext.refresh(){
 	
 ------------------BeanDefinitionParser list start----------------------------------
 	ComponentScanBeanDefinitionParser.parse(){
-		configureScanner(ComponentScanBeanDefinitionParser)
-		doScan(ClassPathBeanDefinitionScanner){
+		String[] basePackages = splite from config string
+		//create ClassPathBeanDefinitionScanner with default typeFilter (ClassPathScanningCandidateComponentProvider#registerDefaultFilters)
+		ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element); 
+		Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);{
 			Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<BeanDefinitionHolder>();
-			Set<BeanDefinition> candidates = findCandidateComponents(ClassPathScanningCandidateComponentProvider){
-				Set<BeanDefinition> candidates = new LinkedHashSet<BeanDefinition>();
-				Resource[] resources = this.resourcePatternResolver.getResources(packageSearchPath);
-				for (Resource resource : resources) {
-					if resource.isReadable{
-					MetadataReader has visitor for AnnotationMetadata ???
-					MetadataReader metadataReader = this.metadataReaderFactory.getMetadataReader(resource){
-						new SimpleMetadataReader(resource, this.resourceLoader.getClassLoader()){
-							classReader = new ClassReader(is);
-							AnnotationMetadataReadingVisitor visitor = new AnnotationMetadataReadingVisitor(classLoader);
-							//read this accept !!! how to get all metadata
-							classReader.accept(visitor, ClassReader.SKIP_DEBUG){
-								readAnnotationValues(visitor.visitAnnotation){
-									readAnnotationValue(...,av)(ClassReader)
-									av.visitEnd()(RecursiveAnnotationAttributesVisitor){
-										doVisitEnd(AnnotationAttributesReadingVisitor){
-											super.doVisitEnd//setup AnnotationAttributes
-											setup attributesMap and metaAnnotationMap
-										}
-									}
-								}
+			for (String basePackage : basePackages) {
+				Set<BeanDefinition> candidates = findCandidateComponents(basePackage)(ClassPathScanningCandidateComponentProvider){
+					Set<BeanDefinition> candidates = new LinkedHashSet<BeanDefinition>();
+					Resource[] resources = this.resourcePatternResolver.getResources(packageSearchPath);
+					for (Resource resource : resources) {
+						if resource.isReadable{
+						MetadataReader metadataReader = this.metadataReaderFactory.getMetadataReader(resource){
+							new SimpleMetadataReader(resource, this.resourceLoader.getClassLoader()){
+								classReader = new ClassReader(is);
+								AnnotationMetadataReadingVisitor visitor = new AnnotationMetadataReadingVisitor(classLoader);
+								//read this accept !!! how to get all metadata
+								classReader.accept(visitor, ClassReader.SKIP_DEBUG);
+								this.annotationMetadata = visitor;
+								this.classMetadata = visitor;
+								this.resource = resource;
 							}
-
-							this.annotationMetadata = visitor;
-							this.classMetadata = visitor;
-							this.resource = resource;
+						}
+						if isCandidateComponent(metadataReader){
+							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
+							sbd.setResource(resource);
+							sbd.setSource(resource);
+							if (isCandidateComponent(sbd))//verify whether sbd is concrete and independent !!!
+								candidates.add(sbd);
+						}
 						}
 					}
-					//TypeFilter will determine the candidate: matchSelf of AnnotationTypeFilter will check annotationSet and metaAnnotationMap of AnnotationMetadataReadingVisitor
-					//sth below matchself in match function ???
-					//isConditionMatch to use @Conditional
-					if isCandidateComponent(metadataReader){
-						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
-						sbd.setResource(resource);
-						sbd.setSource(resource);
-						if (isCandidateComponent(sbd))//verify whether sbd is concrete and independent !!!
-							candidates.add(sbd);
-					}
-					}
+					return candidates;
 				}
-				return candidates;
-			}
-			for (BeanDefinition candidate : candidates) {
-				//@Scope to make scoped-proxy with proxyMode or other scopes with value
-				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
-				candidate.setScope(scopeMetadata.getScopeName());
-				//get the bean name
-				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
-				if (candidate instanceof AbstractBeanDefinition) {
-					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);{
-						beanDefinition.applyDefaults(this.beanDefinitionDefaults);
-						beanDefinition.setAutowireCandidate(PatternMatchUtils.simpleMatch(this.autowireCandidatePatterns, beanName));
+			
+				for (BeanDefinition candidate : candidates) {
+					//@Scope to make scoped-proxy with proxyMode or other scopes with value
+					ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
+					candidate.setScope(scopeMetadata.getScopeName());
+					//get the bean name
+					String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+					if (candidate instanceof AbstractBeanDefinition) {
+						postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);{
+							beanDefinition.applyDefaults(this.beanDefinitionDefaults);
+							beanDefinition.setAutowireCandidate(PatternMatchUtils.simpleMatch(this.autowireCandidatePatterns, beanName));
+						}
 					}
-				}
-				if (candidate instanceof AnnotatedBeanDefinition) {
-					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);{
-						deal with @Primary, @Lazy, @DependsOn, @Role
+					if (candidate instanceof AnnotatedBeanDefinition) {
+						AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);{
+							deal with @Primary, @Lazy, @DependsOn, @Role
+						}
 					}
-				}
-				if (checkCandidate(beanName, candidate)){// please check condition ???
-					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
-					definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-					beanDefinitions.add(definitionHolder);
-					registerBeanDefinition(definitionHolder, this.registry);
+					if (checkCandidate(beanName, candidate)){// if !this.registry.containsBeanDefinition(beanName) return true, else check definition conflict
+						BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
+						definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);//createScopedProxy according to scopedProxyMode of scopeMetadata
+						beanDefinitions.add(definitionHolder);
+						registerBeanDefinition(definitionHolder, this.registry);
+					}
 				}
 			}
 			return beanDefinitions;
 		}
-		registerComponents(ComponentScanBeanDefinitionParser){
+		registerComponents(parserContext.getReaderContext(), beanDefinitions, element);(ComponentScanBeanDefinitionParser){
 			compositeDef.addNestedComponent(new BeanComponentDefinition(beanDefHolder));//no effect
 			if annotationConfig{
 				AnnotationConfigUtils.registerAnnotationConfigProcessors
@@ -464,6 +453,24 @@ AbstractApplicationContext.refresh(){
 			}
 			readerContext.fireComponentRegistered(compositeDef);//do nothing!!!
 		}
+	}
+	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		for (TypeFilter tf : this.excludeFilters) {
+			if (tf.match(metadataReader, this.metadataReaderFactory)) return false;
+		}
+		for (TypeFilter tf : this.includeFilters) {
+			if (tf.match(metadataReader, this.metadataReaderFactory)) return isConditionMatch(metadataReader);//isConditionMatch to use @Conditional, no @Conditional at all return true
+		}
+		return false;
+	}
+	public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)(AbstractTypeHierarchyTraversingFilter){
+		//matchSelf of AnnotationTypeFilter will check annotationSet and metaAnnotationMap of AnnotationMetadataReadingVisitor
+		if (matchSelf(metadataReader)) return true;
+		ClassMetadata metadata = metadataReader.getClassMetadata();
+		if (matchClassName(metadata.getClassName())) return true;
+		if (this.considerInherited) {...}
+		if (this.considerInterfaces) {...}
+		return false;
 	}
 	AspectJAutoProxyBeanDefinitionParser.parse(){
 	}
@@ -560,17 +567,18 @@ AbstractApplicationContext.refresh(){
 	AbstractBeanFactory.getBean(String beanName){
 		if no bean definition will throw NoSuchBeanDefinitionException!!!
 		doGetBean(AbstractBeanFactory){
-			// call two kinds of getSingleton to get or to (create and register) the bean
-			// EarlyBeanReference will be added in doCreateBean, and then BeanDefinitionValueResolver.resolveReference will call getSingleton to retrieve the EarlyBeanReference to solve the circle reference
-			// Eagerly check singleton cache for manually registered singletons.
-			// getSingleton has two versions, the other one should be provided with the objectFactory
-			sharedInstance = getSingleton(beanName,true)(DefaultSingletonBeanRegistry){
+			//当配置文件中<bean>的class属性配置的实现类是FactoryBean时，通过getBean()方法返回的不是FactoryBean本身，
+            //而是FactoryBean#getObject()方法所返回的对象, 如果希望获取FactoryBean的实例，需要在beanName前加上“&”符号，即getBean("&beanName")
+			final String beanName = transformedBeanName(name);//在这里要获取的是bean的实例，所以要去掉&符号
+			
+			// EarlyBeanReference will be added in doCreateBean(addSingletonFactory), and then BeanDefinitionValueResolver.resolveReference will call getSingleton to retrieve the EarlyBeanReference to solve the circle reference
+			sharedInstance = getSingleton(beanName,true)(DefaultSingletonBeanRegistry){ // important!!!
 				Object singletonObject = this.singletonObjects.get(beanName);
 				if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) { //singletonsCurrentlyInCreation.contains(beanName)
 					synchronized (this.singletonObjects) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null && allowEarlyReference) {
-							singletonObject = this.singletonFactories.get(beanName).getObject();
+							singletonObject = this.singletonFactories.get(beanName).getObject(); // see addSingletonFactory
 							this.earlySingletonObjects.put(beanName, singletonObject);
 							this.singletonFactories.remove(beanName);
 						}
@@ -586,7 +594,8 @@ AbstractApplicationContext.refresh(){
 						Object object = this.factoryBeanObjectCache.get(beanName);
 						object = doGetObjectFromFactoryBean(FactoryBeanRegistrySupport){
 							object = factory.getObject();
-							postProcessObjectFromFactoryBean(AbstractAutowireCapableBeanFactory){
+							//no other beanPostProcessor !!!
+							postProcessObjectFromFactoryBean(AbstractAutowireCapableBeanFactory){ // important!!!
 								//may be wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
 								applyBeanPostProcessorsAfterInitialization
 							}
@@ -601,7 +610,7 @@ AbstractApplicationContext.refresh(){
 					// Not found -> check parent.
 					return parentBeanFactory.getBean
 				
-				markBeanAsCreated(beanName)
+				markBeanAsCreated(beanName) // ignore
 				
 				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				String[] dependsOn = mbd.getDependsOn()
@@ -667,10 +676,13 @@ AbstractApplicationContext.refresh(){
 		mbd.prepareMethodOverrides();
 
 		// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
-		bean = resolveBeforeInstantiation(AbstractAutowireCapableBeanFactory){
-			bean = applyBeanPostProcessorsBeforeInstantiation(mbd.getBeanClass(), beanName);//must setup custom source target at first -> createProxy (AbstractAutoProxyCreator)
-			if (bean != null) {
-				bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);(AbstractAutowireCapableBeanFactory)
+		bean = resolveBeforeInstantiation(AbstractAutowireCapableBeanFactory){ // important!!!
+			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+				Class<?> targetType = determineTargetType(beanName, mbd);
+				if (targetType != null) {
+					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);//must setup custom source target at first -> createProxy (AbstractAutoProxyCreator)
+					if (bean != null) bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+				}
 			}
 		}
 		if (bean != null) {
@@ -678,21 +690,23 @@ AbstractApplicationContext.refresh(){
 		}
 		doCreateBean(AbstractAutowireCapableBeanFactory){
 			/** Cache of unfinished FactoryBean instances: FactoryBean name --> BeanWrapper */
-			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
-			instanceWrapper = createBeanInstance(beanName, mbd, args){
+			BeanWrapper instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
+			if instanceWrapper == null -> instanceWrapper = createBeanInstance(beanName, mbd, args){
 				//using an appropriate instantiation strategy:factory method, constructor autowiring, or simple instantiation
 				
 				// Make sure bean class is actually resolved at this point.
 				Class<?> beanClass = resolveBeanClass(mbd, beanName);
 				
 				//normally, args is null, please notice the condition of different methods to be called
-				if (mbd.getFactoryMethodName() != null)
+				if (mbd.getFactoryMethodName() != null){
+					//查看RootBeanDefinition的factor-method属性是不是空的，不为空，说明bean 
+					//要通过先实例化对应的factoryBean然后调用factoryMethod方法实现，或者直接调用静态的factoryMethod方法
 					instantiateUsingFactoryMethod(beanName, mbd, args){
 						return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, explicitArgs){
-							//too complex ??? 
+							...
 						}
 					}
-				
+				}
 				// Shortcut when re-creating the same bean... (prototype or other scopes)
 				boolean resolved = false;
 				boolean autowireNecessary = false;
@@ -715,7 +729,7 @@ AbstractApplicationContext.refresh(){
 				
 				//Determine candidate constructors to use, checking all registered BeanPostProcessors
 				Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);{
-					ctors = SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors(beanClass, beanName);
+					ctors = SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors(beanClass, beanName);//AutowiredAnnotationBeanPostProcessor
 					if (ctors != null) {
 						return ctors;
 					}//maybe a bug
@@ -730,6 +744,7 @@ AbstractApplicationContext.refresh(){
 							//too complex ??? 
 							//it will resovle the args and convert it!!!
 							BeanWrapperImpl bw = new BeanWrapperImpl();
+							this.beanFactory.initBeanWrapper(bw);
 							
 							if (explicitArgs != null) {
 								argsToUse = explicitArgs;
@@ -783,37 +798,46 @@ AbstractApplicationContext.refresh(){
 				}
 			}
 			
-			Object bean = instanceWrapper.getWrappedInstance();
-			applyMergedBeanDefinitionPostProcessors(AbstractAutowireCapableBeanFactory)
+			final Object bean = (instanceWrapper != null ? instanceWrapper.getWrappedInstance() : null);
+			Class<?> beanType = (instanceWrapper != null ? instanceWrapper.getWrappedClass() : null);
+			// important!!!
+			applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName); // MergedBeanDefinitionPostProcessor.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			
 			boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences && isSingletonCurrentlyInCreation(beanName));
-			if earlySingletonExposure{
-				addSingletonFactory(beanName, new ObjectFactory<Object>() {
-					@Override
-					public Object getObject() throws BeansException {
-						return getEarlyBeanReference(beanName, mbd, bean){
-							ibp.getEarlyBeanReference -> wrapIfNecessary (AbstractAutoProxyCreator)
-							ibp is a SmartInstantiationAwareBeanPostProcessor
-						}
-					}
-				});
-			}
+			if earlySingletonExposure -> addSingletonFactory(beanName, new ObjectFactory<Object>() { // important!!!
+												@Override
+												public Object getObject() throws BeansException {
+													return getEarlyBeanReference(beanName, mbd, bean){
+														Object exposedObject = bean;
+														if (bean != null && !mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+															for (BeanPostProcessor bp : getBeanPostProcessors()) {
+																if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+																	SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+																	exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName); // wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
+																	if (exposedObject == null) -> return null;	
+																}
+															}
+														}
+														return exposedObject;
+													}
+												}
+											});
 			Object exposedObject = bean;
 			//setup all the properties
 			populateBean(beanName, mbd, instanceWrapper);
-			
 			//exposedObject may be changed to a proxy
-			exposedObject = initializeBean(beanName, exposedObject, mbd);
+			if (exposedObject != null) {
+				exposedObject = initializeBean(beanName, exposedObject, mbd);
+			}
 			
 			//if the bean is early referenced and it is a proxy, this will get the proxy.
 			if (earlySingletonExposure){
 				Object earlySingletonReference = getSingleton(beanName, false);
 				if (earlySingletonReference != null) {
-					if (exposedObject == bean) {
-						exposedObject = earlySingletonReference;
-					}
-				}else if ???
-				
+					if (exposedObject == bean) -> exposedObject = earlySingletonReference;
+				}else if(!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)){
+					???
+				}
 			}
 			
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);{
@@ -827,12 +851,13 @@ AbstractApplicationContext.refresh(){
 					}
 				}
 			}
+			return exposedObject;
 		}
 	}
 	populateBean(beanName, mbd, instanceWrapper){
 		PropertyValues pvs = mbd.getPropertyValues();
 
-		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) { // important!!!
 			apply InstantiationAwareBeanPostProcessor.postProcessAfterInstantiation
 		}
 
@@ -868,14 +893,14 @@ AbstractApplicationContext.refresh(){
 			pvs = newPvs;
 		}
 		
-		if (hasInstAwareBpps) {
+		if (hasInstAwareBpps) { // important!!!
 			apply InstantiationAwareBeanPostProcessor.postProcessPropertyValues
 		}
 		if (needsDepCheck) {
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 		
-		applyPropertyValues{
+		applyPropertyValues(beanName, mbd, bw, pvs);{
 			if (pvs == null || pvs.isEmpty()) {
 				return;
 			}
@@ -1112,7 +1137,7 @@ QualifierAnnotationAutowireCandidateResolver deal with Value and Qualifier, addQ
 
 resolveDependency is the important function for autowire
 
-AutowiredAnnotationBeanPostProcessor: (Value & Autowired)
+AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProcessor/MergedBeanDefinitionPostProcessor (Value & Autowired)
 	//used by autowireConstructor of AbstractAutowireCapableBeanFactory, autowireConstructor use ConstructorResolver to find the constructor
 	determineCandidateConstructors(Class<?> beanClass, String beanName){
 		//there must be one requiredConstructor and one defaultConstructor
@@ -1538,7 +1563,10 @@ AutowiredAnnotationBeanPostProcessor: (Value & Autowired)
 		return true;
 	}
 	
-ConfigurationClassPostProcessor: has ConfigurationClassParser and ConfigurationClassBeanDefinitionReader
+CommonAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProcessor/MergedBeanDefinitionPostProcessor (Resource & PostConstruct & PreDestroy)
+
+
+ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor: has ConfigurationClassParser and ConfigurationClassBeanDefinitionReader
 	postProcessBeanDefinitionRegistry{
 		registry.registerBeanDefinition(IMPORT_AWARE_PROCESSOR_BEAN_NAME, iabpp);
 		registry.registerBeanDefinition(ENHANCED_CONFIGURATION_PROCESSOR_BEAN_NAME, ecbpp);
@@ -1555,6 +1583,7 @@ ConfigurationClassPostProcessor: has ConfigurationClassParser and ConfigurationC
 	}
 	
 	processConfigBeanDefinitions{
+		???
 		find Configuration class (full/lite)
 		
 		...

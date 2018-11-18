@@ -63,62 +63,120 @@ see ScopedProxyUtils.createScopedProxy and ScopedProxyFactoryBean.setBeanFactory
 
 The following is written by the order of appearance in the source code(do not change the order):
 -------------source code starts----------------
-
-shouldSkip isInfrastructure
-
-TargetSource targetSource = getCustomTargetSource(beanClass, beanName) if no custom target source(created by TargetSourceCreator in customTargetSourceCreators), will create proxy after initialization, but the conditions of wrapIfNeccessary is "have advice matched". getEarlyBeanReference will just only return wrapIfNeccessary.
-
-(all called methods are in the AbstractAdvisorAutoProxyCreator, it has BeanFactoryAdvisorRetrievalHelper to retrieve all advisors)
-getAdvicesAndAdvisorsForBean return advisors(Advisor) for bean from beanfactory{
-//retrieve all the advisors
-findCandidateAdvisors{
-	return this.advisorRetrievalHelper.findAdvisorBeans();{
-		advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this.beanFactory, Advisor.class, true, false);{
-			String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);//see spring_source_note
-			if (lbf instanceof HierarchicalBeanFactory) {
-				if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
-					String[] parentResult = beanNamesForTypeIncludingAncestors(
-					(ListableBeanFactory) hbf.getParentBeanFactory(), type, includeNonSingletons, allowEagerInit);
-					for (String beanName : parentResult) {
-						if (!resultList.contains(beanName) && !hbf.containsLocalBean(beanName)) {
-							resultList.add(beanName);
-						}
-					}
-					result = StringUtils.toStringArray(resultList);
+AbstractAutoProxyCreator:
+public Object getEarlyBeanReference(Object bean, String beanName) -> wrapIfNecessary
+public Object postProcessAfterInitialization(Object bean, String beanName) -> wrapIfNecessary
+public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName){
+	Object cacheKey = getCacheKey(beanClass, beanName);
+	if (beanName == null || !this.targetSourcedBeans.contains(beanName)) {
+		if (this.advisedBeans.containsKey(cacheKey)) {
+			return null;
+		}
+		if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
+			this.advisedBeans.put(cacheKey, Boolean.FALSE);
+			return null;
+		}
+	}
+	if (beanName != null) {
+		TargetSource targetSource = getCustomTargetSource(beanClass, beanName);{
+			if (this.customTargetSourceCreators != null && this.beanFactory != null && this.beanFactory.containsBean(beanName)) {
+				for (TargetSourceCreator tsc : this.customTargetSourceCreators) { // customTargetSourceCreators has LazyInitTargetSourceCreator
+					TargetSource ts = tsc.getTargetSource(beanClass, beanName); // if (definition.isLazyInit()) {new LazyInitTargetSource();}
+					if (ts != null) return ts;
 				}
 			}
-			return result;
+			return null;
 		}
-		if (isEligibleBean(name)) {//different creators have different rules for advisor bean names
-			for(name : advisorNames){
-				advisors.add(this.beanFactory.getBean(name, Advisor.class));
+		if (targetSource != null) {
+			this.targetSourcedBeans.add(beanName);
+			Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(beanClass, beanName, targetSource);//targetSource is not used
+			Object proxy = createProxy(beanClass, beanName, specificInterceptors, targetSource);
+			this.proxyTypes.put(cacheKey, proxy.getClass());
+			return proxy;
+		}
+	}
+	return null;	
+}
+
+isInfrastructureClass:
+Advice.class.isAssignableFrom(beanClass) ||
+Pointcut.class.isAssignableFrom(beanClass) ||
+Advisor.class.isAssignableFrom(beanClass) ||
+AopInfrastructureBean.class.isAssignableFrom(beanClass)
+
+(all called methods are in the AbstractAdvisorAutoProxyCreator, it has BeanFactoryAdvisorRetrievalHelper to retrieve all advisors)
+wrapIfNecessary(Object bean, String beanName, Object cacheKey){
+	if (beanName != null && this.targetSourcedBeans.contains(beanName)) {
+		return bean;
+	}
+	if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
+		return bean;
+	}
+	if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
+		this.advisedBeans.put(cacheKey, Boolean.FALSE);
+		return bean;
+	}
+	Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null)(AbstractAdvisorAutoProxyCreator){
+		List<Advisor> candidateAdvisors = findCandidateAdvisors(){
+			return this.advisorRetrievalHelper.findAdvisorBeans();{
+				advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this.beanFactory, Advisor.class, true, false);{
+					String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);//see spring_source_note
+					if (lbf instanceof HierarchicalBeanFactory) {
+						if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
+							String[] parentResult = beanNamesForTypeIncludingAncestors(
+							(ListableBeanFactory) hbf.getParentBeanFactory(), type, includeNonSingletons, allowEagerInit);
+							for (String beanName : parentResult) {
+								if (!resultList.contains(beanName) && !hbf.containsLocalBean(beanName)) {
+									resultList.add(beanName);
+								}
+							}
+							result = StringUtils.toStringArray(resultList);
+						}
+					}
+					return result;
+				}
+				if (isEligibleBean(name)) {//different creators have different rules for advisor bean names
+					for(name : advisorNames){
+						advisors.add(this.beanFactory.getBean(name, Advisor.class));
+					}
+				}
+				return advisors;
 			}
 		}
-		return advisors;
-	}
-}
-AopUtils.findAdvisorsThatCanApply { 
-	//how to find eligible advisors coming with introduction; 
-	for (Advisor candidate : candidateAdvisors) {
-		//canApply call canApply with hasIntroductions set to false
-		if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
-			eligibleAdvisors.add(candidate);
+		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);{ 
+			//how to find eligible advisors coming with introduction; 
+			for (Advisor candidate : candidateAdvisors) {
+				//canApply call canApply with hasIntroductions set to false
+				if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
+					eligibleAdvisors.add(candidate);
+				}
+			}
+			boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+			for (Advisor candidate : candidateAdvisors) {
+				if (candidate instanceof IntroductionAdvisor) {
+					// already processed
+					continue;
+				}
+				if (canApply(candidate, clazz, hasIntroductions)) {
+					eligibleAdvisors.add(candidate);
+				}
+			}
+			return eligibleAdvisors;
 		}
-	}
-	boolean hasIntroductions = !eligibleAdvisors.isEmpty();
-	for (Advisor candidate : candidateAdvisors) {
-		if (candidate instanceof IntroductionAdvisor) {
-			// already processed
-			continue;
+		extendAdvisors(eligibleAdvisors);{
+			AspectJAwareAdvisorAutoProxyCreator:
+			AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary -> foundAspectJAdvice = true -> advisors.add(0, ExposeInvocationInterceptor.ADVISOR);//DefaultPointcutAdvisor contains ExposeInvocationInterceptor used by AspectJExpressionPointcut and AbstractAspectJAdvice to get currentInvocation.
 		}
-		if (canApply(candidate, clazz, hasIntroductions)) {
-			eligibleAdvisors.add(candidate);
-		}
+		finally sort the advisors
 	}
-	return eligibleAdvisors;
-}
-AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary -> foundAspectJAdvice = true -> advisors.add(0, ExposeInvocationInterceptor.ADVISOR);//DefaultPointcutAdvisor contains ExposeInvocationInterceptor used by AspectJExpressionPointcut and AbstractAspectJAdvice to get currentInvocation.
-finally sort the advisors
+	if (specificInterceptors != null) {
+		this.advisedBeans.put(cacheKey, Boolean.TRUE);
+		Object proxy = createProxy(bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+		this.proxyTypes.put(cacheKey, proxy.getClass());
+		return proxy;
+	}
+	this.advisedBeans.put(cacheKey, Boolean.FALSE);
+	return bean;
 }
 
 ClassUtils.getAllInterfacesForClassAsSet return all the interfaces including the interface implemented by superclass, no interface extended by the interface

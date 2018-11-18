@@ -19,4 +19,14 @@ public test3(){
 		
 		System.out.println("test3");
 	}
+
+	private test4 test4;
+
+	public com.test.test4 getTest4() {
+		return test4;
+	}
+
+	public void setTest4(com.test.test4 test4) {
+		this.test4 = test4;
+	}
 }
