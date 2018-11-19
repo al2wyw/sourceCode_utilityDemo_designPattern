@@ -25,6 +25,8 @@
 	<bean id="testScopedProxy" class="com.test.testScopedProxy" scope="request">
 	<aop:scoped-proxy/>
 	</bean>
+
+	<bean id="myAnnotationScanner" class="com.context.MyAnnotationScanner"/>
 	
 	<bean id="customAutowireConfigurer"
 class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
