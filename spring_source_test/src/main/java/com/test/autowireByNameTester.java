@@ -7,7 +7,7 @@ public class autowireByNameTester {
 	private testAutowireByName autowire;
 	
 	@Autowired(required=false)
-	@Qualifier("autowire")
+	@Qualifier("autoproperty")
 	private testAutowireByName autowiret;
 
 	public testAutowireByName getAutowire() {

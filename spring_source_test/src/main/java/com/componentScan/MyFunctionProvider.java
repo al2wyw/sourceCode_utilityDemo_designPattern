@@ -11,4 +11,8 @@ import com.annotation.FunProvider;
  */
 @FunProvider
 public class MyFunctionProvider {
+
+    public void action(){
+        System.out.println("function called");
+    }
 }

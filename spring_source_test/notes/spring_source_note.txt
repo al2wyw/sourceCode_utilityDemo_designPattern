@@ -31,7 +31,7 @@ getLazyResolutionProxyIfNecessary what does the xml do with this (just instantia
 @Lazy with @Autowired will create lazyProxy, but the target should be tagged with @Lazy to instantiate later. @Lazy with aop getTarget (jdk/cglib) 
 
 getBean has three args: beanname, args, classtype. always use beanname or beanname plus classtype  !!!
-before getBean it will have condition judgement 
+before getBean it will have condition judgement
 
 autowire-candidate="false" works for @Autowired/autowireByType not for autowireByname (a bug found???)
 
@@ -348,20 +348,18 @@ AbstractApplicationContext.refresh(){
 }
 	
 	DefaultBeanDefinitionDocumentReader.parseDefaultElement(){												
-		importBeanDefinitionResource(DefaultBeanDefinitionDocumentReader);
-		processAliasRegistration(DefaultBeanDefinitionDocumentReader);
-		processBeanDefinition(DefaultBeanDefinitionDocumentReader){
+		importBeanDefinitionResource(DefaultBeanDefinitionDocumentReader);//IMPORT_ELEMENT
+		processAliasRegistration(DefaultBeanDefinitionDocumentReader);//ALIAS_ELEMENT
+		processBeanDefinition(DefaultBeanDefinitionDocumentReader){//BEAN_ELEMENT
 			BeanDefinitionHolder bdHolder = parseBeanDefinitionElement(BeanDefinitionParserDelegate){
-				
+				...
 			}
 			BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry()){
 				Registry is actually DefaultListableBeanFactory!!!
 				registerBeanDefinition(DefaultListableBeanFactory)
 			}
 		}
-	
-		// recurse
-		doRegisterBeanDefinitions(DefaultBeanDefinitionDocumentReader);
+		doRegisterBeanDefinitions(DefaultBeanDefinitionDocumentReader);//BEANS_ELEMENT
 	}
 	BeanDefinitionParserDelegate.parseCustomElement(){
 		//here to deal with "context:component-scan" 
@@ -565,8 +563,7 @@ AbstractApplicationContext.refresh(){
 
 ---------------------createBean start----------------------------------
 	AbstractBeanFactory.getBean(String beanName){
-		if no bean definition will throw NoSuchBeanDefinitionException!!!
-		doGetBean(AbstractBeanFactory){
+		doGetBean(name, null, null, false)(String name, Class<T> requiredType, Object[] args, boolean typeCheckOnly){
 			//当配置文件中<bean>的class属性配置的实现类是FactoryBean时，通过getBean()方法返回的不是FactoryBean本身，
             //而是FactoryBean#getObject()方法所返回的对象, 如果希望获取FactoryBean的实例，需要在beanName前加上“&”符号，即getBean("&beanName")
 			final String beanName = transformedBeanName(name);//在这里要获取的是bean的实例，所以要去掉&符号
@@ -612,7 +609,42 @@ AbstractApplicationContext.refresh(){
 				
 				markBeanAsCreated(beanName) // ignore
 				
-				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);{
+					return getMergedBeanDefinition(beanName, getBeanDefinition(beanName), null);//getBeanDefinition -> beanDefinitionMap.get(beanName)
+					return getMergedBeanDefinition(String beanName, BeanDefinition bd, BeanDefinition containingBd){
+						if (containingBd == null) mbd = this.mergedBeanDefinitions.get(beanName);
+						if (mbd == null) {
+							if (bd.getParentName() == null) {
+								if (bd instanceof RootBeanDefinition) {
+									mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
+								}else {
+									mbd = new RootBeanDefinition(bd);
+								}
+							}else {
+								BeanDefinition pbd;// Child bean definition: needs to be merged with parent.
+								String parentBeanName = transformedBeanName(bd.getParentName()); //去除"&", 如果是FactoryBean
+								if (!beanName.equals(parentBeanName)) {
+									pbd = getMergedBeanDefinition(parentBeanName);
+								}else {
+									BeanFactory parent = getParentBeanFactory();
+									if (parent instanceof ConfigurableBeanFactory) {
+										pbd = ((ConfigurableBeanFactory) parent).getMergedBeanDefinition(parentBeanName);
+									}else {
+										throw new NoSuchBeanDefinitionException();
+									}
+								}
+								// Deep copy with overridden values.
+								mbd = new RootBeanDefinition(pbd);
+								mbd.overrideFrom(bd);
+							}
+
+							if (!StringUtils.hasLength(mbd.getScope())) mbd.setScope(RootBeanDefinition.SCOPE_SINGLETON);
+							if (containingBd != null && !containingBd.isSingleton() && mbd.isSingleton()) mbd.setScope(containingBd.getScope());
+							if (containingBd == null && isCacheBeanMetadata()) this.mergedBeanDefinitions.put(beanName, mbd);
+						}
+						return mbd;
+					}
+				}
 				String[] dependsOn = mbd.getDependsOn()
 				for (String dependsOnBean : dependsOn) {
 					//dependentBean depends on bean
@@ -688,7 +720,7 @@ AbstractApplicationContext.refresh(){
 		if (bean != null) {
 			return bean;
 		}
-		doCreateBean(AbstractAutowireCapableBeanFactory){
+		Object beanInstance = doCreateBean(beanName, mbdToUse, args)(AbstractAutowireCapableBeanFactory){
 			/** Cache of unfinished FactoryBean instances: FactoryBean name --> BeanWrapper */
 			BeanWrapper instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 			if instanceWrapper == null -> instanceWrapper = createBeanInstance(beanName, mbd, args){
@@ -703,7 +735,7 @@ AbstractApplicationContext.refresh(){
 					//要通过先实例化对应的factoryBean然后调用factoryMethod方法实现，或者直接调用静态的factoryMethod方法
 					instantiateUsingFactoryMethod(beanName, mbd, args){
 						return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, explicitArgs){
-							...
+							... ???
 						}
 					}
 				}
@@ -732,29 +764,25 @@ AbstractApplicationContext.refresh(){
 					ctors = SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors(beanClass, beanName);//AutowiredAnnotationBeanPostProcessor
 					if (ctors != null) {
 						return ctors;
-					}//maybe a bug
+					}
 				}
 				
-				//autowire constructors conditions !!!
+				//ctors, AUTOWIRE_CONSTRUCTOR, constructor-arg, args
 				if (ctors != null ||
 				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)){
 					return autowireConstructor(beanName, mbd, ctors, args){
-						new ConstructorResolver(this).autowireConstructor(beanName, mbd, ctors, explicitArgs){
-							//too complex ??? 
-							//it will resovle the args and convert it!!!
+						new ConstructorResolver(this).autowireConstructor(beanName, mbd, chosenCtors, explicitArgs){
 							BeanWrapperImpl bw = new BeanWrapperImpl();
 							this.beanFactory.initBeanWrapper(bw);
 							
 							if (explicitArgs != null) {
 								argsToUse = explicitArgs;
-							}
-							else {
+							}else {
 								Object[] argsToResolve = null;
 								synchronized (mbd.constructorArgumentLock) {
 									constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 									if (constructorToUse != null && mbd.constructorArgumentsResolved) {
-										// Found a cached constructor...
 										argsToUse = mbd.resolvedConstructorArguments;
 										if (argsToUse == null) {
 											argsToResolve = mbd.preparedConstructorArguments;
@@ -763,8 +791,9 @@ AbstractApplicationContext.refresh(){
 								}
 								if (argsToResolve != null) {
 									argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve);{
-										... ???
+										//resolve the args, too complex ???
 										BeanDefinitionValueResolver.resolveValueIfNecessary
+										... ???
 									}
 								}
 							}
@@ -779,7 +808,6 @@ AbstractApplicationContext.refresh(){
 								}
 								... ???
 							}
-							
 							beanInstance = this.beanFactory.getInstantiationStrategy().instantiate(mbd, beanName, this.beanFactory, constructorToUse, argsToUse);
 							bw.setWrappedInstance(beanInstance);
 							return bw;
@@ -788,7 +816,21 @@ AbstractApplicationContext.refresh(){
 				}
 				
 				return instantiateBean(beanName, mbd){
-					beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, parent);
+					beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, parent);{//SimpleInstantiationStrategy
+								if (bd.getMethodOverrides().isEmpty()) {
+									constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
+									if (constructorToUse == null) {
+										final Class<?> clazz = bd.getBeanClass();
+										if (clazz.isInterface()) throw new BeanInstantiationException(clazz, "Specified class is an interface");
+										constructorToUse =	clazz.getDeclaredConstructor((Class[]) null);
+										bd.resolvedConstructorOrFactoryMethod = constructorToUse;
+									}
+									return BeanUtils.instantiateClass(constructorToUse);
+								}else{
+									// Must generate CGLIB subclass.
+									return instantiateWithMethodInjection(bd, beanName, owner);
+								}
+							}
 					BeanWrapper bw = new BeanWrapperImpl(beanInstance);
 					initBeanWrapper(bw){
 						bw.setConversionService(getConversionService());
@@ -853,6 +895,7 @@ AbstractApplicationContext.refresh(){
 			}
 			return exposedObject;
 		}
+		return beanInstance;
 	}
 	populateBean(beanName, mbd, instanceWrapper){
 		PropertyValues pvs = mbd.getPropertyValues();
@@ -1141,19 +1184,52 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 	//used by autowireConstructor of AbstractAutowireCapableBeanFactory, autowireConstructor use ConstructorResolver to find the constructor
 	determineCandidateConstructors(Class<?> beanClass, String beanName){
 		//there must be one requiredConstructor and one defaultConstructor
-		AnnotationAttributes annotation = findAutowiredAnnotation(candidate){
-			//autowiredAnnotationTypes has Autowired, Value and so on.
-			for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
-				AnnotationAttributes annotation = AnnotatedElementUtils.getAnnotationAttributes(candidate, type.getName());
-				if (annotation != null) {
-					return annotation;
+		rawCandidates = beanClass.getDeclaredConstructors();
+		List<Constructor<?>> candidates = new ArrayList<Constructor<?>>(rawCandidates.length);
+		for (Constructor<?> candidate : rawCandidates) {
+			AnnotationAttributes annotation = findAutowiredAnnotation(candidate){
+				//autowiredAnnotationTypes has Autowired, Value.
+				for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
+					AnnotationAttributes annotation = AnnotatedElementUtils.getAnnotationAttributes(candidate, type.getName());{
+						AnnotationAttributes attributes = searchWithGetSemantics(element, annotationType, null, new MergedAnnotationAttributesProcessor());// ???
+						AnnotationUtils.postProcessAnnotationAttributes(element, attributes, false, false); //dealwith @AliasFor & DefaultValueHolder
+						return attributes;
+					}
+					if (annotation != null) return annotation;
+				}
+				return null;
+			}
+			if (ann == null) {
+				Class<?> userClass = ClassUtils.getUserClass(beanClass);//get original class if current is cglib generated class
+				if (userClass != beanClass) {
+					Constructor<?> superCtor = userClass.getDeclaredConstructor(candidate.getParameterTypes());
+					ann = findAutowiredAnnotation(superCtor);
 				}
 			}
-			return null;
+			if (ann != null) {
+				boolean required = determineRequiredStatus(ann);
+				if (required) requiredConstructor = candidate;
+				candidates.add(candidate);
+			}else if (candidate.getParameterTypes().length == 0) {
+				defaultConstructor = candidate;
+			}
 		}
-		boolean required = determineRequiredStatus(annotation);
-		
-		candidateConstructors = candidates.toArray(new Constructor<?>[candidates.size()]);
+		if (!candidates.isEmpty()) {
+			// Add default constructor to list of optional constructors, as fallback.
+			if (requiredConstructor == null) {
+				if (defaultConstructor != null) {
+					candidates.add(defaultConstructor);
+				}
+			}
+			candidateConstructors = candidates.toArray(new Constructor<?>[candidates.size()]);
+		}
+		else if (rawCandidates.length == 1 && rawCandidates[0].getParameterTypes().length > 0) {
+			candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
+		}
+		else {
+			candidateConstructors = new Constructor<?>[0];
+		}
+		this.candidateConstructorsCache.put(beanClass, candidateConstructors);
 		return candidateConstructors;
 	}
 	
@@ -1201,13 +1277,13 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 		//checkedElements will be injected later
 		metadata.checkConfigMembers(beanDefinition);{
 			for (InjectedElement element : this.injectedElements) {
-			Member member = element.getMember();
-			if (!beanDefinition.isExternallyManagedConfigMember(member)) {
-				beanDefinition.registerExternallyManagedConfigMember(member);
-				checkedElements.add(element);
+				Member member = element.getMember();
+				if (!beanDefinition.isExternallyManagedConfigMember(member)) {
+					beanDefinition.registerExternallyManagedConfigMember(member);
+					checkedElements.add(element);
+				}
 			}
-		}
-		this.checkedElements = checkedElements;	
+			this.checkedElements = checkedElements;	
 		}
 	}
 	
@@ -1231,163 +1307,9 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 						}
 					}else {
 						DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+						desc.setContainingClass(bean.getClass());
 						//value can be bean, primitive value, DependencyObjectFactory and DependencyProvider
-						value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter)(DefaultListableBeanFactory){
-							if (descriptor.getDependencyType().equals(ObjectFactory.class)) {
-								return new DependencyObjectFactory(descriptor, beanName);
-							}
-							else if (descriptor.getDependencyType().equals(javaxInjectProviderClass)) {
-								return new DependencyProviderFactory().createDependencyProvider(descriptor, beanName);
-							}
-							else{
-								Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(descriptor, beanName){
-									if isLazy(descriptor){
-										ContextAnnotationAutowireCandidateResolver.buildLazyResolutionProxy{
-											TargetSource ts = new TargetSource() {
-													@Override
-													public Class<?> getTargetClass() {
-														return descriptor.getDependencyType();
-													}
-													@Override
-													public boolean isStatic() {
-														return false;
-													}
-													@Override
-													public Object getTarget() {
-														return beanFactory.doResolveDependency(descriptor, beanName, null, null);
-													}
-													@Override
-													public void releaseTarget(Object target) {
-													}
-											}
-											ProxyFactory pf = new ProxyFactory();
-											pf.setTargetSource(ts);
-											Class<?> dependencyType = descriptor.getDependencyType();
-											if (dependencyType.isInterface()) {
-												pf.addInterface(dependencyType);
-											}
-											return pf.getProxy(beanFactory.getBeanClassLoader());
-										}
-									}
-								}
-								if result == null then
-								doResolveDependency(descriptor, beanName, autowiredBeanNames, typeConverter){
-									Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
-									
-									if value not null{
-										//Value does do the type conversion
-										
-										if value is String{
-											String strVal = resolveEmbeddedValue((String) value);{
-												for (StringValueResolver resolver : this.embeddedValueResolvers) {
-													//PlaceholderResolvingStringValueResolver to resolve the placeholder
-													result = resolver.resolveStringValue(result);
-												}
-												return result;
-											}
-											BeanDefinition bd = (beanName != null && containsBean(beanName) ? getMergedBeanDefinition(beanName) : null);
-											value = evaluateBeanDefinitionString(value, bd)(AbstractBeanFactory){
-												//call expression resolver to resolve the value to expression
-												return evaluate(StandardBeanExpressionResolver){
-													//SpelExpressionParser
-													expr = this.expressionParser.parseExpression(value, this.beanExpressionParserContext);{
-														if (context.isTemplate()) {
-															//always go this way
-															return parseTemplate(expressionString, context);
-														}else {
-															return doParseExpression(expressionString, context);
-														}
-													}
-													this.expressionCache.put(value, expr);
-													//several PropertyAccessor to get value from different source, BeanFactoryAccessor to get bean from the beanfactory
-													setup the StandardEvaluationContext and put it into evaluationCache
-													return expr.getValue(sec){
-														too complex ???
-														//CompoundExpression with PropertyOrFieldReference and Indexer for list,map,property: props['abc']
-														//CompoundExpression with PropertyOrFieldReference and MethodReference for function calling: config.getTheTestIfExist('test')
-													}
-												}
-											}
-										}
-										TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
-										converter.convertIfNecessary(...);
-									}else{
-										//Autowired does do type conversion in getBean
-									
-										if (type.isArray()) {
-											//to find all the beans of componentType
-											targetDesc.increaseNestingLevel();
-											Map<String, Object> matchingBeans = findAutowireCandidates(beanName, componentType, targetDesc);
-											if (this.dependencyComparator != null && result instanceof Object[]) {
-												Arrays.sort((Object[]) result, this.dependencyComparator);
-											}
-										}else if (Collection.class.isAssignableFrom(type) && type.isInterface()) {
-											//to find all the beans of elementType
-											targetDesc.increaseNestingLevel();
-											Map<String, Object> matchingBeans = findAutowireCandidates(beanName, elementType, targetDesc);
-											if (this.dependencyComparator != null && result instanceof List) {
-												Collections.sort((List<?>) result, this.dependencyComparator);
-											}
-										}else  if (Map.class.isAssignableFrom(type) && type.isInterface()) {
-											//keyType should be String
-											if (keyType == null || !String.class.isAssignableFrom(keyType)) {
-												if (descriptor.isRequired()) {
-													throw new FatalBeanException("Key type [" + keyType + "] of map [" + type.getName() +
-															"] must be assignable to [java.lang.String]");
-												}
-												return null;
-											}
-											//to find all the beans of valueType
-											targetDesc.increaseNestingLevel();
-											Map<String, Object> matchingBeans = findAutowireCandidates(beanName, valueType, targetDesc);
-										}else{
-											Map<String, Object> matchingBeans = findAutowireCandidates(beanName, type, descriptor)(DefaultListableBeanFactory){
-												candidateNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors
-												
-												//resolvableDependencies contains BeanFactory.class, ResourceLoader.class, ApplicationEventPublisher.class, ApplicationContext.class and so on
-												for (Class<?> autowiringType : this.resolvableDependencies.keySet()) {
-													if (autowiringType.isAssignableFrom(requiredType)) {
-														retrieve the object from resolvableDependencies
-														AutowireUtils.resolveAutowiringValue ???
-													}
-												}
-											
-												for (String candidateName : candidateNames) {
-													//isAutowireCandidate will call AutowireCandidateResolver.isAutowireCandidate and then call AutowireCandidateResolver.checkQualifiers to deal with Qualifier.
-													if (!candidateName.equals(beanName) && isAutowireCandidate(candidateName, descriptor)) {
-														// getBean !!!
-														result.put(candidateName, getBean(candidateName));
-													}
-												}
-												
-												//For a fallback match, the bean name is considered a default qualifier value.
-												if (result.isEmpty()) {
-													DependencyDescriptor fallbackDescriptor = descriptor.forFallbackMatch();
-													for (String candidateName : candidateNames) {
-														if (!candidateName.equals(beanName) && isAutowireCandidate(candidateName, fallbackDescriptor)) {
-															result.put(candidateName, getBean(candidateName));
-														}
-													}
-												}
-											}
-											if (matchingBeans.isEmpty()) {
-												if (descriptor.isRequired()) {
-													raiseNoSuchBeanDefinitionException(type, "", descriptor);
-												}
-												return null;
-											}
-											if (matchingBeans.size() > 1) {
-												//primary autowireCandidate of AbstractBeanDefinition ???
-												String primaryBeanName = determinePrimaryCandidate(matchingBeans, descriptor);
-												autowiredBeanNames.add(primaryBeanName);
-											}
-											autowiredBeanNames.add;
-											return the exactly one;
-										}
-									}
-								}
-							}
-						}
+						value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 						//setup cachedFieldValue
 						if (value != null || this.required) {
 							this.cachedFieldValue = desc;(DependencyDescriptor)
@@ -1428,8 +1350,149 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 			}
 		}
 	}
+	DefaultListableBeanFactory.resolveDependency(DependencyDescriptor descriptor, String beanName, Set<String> autowiredBeanNames, TypeConverter typeConverter){
+		deal with other descriptor.getDependencyType()
+		else{
+			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(descriptor, beanName){
+				if isLazy(descriptor){
+					ContextAnnotationAutowireCandidateResolver.buildLazyResolutionProxy{
+						TargetSource ts = new TargetSource() {
+								...
+								public Object getTarget() {
+									return beanFactory.doResolveDependency(descriptor, beanName, null, null);
+								}
+						}
+						ProxyFactory pf = new ProxyFactory();
+						pf.setTargetSource(ts);
+						Class<?> dependencyType = descriptor.getDependencyType();
+						if (dependencyType.isInterface()) {
+							pf.addInterface(dependencyType);
+						}
+						return pf.getProxy(beanFactory.getBeanClassLoader());
+					}
+				}
+			}
+			if result == null then
+			doResolveDependency(descriptor, beanName, autowiredBeanNames, typeConverter){
+				Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
+				if value not null{
+					if value is String{
+						String strVal = resolveEmbeddedValue((String) value);{
+							for (StringValueResolver resolver : this.embeddedValueResolvers) {
+								//PlaceholderResolvingStringValueResolver to resolve the placeholder
+								result = resolver.resolveStringValue(result);
+							}
+							return result;
+						}
+						BeanDefinition bd = (beanName != null && containsBean(beanName) ? getMergedBeanDefinition(beanName) : null);
+						value = evaluateBeanDefinitionString(value, bd)(AbstractBeanFactory){
+							//call expression resolver to resolve the value to expression
+							return evaluate(StandardBeanExpressionResolver){
+								//SpelExpressionParser
+								expr = this.expressionParser.parseExpression(value, this.beanExpressionParserContext);{
+									if (context.isTemplate()) {
+										//always go this way
+										return parseTemplate(expressionString, context);
+									}else {
+										return doParseExpression(expressionString, context);
+									}
+								}
+								this.expressionCache.put(value, expr);
+								//several PropertyAccessor to get value from different source, BeanFactoryAccessor to get bean from the beanfactory
+								setup the StandardEvaluationContext and put it into evaluationCache
+								return expr.getValue(sec){
+									too complex ???
+									//CompoundExpression with PropertyOrFieldReference and Indexer for list,map,property: props['abc']
+									//CompoundExpression with PropertyOrFieldReference and MethodReference for function calling: config.getTheTestIfExist('test')
+								}
+							}
+						}
+					}
+					TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
+					converter.convertIfNecessary(...);
+				}else{
+					//Autowired does do type conversion in getBean
+					if (type.isArray()) {
+						//to find all the beans of componentType
+						targetDesc.increaseNestingLevel();
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, componentType, targetDesc);
+						if (this.dependencyComparator != null && result instanceof Object[]) {
+							Arrays.sort((Object[]) result, this.dependencyComparator);
+						}
+					}else if (Collection.class.isAssignableFrom(type) && type.isInterface()) {
+						//to find all the beans of elementType
+						targetDesc.increaseNestingLevel();
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, elementType, targetDesc);
+						if (this.dependencyComparator != null && result instanceof List) {
+							Collections.sort((List<?>) result, this.dependencyComparator);
+						}
+					}else  if (Map.class.isAssignableFrom(type) && type.isInterface()) {
+						//keyType should be String
+						if (keyType == null || !String.class.isAssignableFrom(keyType)) {
+							if (descriptor.isRequired()) {
+								throw new FatalBeanException("Key type [" + keyType + "] of map [" + type.getName() +
+										"] must be assignable to [java.lang.String]");
+							}
+							return null;
+						}
+						//to find all the beans of valueType
+						targetDesc.increaseNestingLevel();
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, valueType, targetDesc);
+					}else{
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, type, descriptor);
+						if (matchingBeans.isEmpty()) {
+							if (descriptor.isRequired()) {
+								raiseNoSuchBeanDefinitionException(type, "", descriptor);
+							}
+							return null;
+						}
+						if (matchingBeans.size() > 1) {
+							... ???
+							String primaryBeanName = determinePrimaryCandidate(matchingBeans, descriptor);
+							autowiredBeanNames.add(primaryBeanName);
+						}
+						autowiredBeanNames.add;
+						return the exactly one;
+					}
+				}
+			}
+		}
+	}
 	
-	isAutowireCandidate(String beanName, DependencyDescriptor descriptor, AutowireCandidateResolver resolver)(DefaultListableBeanFactory){
+	DefaultListableBeanFactory.findAutowireCandidates(String beanName, Class<?> requiredType, DependencyDescriptor descriptor){
+		String[] candidateNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors
+		
+		//resolvableDependencies contains BeanFactory.class, ResourceLoader.class, ApplicationEventPublisher.class, ApplicationContext.class and so on
+		for (Class<?> autowiringType : this.resolvableDependencies.keySet()) {
+			if (autowiringType.isAssignableFrom(requiredType)) {
+				Object autowiringValue = this.resolvableDependencies.get(autowiringType);
+				autowiringValue = AutowireUtils.resolveAutowiringValue(autowiringValue, requiredType);//resolve ObjectFactory value to its actual object result
+				if (requiredType.isInstance(autowiringValue)) {
+					result.put(ObjectUtils.identityToString(autowiringValue), autowiringValue);
+					break;
+				}
+			}
+		}
+		for (String candidateName : candidateNames) {
+			//isAutowireCandidate will call AutowireCandidateResolver.isAutowireCandidate and then call AutowireCandidateResolver.checkQualifiers to deal with Qualifier.
+			if (!candidateName.equals(beanName) && isAutowireCandidate(candidateName, descriptor)) {
+				// getBean !!!
+				result.put(candidateName, getBean(candidateName));
+			}
+		}
+		//For a fallback match, the bean name is considered a default qualifier value.
+		if (result.isEmpty()) {
+			DependencyDescriptor fallbackDescriptor = descriptor.forFallbackMatch();
+			for (String candidateName : candidateNames) {
+				if (!candidateName.equals(beanName) && isAutowireCandidate(candidateName, fallbackDescriptor)) {
+					result.put(candidateName, getBean(candidateName));
+				}
+			}
+		}
+		return result;
+	}
+	
+	DefaultListableBeanFactory.isAutowireCandidate(String beanName, DependencyDescriptor descriptor, AutowireCandidateResolver resolver){
 		if (containsBeanDefinition(beanDefinitionName)) {
 			return isAutowireCandidate(beanName, getMergedLocalBeanDefinition(beanDefinitionName), descriptor, resolver);
 			{
