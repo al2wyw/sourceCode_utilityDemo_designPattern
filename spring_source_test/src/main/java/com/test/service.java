@@ -19,7 +19,7 @@ public class service {
 	//this will be called twice, it is a little tricky, as @Autowired is on service class(injected into testController) and 
 	//@Autowired is on the super class of enhanced service class(Autowired bp will check super class), so twice!!!
 	@Autowired
-	public void testCGLIBoverried(@Qualifier("config")Config config){
+	public void testCGLIBoverried(@Qualifier("config")Config config, test arg){
 		this.config = config;
 		String test = config.callWithValue("99999"+" "+this);
 		System.out.println(test);
@@ -30,7 +30,7 @@ public class service {
 	}
 	//this will not be called because service bean is an CGLIB proxy with no @Autowired on constructor
 	@Autowired
-	public service(@Qualifier("config")Config config){
+	public service(@Qualifier("config") Config config){
 		System.out.println("@Configuration constructor with parameters called");
 		this.config = config;
 		String test = config.callWithValue("50099"+" "+this);
