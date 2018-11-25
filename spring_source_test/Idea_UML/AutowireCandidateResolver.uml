@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver</OriginalElement>
+  <nodes>
+    <node x="75.5" y="0.0">org.springframework.beans.factory.support.AutowireCandidateResolver</node>
+    <node x="50.0" y="85.0">org.springframework.beans.factory.support.SimpleAutowireCandidateResolver</node>
+    <node x="0.0" y="255.0">org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver</node>
+    <node x="4.5" y="170.0">org.springframework.beans.factory.support.GenericTypeAwareAutowireCandidateResolver</node>
+    <node x="2.5" y="340.0">org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.beans.factory.support.GenericTypeAwareAutowireCandidateResolver" target="org.springframework.beans.factory.support.SimpleAutowireCandidateResolver">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver" target="org.springframework.beans.factory.support.GenericTypeAwareAutowireCandidateResolver">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.support.SimpleAutowireCandidateResolver" target="org.springframework.beans.factory.support.AutowireCandidateResolver">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver" target="org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="243.5" y="187.5" />
+  <SelectedNodes>
+    <node>org.springframework.beans.factory.support.AutowireCandidateResolver</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

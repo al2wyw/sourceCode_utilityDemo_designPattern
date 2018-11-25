@@ -76,7 +76,7 @@ public class testController implements BeanFactoryAware{
 	
 	@Autowired
 	@customQ("dot")
-	private com.test.service dot;
+	private com.test.Service dot;
 	
 	@Autowired
 	private test_Resource_PropertyEditor bean;

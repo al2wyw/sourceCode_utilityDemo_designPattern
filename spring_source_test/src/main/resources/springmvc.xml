@@ -33,13 +33,17 @@ class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
 		<property name="customQualifierTypes">
 			<set>
 				<value>com.qualifier.customQ</value>
+				<value>com.qualifier.anotherCustomQ</value>
 			</set>
 	</property>
 	</bean> 
 	<bean id="com.qualifier.testee" class="com.qualifier.testee">
 		<qualifier type="com.qualifier.customQ" value="test_custom_qualifier"/>
-		<qualifier type="com.qualifier.anotherCustomQ" value="test_custom_qualifier"/>
+		<qualifier type="com.qualifier.anotherCustomQ" value="test_another_custom_qualifier"/>
 	</bean>
+
+	<bean id="com.qualifier.testeee" class="com.qualifier.testeee"/>
+	<bean id="com.qualifier.testeeeeeee" class="com.qualifier.testeeeeeee"/>
 	
 	<bean id="com.qualifier.tester" class="com.qualifier.tester">
 	</bean> 
@@ -106,7 +110,7 @@ class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
              <property name="minEvictableIdleTimeMillis" value="60000"/>
              <property name="timeBetweenEvictionRunsMillis" value="60000"/>
      </bean>
-     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" parent="dbcpDataSource">
+     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" parent="${jdbc.parent}">
          <property name="driverClassName" value="${jdbc.class}" />
          <property name="url" value="${jdbc.url}" />
          <property name="username" value="${jdbc.username}" />
