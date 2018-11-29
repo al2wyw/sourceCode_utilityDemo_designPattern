@@ -16,4 +16,5 @@ import java.lang.annotation.*;
 @Documented
 @Conditional(MyCondition.class)
 public @interface MyConditional {
+    String trigger();
 }

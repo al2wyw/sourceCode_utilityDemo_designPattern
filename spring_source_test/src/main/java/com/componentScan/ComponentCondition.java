@@ -1,6 +1,5 @@
 package com.componentScan;
 
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component;
  * Desc:
  */
 @Component
-@MyConditional
+@MyConditional(trigger="autowire")
 public class ComponentCondition {
     public ComponentCondition(){
         System.out.println("ComponentCondition init");

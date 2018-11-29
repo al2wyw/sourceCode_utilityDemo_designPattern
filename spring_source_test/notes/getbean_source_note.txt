@@ -1,0 +1,686 @@
+---------------------createBean start----------------------------------
+getBean Process Flow:
+1. getSingleton -> getObjectForBeanInstance
+2. parentBeanFactory.getBean
+3. getBean(dependsOn)
+4. createBean -> getObjectForBeanInstance
+4.1. resolveBeforeInstantiation
+4.2. createBeanInstance
+4.3. postProcessMergedBeanDefinition
+...
+
+addSingleton(String beanName, Object singletonObject) {
+		synchronized (this.singletonObjects) {
+			this.singletonObjects.put(beanName, (singletonObject != null ? singletonObject : NULL_OBJECT));
+			this.singletonFactories.remove(beanName);
+			this.earlySingletonObjects.remove(beanName);//!!!
+			this.registeredSingletons.add(beanName);
+		}
+	}
+addSingletonFactory(String beanName, ObjectFactory singletonFactory) {
+		Assert.notNull(singletonFactory, "Singleton factory must not be null");
+		synchronized (this.singletonObjects) {
+			if (!this.singletonObjects.containsKey(beanName)) {
+				this.singletonFactories.put(beanName, singletonFactory);
+				this.earlySingletonObjects.remove(beanName);//!!!
+				this.registeredSingletons.add(beanName);
+			}
+		}
+	}
+
+	AbstractBeanFactory.getBean(String beanName){
+		doGetBean(name, null, null, false)(String name, Class<T> requiredType, Object[] args, boolean typeCheckOnly){
+			//当配置文件中<bean>的class属性配置的实现类是FactoryBean时，通过getBean()方法返回的不是FactoryBean本身，
+            //而是FactoryBean#getObject()方法所返回的对象, 如果希望获取FactoryBean的实例，需要在beanName前加上“&”符号，即getBean("&beanName")
+			final String beanName = transformedBeanName(name);//在这里要获取的是bean的实例，所以要去掉&符号
+			
+			// EarlyBeanReference will be added in doCreateBean(addSingletonFactory), and then BeanDefinitionValueResolver.resolveReference will call getSingleton to retrieve the EarlyBeanReference to solve the circle reference
+			sharedInstance = getSingleton(beanName,true)(DefaultSingletonBeanRegistry){ // important!!!
+				Object singletonObject = this.singletonObjects.get(beanName);
+				if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) { //singletonsCurrentlyInCreation.contains(beanName)
+					synchronized (this.singletonObjects) {
+						singletonObject = this.earlySingletonObjects.get(beanName);
+						if (singletonObject == null && allowEarlyReference) {
+							singletonObject = this.singletonFactories.get(beanName).getObject(); // see addSingletonFactory
+							this.earlySingletonObjects.put(beanName, singletonObject);
+							this.singletonFactories.remove(beanName);
+						}
+					}
+				}
+				return (singletonObject != NULL_OBJECT ? singletonObject : null);
+			}
+			if (sharedInstance != null && args == null) {
+				bean = getObjectForBeanInstance(sharedInstance, name, beanName, null){ //get either the bean instance or created object of a FactoryBean
+					if not a FactoryBean return sharedInstance else
+					getObjectFromFactoryBean(FactoryBeanRegistrySupport){
+						/** Cache of singleton objects created by FactoryBeans: FactoryBean name --> object */
+						Object object = this.factoryBeanObjectCache.get(beanName);
+						object = doGetObjectFromFactoryBean(FactoryBeanRegistrySupport){
+							object = factory.getObject();
+							//no other beanPostProcessor !!!
+							postProcessObjectFromFactoryBean(AbstractAutowireCapableBeanFactory){ // important!!!
+								//may be wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
+								applyBeanPostProcessorsAfterInitialization
+							}
+						}
+						this.factoryBeanObjectCache.put
+					}
+				}
+			}else {
+				//check parent first!
+				BeanFactory parentBeanFactory = getParentBeanFactory();
+				if parentBeanFactory != null && !containsBeanDefinition(beanName) //this.beanDefinitionMap.containsKey(beanName);
+					// Not found -> check parent.
+					return parentBeanFactory.getBean
+				
+				markBeanAsCreated(beanName) // ignore
+				
+				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);{
+					return getMergedBeanDefinition(beanName, getBeanDefinition(beanName), null);//getBeanDefinition -> beanDefinitionMap.get(beanName)
+					return getMergedBeanDefinition(String beanName, BeanDefinition bd, BeanDefinition containingBd){
+						if (containingBd == null) mbd = this.mergedBeanDefinitions.get(beanName);
+						if (mbd == null) {
+							if (bd.getParentName() == null) {
+								if (bd instanceof RootBeanDefinition) {
+									mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
+								}else {
+									mbd = new RootBeanDefinition(bd);
+								}
+							}else {
+								BeanDefinition pbd;// Child bean definition: needs to be merged with parent.
+								String parentBeanName = transformedBeanName(bd.getParentName()); //去除"&", 如果是FactoryBean
+								if (!beanName.equals(parentBeanName)) {
+									pbd = getMergedBeanDefinition(parentBeanName);
+								}else {
+									BeanFactory parent = getParentBeanFactory();
+									if (parent instanceof ConfigurableBeanFactory) {
+										pbd = ((ConfigurableBeanFactory) parent).getMergedBeanDefinition(parentBeanName);
+									}else {
+										throw new NoSuchBeanDefinitionException();
+									}
+								}
+								// Deep copy with overridden values.
+								mbd = new RootBeanDefinition(pbd);
+								mbd.overrideFrom(bd);
+							}
+
+							if (!StringUtils.hasLength(mbd.getScope())) mbd.setScope(RootBeanDefinition.SCOPE_SINGLETON);
+							if (containingBd != null && !containingBd.isSingleton() && mbd.isSingleton()) mbd.setScope(containingBd.getScope());
+							if (containingBd == null && isCacheBeanMetadata()) this.mergedBeanDefinitions.put(beanName, mbd);
+						}
+						return mbd;
+					}
+				}
+				String[] dependsOn = mbd.getDependsOn()
+				for (String dependsOnBean : dependsOn) {
+					//dependentBean depends on bean
+					//will also check the transitiveDependency
+					if (isDependent(beanName, dependsOnBean)) {
+						throw new BeanCreationException("Circular depends-on relationship between '" + beanName + "' and '" + dependsOnBean + "'");
+					}
+					registerDependentBean(dependsOnBean, beanName);
+					getBean(dependsOnBean);
+				}
+				
+				if (mbd.isSingleton()) {
+					sharedInstance = getSingleton(beanName, new ObjectFactory<Object>() {
+						public Object getObject() throws BeansException {
+							try {
+								return createBean(beanName, mbd, args);	
+							}catch (BeansException ex) {
+								// Explicitly remove instance from singleton cache: It might have been put there
+								// eagerly by the creation process, to allow for circular reference resolution.
+								// Also remove any beans that received a temporary reference to the bean.
+								destroySingleton(beanName);
+								throw ex;
+							}
+						}
+					}){
+						synchronized (this.singletonObjects) {
+							Object singletonObject = this.singletonObjects.get(beanName);
+							if (singletonObject == null) {
+								beforeSingletonCreation -> singletonsCurrentlyInCreation.add
+								singletonObject = singletonFactory.getObject(); //singletonFactory is ObjectFactory
+								afterSingletonCreation -> singletonsCurrentlyInCreation.remove
+								addSingleton(beanName, singletonObject)
+							}
+						}
+					}
+					bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+				}else if (mbd.isPrototype()) {
+					try {
+						//ThreadLocal<Object> prototypesCurrentlyInCreation;
+						beforePrototypeCreation(beanName);//prototypesCurrentlyInCreation.set(beanName)
+						prototypeInstance = createBean(beanName, mbd, args);
+					}finally {
+						afterPrototypeCreation(beanName);//prototypesCurrentlyInCreation.remove()
+					}
+					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
+				}else{ //other scope registered
+					String scopeName = mbd.getScope();
+					final Scope scope = this.scopes.get(scopeName);
+					Object scopedInstance = scope.get(beanName, new ObjectFactory<Object>() {
+							@Override
+							public Object getObject() throws BeansException {
+								beforePrototypeCreation(beanName);
+								try {
+									return createBean(beanName, mbd, args);
+								}finally {
+									afterPrototypeCreation(beanName);
+								}
+							}
+						});
+					bean = getObjectForBeanInstance(scopedInstance, name, beanName, mbd);
+				}
+			}
+			if (requiredType != null && bean != null && !requiredType.isInstance(bean)) {
+				return getTypeConverter().convertIfNecessary(bean, requiredType);
+			}
+			return bean;
+		}
+	}
+	AbstractAutowireCapableBeanFactory.createBean(beanName, mbd, args){
+		creates a bean instance, populates the bean instance, applies post-processors, etc
+		
+		// Make sure bean class is actually resolved at this point. resolve class name to real class object
+		resolveBeanClass(mbd, beanName);
+		
+		//method look-up overrides
+		mbd.prepareMethodOverrides();
+
+		// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+		bean = resolveBeforeInstantiation(AbstractAutowireCapableBeanFactory){ // important!!!
+			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+				Class<?> targetType = determineTargetType(beanName, mbd); // call resolveBeanClass to load bean class
+				if (targetType != null) {
+					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);//must setup custom source target at first -> createProxy (AbstractAutoProxyCreator)
+					if (bean != null) bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+				}
+			}
+		}
+		if (bean != null) {
+			return bean;
+		}
+		Object beanInstance = doCreateBean(beanName, mbdToUse, args)(AbstractAutowireCapableBeanFactory){
+			/** Cache of unfinished FactoryBean instances: FactoryBean name --> BeanWrapper */
+			BeanWrapper instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
+			if instanceWrapper == null -> instanceWrapper = createBeanInstance(beanName, mbd, args){
+				//using an appropriate instantiation strategy:factory method, constructor autowiring, or simple instantiation
+				
+				// Make sure bean class is actually resolved at this point.
+				Class<?> beanClass = resolveBeanClass(mbd, beanName);
+				
+				//normally, args is null, please notice the condition of different methods to be called
+				if (mbd.getFactoryMethodName() != null){
+					//查看RootBeanDefinition的factor-method属性是不是空的，不为空，说明bean 
+					//要通过先实例化对应的factoryBean然后调用factoryMethod方法实现，或者直接调用静态的factoryMethod方法
+					instantiateUsingFactoryMethod(beanName, mbd, args){
+						return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, args);// @Bean
+					}
+				}
+				// Shortcut when re-creating the same bean... (prototype or other scopes)
+				boolean resolved = false;
+				boolean autowireNecessary = false;
+				if (args == null) {//explicit args is null so use constructor argument values from bean definition
+					synchronized (mbd.constructorArgumentLock) {
+						if (mbd.resolvedConstructorOrFactoryMethod != null) {
+							resolved = true;
+							autowireNecessary = mbd.constructorArgumentsResolved;
+						}
+					}
+				}
+				if (resolved) {
+					if (autowireNecessary) {
+						return autowireConstructor(beanName, mbd, null, null);
+					}
+					else {
+						return instantiateBean(beanName, mbd);
+					}
+				}
+				
+				//Determine candidate constructors to use, checking all registered BeanPostProcessors
+				Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);{
+					ctors = SmartInstantiationAwareBeanPostProcessor.determineCandidateConstructors(beanClass, beanName);//AutowiredAnnotationBeanPostProcessor
+					if (ctors != null) {
+						return ctors;
+					}
+				}
+				
+				//ctors, AUTOWIRE_CONSTRUCTOR, constructor-arg, args
+				if (ctors != null ||
+				mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_CONSTRUCTOR ||
+				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)){
+					return autowireConstructor(beanName, mbd, ctors, args){
+						new ConstructorResolver(this).autowireConstructor(beanName, mbd, ctors, args);
+					}
+				}
+				
+				return instantiateBean(beanName, mbd){
+					beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, parent);{//SimpleInstantiationStrategy
+								if (bd.getMethodOverrides().isEmpty()) {
+									constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
+									if (constructorToUse == null) {
+										final Class<?> clazz = bd.getBeanClass();
+										if (clazz.isInterface()) throw new BeanInstantiationException(clazz, "Specified class is an interface");
+										constructorToUse =	clazz.getDeclaredConstructor((Class[]) null);
+										bd.resolvedConstructorOrFactoryMethod = constructorToUse;
+									}
+									return BeanUtils.instantiateClass(constructorToUse);
+								}else{
+									// Must generate CGLIB subclass.
+									return instantiateWithMethodInjection(bd, beanName, owner);
+								}
+							}
+					BeanWrapper bw = new BeanWrapperImpl(beanInstance);
+					initBeanWrapper(bw){
+						bw.setConversionService(getConversionService());
+						registerCustomEditors(bw);
+					}
+					return bw;
+				}
+			}
+			
+			final Object bean = (instanceWrapper != null ? instanceWrapper.getWrappedInstance() : null);
+			Class<?> beanType = (instanceWrapper != null ? instanceWrapper.getWrappedClass() : null);
+			// important!!!
+			applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName); // MergedBeanDefinitionPostProcessor.postProcessMergedBeanDefinition(mbd, beanType, beanName);
+			
+			boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences && isSingletonCurrentlyInCreation(beanName));
+			if earlySingletonExposure -> addSingletonFactory(beanName, new ObjectFactory<Object>() { // important!!!
+												@Override
+												public Object getObject() throws BeansException {
+													return getEarlyBeanReference(beanName, mbd, bean){
+														Object exposedObject = bean;
+														if (bean != null && !mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+															for (BeanPostProcessor bp : getBeanPostProcessors()) {
+																if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+																	SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+																	exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName); // wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
+																	if (exposedObject == null) -> return null;	
+																}
+															}
+														}
+														return exposedObject;
+													}
+												}
+											});
+			Object exposedObject = bean;
+			//setup all the properties
+			populateBean(beanName, mbd, instanceWrapper);
+			//exposedObject may be changed to a proxy
+			if (exposedObject != null) {
+				exposedObject = initializeBean(beanName, exposedObject, mbd);
+			}
+			
+			//if the bean is early referenced and it is a proxy, this will get the proxy.
+			if (earlySingletonExposure){
+				Object earlySingletonReference = getSingleton(beanName, false);
+				if (earlySingletonReference != null) {
+					if (exposedObject == bean) -> exposedObject = earlySingletonReference;
+				}else if(!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)){
+					???
+				}
+			}
+			
+			registerDisposableBeanIfNecessary(beanName, bean, mbd);{
+				//do not care about prototype
+				if (!mbd.isPrototype() && requiresDestruction(bean, mbd)) { // hasDestroyMethod || hasApplicableBeanPostProcessors
+					if (mbd.isSingleton()) { // disposableBeans is within DefaultSingletonBeanRegistry
+						disposableBeans.put(beanName, new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), acc));
+					}else{
+						// A bean with a custom scope...
+						scope.registerDestructionCallback
+					}
+				}
+			}
+			return exposedObject;
+		}
+		return beanInstance;
+	}
+	DisposableBeanAdapter implements DisposableBean, Runnable{
+		public void destroy() { // called by DefaultSingletonBeanRegistry.destroyBean
+			if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
+				for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
+					processor.postProcessBeforeDestruction(this.bean, this.beanName);
+				}
+			}
+			if (this.invokeDisposableBean) ((DisposableBean) bean).destroy();
+			if (this.destroyMethod != null) {
+				invokeCustomDestroyMethod(this.destroyMethod);
+			}else if (this.destroyMethodName != null) {
+				Method methodToCall = determineDestroyMethod();
+				if (methodToCall != null) invokeCustomDestroyMethod(methodToCall);
+			}
+		}
+	}
+	ConstructorResolver.instantiateUsingFactoryMethod(String beanName,  RootBeanDefinition mbd,  Object[] explicitArgs) {
+		... ???
+		beanInstance = this.beanFactory.getInstantiationStrategy().instantiate(mbd, beanName, this.beanFactory, factoryBean, factoryMethodToUse, argsToUse);
+		bw.setBeanInstance(beanInstance);
+		return bw;
+	}
+	ConstructorResolver.autowireConstructor(String beanName, RootBeanDefinition mbd, Constructor<?>[] chosenCtors, Object[] explicitArgs){
+		BeanWrapperImpl bw = new BeanWrapperImpl();
+		this.beanFactory.initBeanWrapper(bw);
+		
+		if (explicitArgs != null) {
+			argsToUse = explicitArgs;
+		}else {
+			Object[] argsToResolve = null;
+			synchronized (mbd.constructorArgumentLock) {
+				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
+				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
+					argsToUse = mbd.resolvedConstructorArguments;
+					if (argsToUse == null) {
+						argsToResolve = mbd.preparedConstructorArguments;
+					}
+				}
+			}
+			if (argsToResolve != null) {
+				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve);{
+					//resolve the args, too complex ???
+					BeanDefinitionValueResolver.resolveValueIfNecessary
+					... ???
+				}
+			}
+		}
+		
+		//ctors is null for not autowireanotation and explicitArgs is allways null
+		if (constructorToUse == null) {
+			//determine the constructor to use, too complex ???
+			minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues){
+					//Resolve the constructor arguments for this bean.
+					//This may involve looking up other beans.
+					BeanDefinitionValueResolver.resolveValueIfNecessary
+			}
+			... ???
+		}
+		beanInstance = this.beanFactory.getInstantiationStrategy().instantiate(mbd, beanName, this.beanFactory, constructorToUse, argsToUse);
+		bw.setWrappedInstance(beanInstance);
+		return bw;
+	}
+	ConstructorResolver.resolveFactoryMethodIfPossible(RootBeanDefinition mbd){
+		... ???
+	}
+					
+	AbstractAutowireCapableBeanFactory.populateBean(String beanName, RootBeanDefinition mbd, BeanWrapper bw){
+		PropertyValues pvs = mbd.getPropertyValues();
+
+		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) { // important!!!
+			apply InstantiationAwareBeanPostProcessor.postProcessAfterInstantiation
+		}
+
+		if (RootBeanDefinition.AUTOWIRE_BY_NAME || RootBeanDefinition.AUTOWIRE_BY_TYPE) {
+			//MutablePropertyValues implements PropertyValues
+			//MutablePropertyValues.addPropertyValue will replace the original PropertyValue or merge it
+			//pvs itself is MutablePropertyValues
+			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
+			// Add property values based on autowire by name if applicable.
+			if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_NAME) {
+				autowireByName(beanName, mbd, bw, newPvs);{
+					//bean properties not present in bean definition, skip CGLIB generated properties and so on
+					String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
+					for (String propertyName : propertyNames) {
+						if (containsBean(propertyName)) {
+							Object bean = getBean(propertyName); // important!!!
+							pvs.add(propertyName, bean);
+							registerDependentBean(propertyName, beanName);
+						}
+					}
+				}
+			}
+			// Add property values based on autowire by type if applicable.
+			if (mbd.getResolvedAutowireMode() == RootBeanDefinition.AUTOWIRE_BY_TYPE) {
+				autowireByType(beanName, mbd, bw, newPvs);{
+					TypeConverter converter = getCustomTypeConverter();
+					if (converter == null) converter = bw;
+					Set<String> autowiredBeanNames = new LinkedHashSet<String>(4);
+					String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
+					for (String propertyName : propertyNames) {
+						PropertyDescriptor pd = bw.getPropertyDescriptor(propertyName);
+						if (Object.class != pd.getPropertyType()) {
+							MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd); // write method is used
+							// Do not allow eager init for type matching in case of a prioritized post-processor.
+							boolean eager = !PriorityOrdered.class.isAssignableFrom(bw.getWrappedClass());
+							DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
+							Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);// important!!!
+							if (autowiredArgument != null) {
+								pvs.add(propertyName, autowiredArgument);
+							}
+							for (String autowiredBeanName : autowiredBeanNames) {
+								registerDependentBean(autowiredBeanName, beanName);
+							}
+							autowiredBeanNames.clear();
+						}
+					}
+				}
+			}
+			pvs = newPvs;
+		}
+		
+		if (hasInstAwareBpps) { // important!!!
+			apply InstantiationAwareBeanPostProcessor.postProcessPropertyValues // AutowiredAnnotationBeanPostProcessor
+		}
+		if (needsDepCheck) {
+			checkDependencies(beanName, mbd, filteredPds, pvs);
+		}
+		
+		applyPropertyValues(beanName, mbd, bw, pvs);{
+			if (pvs == null || pvs.isEmpty()) {
+				return;
+			}
+			
+			if (pvs instanceof MutablePropertyValues) {
+				List<PropertyValue> original = mpvs.getPropertyValueList();
+			} else {
+				List<PropertyValue> original = Arrays.asList(pvs.getPropertyValues());
+			}
+			List<PropertyValue> deepCopy = new ArrayList<PropertyValue>(original.size());
+			for (PropertyValue pv : original) {
+				Object originalValue = pv.getValue();
+				//resolveValueIfNecessary will deal with array,list,set,map,property and so on
+				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);{ // important!!!
+					//property: ref -> RuntimeBeanReference; bean -> BeanDefinitionHolder; both will call BeanFactory.getBean
+					//VALUE_TYPE_ATTRIBUTE will define the element_type of ManagedXXXX, see parseXXXXElement of BeanDefinitionParserDelegate
+					//resolveManagedArray will return element_type array while the other resolveManagedXXXX will return Object_type container
+					//evaluate string function can resolve Spell expression 
+					//return originalValue (do nothing)
+				}
+				Object convertedValue = resolvedValue;
+				boolean convertible = bw.isWritableProperty(propertyName) &&
+						!PropertyAccessorUtils.isNestedOrIndexedProperty(propertyName);
+				if convertible
+					//call typeConverter to convert the value
+					convertedValue = convertForProperty(resolvedValue, propertyName, bw, converter);
+				//avoid re-conversion
+				if (resolvedValue == originalValue) {
+					if (convertible) {
+						pv.setConvertedValue(convertedValue);
+					}
+					deepCopy.add(pv);
+				}
+				else if (convertible && originalValue instanceof TypedStringValue &&
+						!((TypedStringValue) originalValue).isDynamic() &&
+						!(convertedValue instanceof Collection || ObjectUtils.isArray(convertedValue))) {
+					pv.setConvertedValue(convertedValue);
+					deepCopy.add(pv);
+				}
+				else {
+					resolveNecessary = true;
+					deepCopy.add(new PropertyValue(pv, convertedValue));
+				}
+			}
+			if (mpvs != null && !resolveNecessary) {
+				mpvs.setConverted();
+			}
+			bw.setPropertyValues(new MutablePropertyValues(deepCopy)){
+				for (PropertyValue pv : propertyValues) {
+					setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv)(BeanWrapperImpl){
+						//keys are abc,bcd from property name of props['abc']['bcd']
+						if (tokens.keys != null) {
+							...
+						}else{
+							//no writable method found, NotWritablePropertyException!!!
+							//PropertyMatches class to find the possible property!!!
+							get the PropertyDescriptor to get the WriteMethod{
+								getWriteMethod(){
+									writeMethodName = Introspector.SET_PREFIX + getBaseName();//NameGenerator.capitalize(getName()); make the initial character capital
+									writeMethod = Introspector.findMethod(cls, writeMethodName, 1, args);
+								}
+							}
+							if (pv.isConverted()) {
+								valueToApply = pv.getConvertedValue();
+							} else {
+								get the oldValue from readMethod 
+								valueToApply = convertForProperty(propertyName, oldValue, originalValue, pd,...);
+							}
+							get the writeMethod and invoke with valueToApply
+						}
+					}
+				}
+			}
+		}
+	}
+	AbstractAutowireCapableBeanFactory.initializeBean(String beanName, Object bean, RootBeanDefinition mbd){
+		invokeAwareMethods(beanName, bean);
+		Object wrappedBean = bean;
+		if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
+		}
+		invokeInitMethods(beanName, wrappedBean, mbd);{
+			boolean isInitializingBean = (bean instanceof InitializingBean);
+			if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("afterPropertiesSet"))) {
+				((InitializingBean) bean).afterPropertiesSet();
+			}
+			if (mbd != null) {
+				String initMethodName = mbd.getInitMethodName();
+				if (initMethodName != null && !(isInitializingBean && "afterPropertiesSet".equals(initMethodName)) &&
+						!mbd.isExternallyManagedInitMethod(initMethodName)) {
+					invokeCustomInitMethod(beanName, bean, mbd);
+				}
+			}
+		}
+		if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);//may be wrapIfNecessary to create proxy (AbstractAutoProxyCreator)
+		}
+		return wrappedBean;
+	}
+	//if require type is int, it will return Integer
+	//value is always String, parsed by beanDefinitionParser or AutowiredAnnotationBeanPostProcessor
+	//convertIfNecessary has three format
+	TypeConverter.convertIfNecessary(TypeConverterSupport){
+		doConvert(Object value, Class<T> requiredType, MethodParameter methodParam, Field field){
+			if field is not null
+			return this.typeConverterDelegate.convertIfNecessary(value, requiredType, field){
+				return convertIfNecessary(null, null, value, requiredType,
+				(field != null ? new TypeDescriptor(field) : TypeDescriptor.valueOf(requiredType)));{
+					//convertedValue is the value to be converted
+					PropertyEditor editor = this.propertyEditorRegistry.findCustomEditor(requiredType, propertyName);
+					ConversionFailedException firstAttemptEx = null;
+					ConversionService conversionService = this.propertyEditorRegistry.getConversionService();
+					// No custom editor but custom ConversionService specified
+					if (editor == null && conversionService != null && convertedValue != null && typeDescriptor != null){
+						return (T) conversionService.convert
+					}
+					
+					//Value not of required type or has editor
+					if (editor != null || (requiredType != null && !ClassUtils.isAssignableValue(requiredType, convertedValue)) ){
+						if requiredType is Collection and convertedValue is String
+							turn convertedValue into String array
+						if (editor == null) {
+							editor = findDefaultEditor(requiredType);{
+								if (requiredType != null) {
+									// No custom editor -> check BeanWrapperImpl's default editors.
+									editor = this.propertyEditorRegistry.getDefaultEditor(requiredType);//type mapped to editor
+									if (editor == null && !String.class.equals(requiredType)) {
+										// No BeanWrapper default editor -> check standard JavaBean editor.
+										editor = BeanUtils.findEditorByConvention(requiredType);{
+											String editorName = targetType.getName() + "Editor";
+											Class<?> editorClass = cl.loadClass(editorName);
+											if (!PropertyEditor.class.isAssignableFrom(editorClass)) {
+												unknownEditorTypes.put(targetType, Boolean.TRUE);
+												return null;
+											}
+											return (PropertyEditor) instantiateClass(editorClass);
+										}
+									}
+								}
+							}
+						}
+						convertedValue = doConvertValue(oldValue, convertedValue, requiredType, editor){
+							
+							deal with situation convertedValue is not a String(no return statement)
+							
+							if convertedValue instanceof String{
+								if (editor != null) {
+									String newTextValue = (String) convertedValue;
+									return doConvertTextValue(oldValue, newTextValue, editor);{
+										editor.setValue(oldValue);
+										editor.setAsText(newTextValue);
+										return editor.getValue();
+									}
+								}
+								else if (String.class.equals(requiredType)) {
+									returnValue = convertedValue;
+								}
+							}
+							return returnValue;							
+						}
+					}
+					//always skipp the following rules
+					if (requiredType != null) {
+						// Try to apply some standard type conversion rules if appropriate.
+						if (convertedValue != null) {
+							if (Object.class.equals(requiredType)) {
+								return (T) convertedValue;
+							}
+							if (requiredType.isArray()) {
+								convertToTypedArray {
+									get componentType, no need to call getElementTypeDescriptor
+								}
+							}else if (convertedValue instanceof Collection) {
+								convertToTypedCollection  {
+									TypeDescriptor elementType = typeDescriptor.getElementTypeDescriptor();{
+										ResolvableType.getGenerics();
+									}
+									Iterator<?> it = original.iterator();
+									for (; it.hasNext(); i++) {
+										String indexedPropertyName = buildIndexedPropertyName(propertyName, i);
+										Object convertedElement = convertIfNecessary(indexedPropertyName, null, element,
+											(elementType != null ? elementType.getType() : null) , elementType);
+									}
+								}
+							}else if (convertedValue instanceof Map) {
+								convertToTypedMap {
+									similar to convertToTypedCollection
+								}
+							}
+							if (convertedValue.getClass().isArray() && Array.getLength(convertedValue) == 1) {
+								convertedValue = Array.get(convertedValue, 0);
+							}
+							if (String.class.equals(requiredType) && ClassUtils.isPrimitiveOrWrapper(convertedValue.getClass())) {
+								// We can stringify any primitive value...
+								return (T) convertedValue.toString();
+							}
+							else if (convertedValue instanceof String && !requiredType.isInstance(convertedValue)) {
+								if (firstAttemptEx == null && !requiredType.isInterface() && !requiredType.isEnum()) {
+									Constructor<T> strCtor = requiredType.getConstructor(String.class);
+									return BeanUtils.instantiateClass(strCtor, convertedValue);//why return string object ???
+								}
+								String trimmedValue = ((String) convertedValue).trim();
+								if (requiredType.isEnum() && "".equals(trimmedValue)) {
+									// It's an empty enum identifier: reset the enum value to null.
+									return null;
+								}
+								convertedValue = attemptToConvertStringToEnum(requiredType, trimmedValue, convertedValue);
+							}
+						}
+					}
+					return (T) convertedValue;
+				}
+			}else{
+				return this.typeConverterDelegate.convertIfNecessary(value, requiredType, methodParam);
+			}
+		}
+	}
+---------------------createBean end----------------------------------

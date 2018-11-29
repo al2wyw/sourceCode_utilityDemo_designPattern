@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer</OriginalElement>
+  <nodes>
+    <node x="456.75" y="170.0">org.springframework.beans.factory.config.PropertyOverrideConfigurer</node>
+    <node x="300.0" y="255.0">org.springframework.context.support.PropertySourcesPlaceholderConfigurer</node>
+    <node x="449.25" y="0.0">org.springframework.beans.factory.config.BeanFactoryPostProcessor</node>
+    <node x="0.0" y="340.0">org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer</node>
+    <node x="12.0" y="255.0">org.springframework.beans.factory.config.PropertyPlaceholderConfigurer</node>
+    <node x="317.75" y="85.0">org.springframework.beans.factory.config.PropertyResourceConfigurer</node>
+    <node x="207.25" y="0.0">org.springframework.core.io.support.PropertiesLoaderSupport</node>
+    <node x="172.75" y="170.0">org.springframework.beans.factory.config.PlaceholderConfigurerSupport</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.beans.factory.config.PropertyOverrideConfigurer" target="org.springframework.beans.factory.config.PropertyResourceConfigurer">
+      <point x="0.0" y="-17.5" />
+      <point x="578.75" y="145.0" />
+      <point x="503.75" y="145.0" />
+      <point x="62.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.PlaceholderConfigurerSupport" target="org.springframework.beans.factory.config.PropertyResourceConfigurer">
+      <point x="0.0" y="-17.5" />
+      <point x="304.75" y="145.0" />
+      <point x="379.75" y="145.0" />
+      <point x="-62.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.PropertyResourceConfigurer" target="org.springframework.core.io.support.PropertiesLoaderSupport">
+      <point x="-62.0" y="-17.5" />
+      <point x="379.75" y="60.0" />
+      <point x="318.25" y="60.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" target="org.springframework.beans.factory.config.PlaceholderConfigurerSupport">
+      <point x="0.0" y="-17.5" />
+      <point x="146.0" y="230.0" />
+      <point x="238.75" y="230.0" />
+      <point x="-66.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.PropertyResourceConfigurer" target="org.springframework.beans.factory.config.BeanFactoryPostProcessor">
+      <point x="62.0" y="-17.5" />
+      <point x="503.75" y="60.0" />
+      <point x="565.25" y="60.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.context.support.PropertySourcesPlaceholderConfigurer" target="org.springframework.beans.factory.config.PlaceholderConfigurerSupport">
+      <point x="0.0" y="-17.5" />
+      <point x="463.5" y="230.0" />
+      <point x="370.75" y="230.0" />
+      <point x="66.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer" target="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.8147762747138397" x="470.5" y="190.69731800766283" />
+  <SelectedNodes>
+    <node>org.springframework.context.support.PropertySourcesPlaceholderConfigurer</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

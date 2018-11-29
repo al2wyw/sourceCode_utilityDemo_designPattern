@@ -55,6 +55,7 @@ dynamic method matcher match twice (the second time to match the real arguments)
 AbstractAspectJAdvice has property method, my defined advise will be a property of AfterReturningAdviceInterceptor or MethodBeforeAdviceInterceptor or ThrowsAdviceInterceptor
 AbstractAspectJAdvice has five subclass, AspectJAfterReturningAdvice and AspectJMethodBeforeAdvice do not implement MethodInterceptor will be the property of AfterReturningAdviceInterceptor or MethodBeforeAdviceInterceptor
 
+ScopedProxyMode: INTERFACES(JDK), TARGET_CLASS(CGLIB)
 aop:config -> ConfigBeanDefinitionParser -> AspectJAwareAdvisorAutoProxyCreator
 aop:aspectj-autoproxy(proxy-target-class=false){include(name="")} -> AspectJAutoProxyBeanDefinitionParser -> AnnotationAwareAspectJAutoProxyCreator
 aop:scoped-proxy(proxy-target-class=true) -> ScopedProxyBeanDefinitionDecorator add ScopedProxyFactoryBean to replace the original bean, it returns a proxy and the proxy has SimpleBeanTargetSource.getTarget to retrieve the origianl bean from beanfactory.

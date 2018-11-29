@@ -12,7 +12,7 @@
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"
 >
-	<context:component-scan base-package="com.test,com.aop,com.transaction"/>
+	<context:component-scan base-package="com.test,com.aop,com.transaction,com.bridgemethod"/>
 	<context:load-time-weaver/>
 
 	<bean id="autowireByNameTester" class="com.test.autowireByNameTester" autowire="byName">
@@ -21,6 +21,11 @@
 
 	<bean id="autowire" class="com.test.testAutowireByNameWire"/>
 	<bean id="autoproperty" class="com.test.testAutowireByNameProptery"/>
+
+	<bean id="propertiesInjectTest" class="com.test.PropertiesInjectTest" autowire="byType">
+		<property name="testScopedProxy" ref="testScopedProxy"/>
+		<!--<property name="lazyWithoutAOP" ref="lazyWithoutAOP"/>-->
+	</bean>
 	
 	<bean id="testScopedProxy" class="com.test.testScopedProxy" scope="request">
 	<aop:scoped-proxy/>

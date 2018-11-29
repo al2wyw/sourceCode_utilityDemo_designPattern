@@ -1,0 +1,607 @@
+/** Resolver to use for checking if a bean definition is an autowire candidate */
+private AutowireCandidateResolver autowireCandidateResolver = new SimpleAutowireCandidateResolver();
+
+QualifierAnnotationAutowireCandidateResolver deal with Value and Qualifier, addQualifierType to add the other annotation type
+
+resolveDependency is the important function for autowire
+
+AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProcessor/MergedBeanDefinitionPostProcessor (Value & Autowired)
+	//used by autowireConstructor of AbstractAutowireCapableBeanFactory, autowireConstructor use ConstructorResolver to find the constructor
+	determineCandidateConstructors(Class<?> beanClass, String beanName){
+		if (!this.lookupMethodsChecked.contains(beanName)) {
+			ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {// doWithMethods get all the declared methods including super class
+				@Override
+				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+					Lookup lookup = method.getAnnotation(Lookup.class);
+					if (lookup != null) {
+						LookupOverride override = new LookupOverride(method, lookup.value());
+						RootBeanDefinition mbd = (RootBeanDefinition) beanFactory.getMergedBeanDefinition(beanName);
+						mbd.getMethodOverrides().addOverride(override);
+					}
+				}
+			});
+			this.lookupMethodsChecked.add(beanName);
+		}
+		//there must be one requiredConstructor and one defaultConstructor
+		rawCandidates = beanClass.getDeclaredConstructors();
+		List<Constructor<?>> candidates = new ArrayList<Constructor<?>>(rawCandidates.length);
+		for (Constructor<?> candidate : rawCandidates) {
+			AnnotationAttributes annotation = findAutowiredAnnotation(candidate);
+			if (ann == null) {
+				Class<?> userClass = ClassUtils.getUserClass(beanClass);//get original class if current is cglib generated class
+				if (userClass != beanClass) {
+					Constructor<?> superCtor = userClass.getDeclaredConstructor(candidate.getParameterTypes());
+					ann = findAutowiredAnnotation(superCtor);
+				}
+			}
+			if (ann != null) {
+				boolean required = determineRequiredStatus(ann);
+				if (required) requiredConstructor = candidate;
+				candidates.add(candidate);
+			}else if (candidate.getParameterTypes().length == 0) {
+				defaultConstructor = candidate;
+			}
+		}
+		if (!candidates.isEmpty()) {
+			// Add default constructor to list of optional constructors, as fallback.
+			if (requiredConstructor == null) {
+				if (defaultConstructor != null) {
+					candidates.add(defaultConstructor);
+				}
+			}
+			candidateConstructors = candidates.toArray(new Constructor<?>[candidates.size()]);
+		}
+		else if (rawCandidates.length == 1 && rawCandidates[0].getParameterTypes().length > 0) {
+			candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
+		}
+		else {
+			candidateConstructors = new Constructor<?>[0];
+		}
+		this.candidateConstructorsCache.put(beanClass, candidateConstructors);
+		return candidateConstructors;
+	}
+	
+	findAutowiredAnnotation(AccessibleObject candidate){
+		//autowiredAnnotationTypes has Autowired, Value.
+		for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
+			AnnotationAttributes annotation = AnnotatedElementUtils.getAnnotationAttributes(candidate, type.getName());{
+				//dealwith @AliasFor, 可以搜索@AliasFor的用法，感觉用处不大
+				AnnotationAttributes attributes = searchWithGetSemantics(element, annotationType, null, new MergedAnnotationAttributesProcessor());
+				AnnotationUtils.postProcessAnnotationAttributes(element, attributes, false, false);
+				return attributes;
+			}
+			if (annotation != null) return annotation;
+		}
+		return null;
+	}
+	
+	postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName){
+		InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType){
+			String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
+			InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
+			if metadata == null{
+				metadata = buildAutowiringMetadata(clazz){
+					do {
+						for (Field field : targetClass.getDeclaredFields()) {
+							AnnotationAttributes annotation = findAutowiredAnnotation(field);
+							if (Modifier.isStatic(field.getModifiers()))
+								continue;
+							boolean required = determineRequiredStatus(annotation);
+							currElements.add(new AutowiredFieldElement(field, required));
+						}
+						for (Method method : targetClass.getDeclaredMethods()) {
+							//return the original bridgedMethod of bridge method or current method if current not bridge method
+							Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+							//'visibility' bridge method: parametersTypes and returnType all the same
+							if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
+								continue;
+							}
+							AnnotationAttributes annotation = findAutowiredAnnotation(bridgedMethod);
+							if (annotation != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
+								if (Modifier.isStatic(method.getModifiers()))
+									continue;
+								boolean required = determineRequiredStatus(annotation);
+								PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod){
+									PropertyDescriptor[] pds = getPropertyDescriptors(method.getDeclaringClass());
+									for (PropertyDescriptor pd : pds) {
+										if (method.equals(pd.getReadMethod()) || method.equals(pd.getWriteMethod())) {
+											return pd;
+										}
+									}
+									return null;
+								}
+								currElements.add(new AutowiredMethodElement(method, required, pd));
+							}
+						}
+						elements.addAll(0, currElements);
+						targetClass = targetClass.getSuperclass();
+					}while (targetClass != null && targetClass != Object.class);
+					return new InjectionMetadata(clazz, elements);
+				}
+				this.injectionMetadataCache.put(cacheKey, metadata);
+			}
+		}
+		//checkedElements will be injected later
+		metadata.checkConfigMembers(beanDefinition);{
+			for (InjectedElement element : this.injectedElements) {
+				Member member = element.getMember();
+				if (!beanDefinition.isExternallyManagedConfigMember(member)) {
+					beanDefinition.registerExternallyManagedConfigMember(member);
+					checkedElements.add(element);
+				}
+			}
+			this.checkedElements = checkedElements;	
+		}
+	}
+	
+	postProcessPropertyValues(PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName){
+		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass());
+		metadata.inject(bean, beanName, pvs){
+			Collection<InjectedElement> elementsToIterate = (this.checkedElements != null ? this.checkedElements : this.injectedElements);
+			for (InjectedElement element : elementsToIterate) {
+				element.inject(bean, beanName, pvs){
+				AutowiredFieldElement{
+					if (this.cached) {
+						value = resolvedCachedArgument(beanName, this.cachedFieldValue){
+							if (cachedArgument instanceof DependencyDescriptor) {
+								DependencyDescriptor descriptor = (DependencyDescriptor) cachedArgument;
+								return this.beanFactory.resolveDependency(descriptor, beanName, null, null);
+							}else if (cachedArgument instanceof RuntimeBeanReference) {
+								return this.beanFactory.getBean(((RuntimeBeanReference) cachedArgument).getBeanName());
+							}else {
+								return cachedArgument;
+							}
+						}
+					}else {
+						DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+						desc.setContainingClass(bean.getClass());
+						//value can be bean, primitive value, DependencyObjectFactory and DependencyProvider
+						value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
+						//setup cachedFieldValue
+						if (!this.cached) {
+							if (value != null || this.required) {
+								this.cachedFieldValue = desc;
+								registerDependentBeans(beanName, autowiredBeanNames);//Register the specified beanName as dependent(依赖他人者)
+								if (autowiredBeanNames.size() == 1) {
+									String autowiredBeanName = autowiredBeanNames.iterator().next();
+									if (beanFactory.containsBean(autowiredBeanName)) {
+										if (beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+											this.cachedFieldValue = new ShortcutDependencyDescriptor(
+													desc, autowiredBeanName, field.getType());
+										}
+									}
+								}
+							}else {
+								this.cachedFieldValue = null;
+							}
+							this.cached = true;
+						}
+					}
+					if (value != null) {
+						ReflectionUtils.makeAccessible(field);
+						field.set(bean, value);
+					}
+				}
+				AutowiredMethodElement{
+					if (checkPropertySkipping(pvs)) //if explicit property value having been specified within pvs, skip the injection
+						return;
+					Method method = (Method) this.member;
+					if (this.cached) {
+						//call beanFactory.resolveDependency(descriptor, beanName, null, null); to resolve cachedMethodArguments
+						arguments = resolveCachedArguments(beanName);
+					}else{
+						Class<?>[] paramTypes = method.getParameterTypes();
+						arguments = new Object[paramTypes.length];
+						DependencyDescriptor[] descriptors = new DependencyDescriptor[paramTypes.length];
+						Set<String> autowiredBeans = new LinkedHashSet<String>(paramTypes.length);
+						TypeConverter typeConverter = beanFactory.getTypeConverter();
+						for (int i = 0; i < arguments.length; i++) { // all parameters will be resolved even if no annotation on it
+							MethodParameter methodParam = new MethodParameter(method, i);
+							DependencyDescriptor currDesc = new DependencyDescriptor(methodParam, this.required);
+							currDesc.setContainingClass(bean.getClass());
+							descriptors[i] = currDesc;
+							
+							Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
+							if (arg == null && !this.required) {
+								arguments = null;
+								break;
+							}
+							arguments[i] = arg;
+						}
+						//setup cachedMethodArguments
+						if (!this.cached) {
+							if (arguments != null) {
+								this.cachedMethodArguments = new Object[paramTypes.length];
+								for (int i = 0; i < arguments.length; i++) {
+									this.cachedMethodArguments[i] = descriptors[i];
+								}
+								registerDependentBeans(beanName, autowiredBeans);
+								if (autowiredBeans.size() == paramTypes.length) {
+									Iterator<String> it = autowiredBeans.iterator();
+									for (int i = 0; i < paramTypes.length; i++) {
+										String autowiredBeanName = it.next();
+										if (beanFactory.containsBean(autowiredBeanName)) {
+											if (beanFactory.isTypeMatch(autowiredBeanName, paramTypes[i])) {
+												this.cachedMethodArguments[i] = new ShortcutDependencyDescriptor(
+														descriptors[i], autowiredBeanName, paramTypes[i]);
+											}
+										}
+									}
+								}
+							}else {
+								this.cachedMethodArguments = null;
+							}
+							this.cached = true;
+						}
+					}
+					if (arguments != null) {
+						ReflectionUtils.makeAccessible(method);
+						method.invoke(bean, arguments);
+					}
+				}
+				}
+			}
+		}
+	}
+	ContextAnnotationAutowireCandidateResolver.isLazy(DependencyDescriptor descriptor){
+		for (Annotation ann : descriptor.getAnnotations()) {
+			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
+			if (lazy != null && lazy.value()) return true;
+		}
+		MethodParameter methodParam = descriptor.getMethodParameter();
+		if (methodParam != null) {
+			Method method = methodParam.getMethod();
+			if (method == null || void.class == method.getReturnType()) {
+				Lazy lazy = AnnotationUtils.getAnnotation(methodParam.getAnnotatedElement(), Lazy.class);
+				if (lazy != null && lazy.value()) return true;
+			}
+		}
+		return false;
+	}
+	DefaultListableBeanFactory.resolveDependency(DependencyDescriptor descriptor, String beanName, Set<String> autowiredBeanNames, TypeConverter typeConverter){
+		deal with other descriptor.getDependencyType()
+		else{
+			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(descriptor, beanName){
+				if isLazy(descriptor){//@Lazy presents in descriptor's annotation
+					ContextAnnotationAutowireCandidateResolver.buildLazyResolutionProxy{
+						TargetSource ts = new TargetSource() {
+								... (ignore)
+								public Object getTarget() {
+									return beanFactory.doResolveDependency(descriptor, beanName, null, null);
+								}
+						}
+						ProxyFactory pf = new ProxyFactory();
+						pf.setTargetSource(ts);
+						Class<?> dependencyType = descriptor.getDependencyType();
+						if (dependencyType.isInterface()) {
+							pf.addInterface(dependencyType);
+						}
+						return pf.getProxy(beanFactory.getBeanClassLoader());
+					}
+				}
+			}
+			if result == null then
+			return doResolveDependency(descriptor, beanName, autowiredBeanNames, typeConverter){
+				Class<?> type = descriptor.getDependencyType();
+				Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);// get value of @Value
+				if value not null{
+					if value is String{
+						String strVal = resolveEmbeddedValue((String) value);{
+							for (StringValueResolver resolver : this.embeddedValueResolvers) {
+								//PropertySourcesPlaceholderConfigurer or PropertyPlaceholderConfigurer register different resolver to resolve the placeholder
+								result = resolver.resolveStringValue(result);
+							}
+							return result;
+						}
+						BeanDefinition bd = (beanName != null && containsBean(beanName) ? getMergedBeanDefinition(beanName) : null);
+						value = evaluateBeanDefinitionString(strVal, bd)(AbstractBeanFactory){
+							//call expression resolver to resolve the value to expression
+							return evaluate(StandardBeanExpressionResolver){
+								//SpelExpressionParser
+								expr = this.expressionParser.parseExpression(value, this.beanExpressionParserContext);{
+									if (context.isTemplate()) {
+										//always go this way
+										return parseTemplate(expressionString, context);
+									}else {
+										return doParseExpression(expressionString, context);
+									}
+								}
+								this.expressionCache.put(value, expr);
+								//several PropertyAccessor to get value from different source, BeanFactoryAccessor to get bean from the beanfactory
+								setup the StandardEvaluationContext and put it into evaluationCache
+								return expr.getValue(sec){
+									too complex ???
+									//CompoundExpression with PropertyOrFieldReference and Indexer for list,map,property: props['abc']
+									//CompoundExpression with PropertyOrFieldReference and MethodReference for function calling: config.getTheTestIfExist('test')
+								}
+							}
+						}
+					}
+					TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
+					return converter.convertIfNecessary(value, type, descriptor.getField());
+				}
+				Object multipleBeans = resolveMultipleBeans(descriptor, beanName, autowiredBeanNames, typeConverter){
+					Class<?> type = descriptor.getDependencyType();
+					if (type.isArray()) {
+						to get componentType of type
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, componentType, new MultiElementDescriptor(descriptor));
+						if (autowiredBeanNames != null) {
+							autowiredBeanNames.addAll(matchingBeans.keySet());
+						}
+						TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
+						Object result = converter.convertIfNecessary(matchingBeans.values(), type);
+						if (this.dependencyComparator != null && result instanceof Object[]) {
+							Arrays.sort((Object[]) result, this.dependencyComparator);
+						}
+						return result;
+					}else if (Collection.class.isAssignableFrom(type) && type.isInterface()) {
+						to get elementType of type
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, elementType, new MultiElementDescriptor(descriptor));
+						if (autowiredBeanNames != null) {
+							autowiredBeanNames.addAll(matchingBeans.keySet());
+						}
+						TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
+						Object result = converter.convertIfNecessary(matchingBeans.values(), type);
+						if (this.dependencyComparator != null && result instanceof List) {
+							Collections.sort((List<?>) result, this.dependencyComparator);
+						}
+						return result;
+					}else  if (Map.class.isAssignableFrom(type) && type.isInterface()) {
+						to get keyType of type as map
+						if (keyType == null || !String.class.isAssignableFrom(keyType)) {
+							return null;
+						}
+						to get valueType of type as map
+						Map<String, Object> matchingBeans = findAutowireCandidates(beanName, valueType, new MultiElementDescriptor(descriptor));
+						if (autowiredBeanNames != null) {
+							autowiredBeanNames.addAll(matchingBeans.keySet());
+						}
+						return matchingBeans;
+					}else {
+						return null;
+					}
+				}
+				if (multipleBeans != null) {
+					return multipleBeans;
+				}
+				Map<String, Object> matchingBeans = findAutowireCandidates(beanName, type, descriptor);
+				if (matchingBeans.isEmpty()) {
+					if (descriptor.isRequired()) {
+						raiseNoSuchBeanDefinitionException(type, "", descriptor);
+					}
+					return null; // default is null
+				}
+				if (matchingBeans.size() > 1) {
+					autowiredBeanName = determineAutowireCandidate(matchingBeans, descriptor);{
+						determinePrimaryCandidate // @Primary
+						determineHighestPriorityCandidate //@Priority
+						this.resolvableDependencies.containsValue(beanInstance) || matchesBeanName(candidateName, descriptor.getDependencyName())
+					}
+					if (autowiredBeanName == null) {
+						if (isRequired(descriptor) || !indicatesMultipleBeans(type)) { // indicates type is array or collection or map 
+							throw exception
+						} else {
+							return null; // MultipleBeans can be null
+						}
+					}
+					instanceCandidate = matchingBeans.get(autowiredBeanName);
+				}else{
+					// We have exactly one match.
+					Map.Entry<String, Object> entry = matchingBeans.entrySet().iterator().next();
+					autowiredBeanName = entry.getKey();
+					instanceCandidate = entry.getValue();
+				}
+				if (autowiredBeanNames != null) {
+					autowiredBeanNames.add(autowiredBeanName);
+				}
+				return (instanceCandidate instanceof Class ?
+						descriptor.resolveCandidate(autowiredBeanName, type, this) : instanceCandidate);
+			}
+		}
+	}
+	
+	DefaultListableBeanFactory.findAutowireCandidates(String beanName, Class<?> requiredType, DependencyDescriptor descriptor){
+		String[] candidateNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors
+		
+		//resolvableDependencies contains BeanFactory.class, ResourceLoader.class, ApplicationEventPublisher.class, ApplicationContext.class and so on
+		for (Class<?> autowiringType : this.resolvableDependencies.keySet()) {
+			if (autowiringType.isAssignableFrom(requiredType)) {
+				Object autowiringValue = this.resolvableDependencies.get(autowiringType);
+				autowiringValue = AutowireUtils.resolveAutowiringValue(autowiringValue, requiredType);//resolve ObjectFactory value to its actual object result
+				if (requiredType.isInstance(autowiringValue)) {
+					result.put(ObjectUtils.identityToString(autowiringValue), autowiringValue);
+					break;
+				}
+			}
+		}
+		for (String candidateName : candidateNames) {
+			//isAutowireCandidate will call AutowireCandidateResolver.isAutowireCandidate and then call AutowireCandidateResolver.checkQualifiers to deal with Qualifier.
+			if (!isSelfReference(beanName,candidateName) && isAutowireCandidate(candidateName, descriptor)) {
+				addCandidateEntry(result, candidateName, descriptor, requiredType);{
+					if (descriptor instanceof MultiElementDescriptor || containsSingleton(candidateName)) {
+						result.put(candidateName, descriptor.resolveCandidate(candidateName, requiredType, this));
+					}else {
+						result.put(candidateName, getType(candidateName));
+					}
+				}
+			}
+		}
+		//For a fallback match
+		if (result.isEmpty() && !indicatesMultipleBeans(requiredType)) {
+			DependencyDescriptor fallbackDescriptor = descriptor.forFallbackMatch();// fallbackMatchAllowed return true
+			for (String candidateName : candidateNames) {
+				if (!isSelfReference(beanName,candidateName) && isAutowireCandidate(candidateName, fallbackDescriptor)) {
+					addCandidateEntry(result, candidateName, descriptor, requiredType);
+				}
+			}
+			if (result.isEmpty()) {
+				// Consider self references as a final pass... but in the case of a dependency collection, not the very same bean itself. ???
+				for (String candidate : candidateNames) {
+					if (isSelfReference(beanName, candidate) &&
+							(!(descriptor instanceof MultiElementDescriptor) || !beanName.equals(candidate)) &&
+							isAutowireCandidate(candidate, fallbackDescriptor)) {
+						addCandidateEntry(result, candidate, descriptor, requiredType);
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	DefaultListableBeanFactory.isAutowireCandidate(String beanName, DependencyDescriptor descriptor, AutowireCandidateResolver resolver){
+		if (containsBeanDefinition(beanDefinitionName)) {
+			return isAutowireCandidate(beanName, getMergedLocalBeanDefinition(beanDefinitionName), descriptor, resolver);
+			{
+				resolveBeanClass(mbd, beanDefinitionName);
+				if (mbd.isFactoryMethodUnique) {//for @Bean not static method
+					if (mbd.resolvedConstructorOrFactoryMethod == null) {
+						new ConstructorResolver(this).resolveFactoryMethodIfPossible(mbd);//try to resolve FactoryMethod
+					}
+				}
+				return resolver.isAutowireCandidate(new BeanDefinitionHolder(mbd, beanName, getAliases(beanDefinitionName)), descriptor);{
+					boolean match = super.isAutowireCandidate(bdHolder, descriptor){
+						//private boolean autowireCandidate = true; component scanner can setup autowireCandidatePatterns to reset autowireCandidate
+						if (!bdHolder.getBeanDefinition().isAutowireCandidate()) {
+							return false;
+						}
+						//if No generic type, it will return true
+						return (descriptor == null || checkGenericTypeMatch(bdHolder, descriptor));
+					}
+					if (match && descriptor != null) {
+						//descriptor.getAnnotations() returns field's annotations or methodParameter's annotations
+						//getParameterAnnotations of reflect
+						match = checkQualifiers(bdHolder, descriptor.getAnnotations());
+						if (match) {
+							MethodParameter methodParam = descriptor.getMethodParameter();
+							//Why we do this (Qualifier can be used on method and parameters)
+							if (methodParam != null) {
+								Method method = methodParam.getMethod();
+								//Constructor parameters or void method
+								if (method == null || void.class.equals(method.getReturnType())) {
+									//methodParam.getMethodAnnotations() returns all annotations of method/constructor
+									//getAnnotations of reflect
+									match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
+								}
+							}
+						}
+					}
+					return match;
+				}
+			}
+		}else if (containsSingleton(beanName)) {
+			//the same function as above
+			return isAutowireCandidate(beanName, new RootBeanDefinition(getType(beanName)), descriptor, resolver);
+		}else if (getParentBeanFactory() instanceof DefaultListableBeanFactory) {
+			// No bean definition found in this factory -> delegate to parent.
+			return ((DefaultListableBeanFactory) getParentBeanFactory()).isAutowireCandidate(beanName, descriptor, resolver);
+		}else if (getParentBeanFactory() instanceof ConfigurableListableBeanFactory) {
+			// If no DefaultListableBeanFactory, can't pass the resolver along.
+			return ((ConfigurableListableBeanFactory) getParentBeanFactory()).isAutowireCandidate(beanName, descriptor);
+		}else {
+			return true;
+		}
+	}
+	
+	checkQualifiers(BeanDefinitionHolder bdHolder, Annotation[] annotationsToSearch){
+		for (Annotation annotation : annotationsToSearch) {
+			Class<? extends Annotation> type = annotation.annotationType();
+			boolean checkMeta = true; //check annotation type's annotation
+			boolean fallbackToMeta = false; //accept fallback match
+			if type in this.qualifierTypes {
+				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
+					fallbackToMeta = true;
+				}else {
+					checkMeta = false;
+				}
+			}
+			if (checkMeta) {
+				for (Annotation metaAnn : type.getAnnotations()) {
+					Class<? extends Annotation> metaType = metaAnn.annotationType();
+					if metaType in this.qualifierTypes {
+						foundMeta = true;
+						// Only accept fallback match if @Qualifier annotation has a value
+						// and then check qualifier match
+						if ((fallbackToMeta && StringUtils.isEmpty(AnnotationUtils.getValue(metaAnn))) ||
+								!checkQualifier(bdHolder, metaAnn, typeConverter)) {
+							return false;
+						}
+					}
+				}
+				if (fallbackToMeta && !foundMeta) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	QualifierAnnotationAutowireCandidateResolver.checkQualifier(BeanDefinitionHolder bdHolder, Annotation annotation, TypeConverter typeConverter){
+		Class<? extends Annotation> type = annotation.annotationType();
+		//<qualifier> within <Bean> will register qualifier to bd
+		AutowireCandidateQualifier qualifier = bd.getQualifier(type.getName());
+		if (qualifier == null) {
+			qualifier = bd.getQualifier(ClassUtils.getShortName(type));
+		}
+		//bd has no <qualifier>
+		if (qualifier == null) {
+			Annotation targetAnnotation = getQualifiedElementAnnotation(bd, type);// check annotation on qualifiedElement ???
+			if (targetAnnotation == null) {
+				targetAnnotation = getFactoryMethodAnnotation(bd, type);// check annotation on factory method, @Qualifier with @Bean
+			}
+			if (targetAnnotation == null) {
+				RootBeanDefinition dbd = getResolvedDecoratedDefinition(bd);// getMergedBeanDefinition(rbd.getDecoratedDefinition().getBeanName);
+				if (dbd != null) {
+					targetAnnotation = getFactoryMethodAnnotation(dbd, type);
+				}
+			}
+			if (targetAnnotation == null) {
+				// Look for matching annotation on the target class
+				if (getBeanFactory() != null) {
+					Class<?> beanType = getBeanFactory().getType(bdHolder.getBeanName());
+					if (beanType != null) {
+						targetAnnotation = AnnotationUtils.getAnnotation(ClassUtils.getUserClass(beanType), type);
+					}
+				}
+				if (targetAnnotation == null && bd.hasBeanClass()) {
+					targetAnnotation = AnnotationUtils.getAnnotation(ClassUtils.getUserClass(bd.getBeanClass()), type);
+				}
+			}
+			//just use equals, much easier than the xml qualifier
+			if (targetAnnotation != null && targetAnnotation.equals(annotation)) {
+				return true;
+			}
+		}
+		//use xml qualifier, much more trivial
+		Map<String, Object> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
+		for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+			String attributeName = entry.getKey();
+			Object expectedValue = entry.getValue();
+			Object actualValue = null;
+			if (qualifier != null) {
+				actualValue = qualifier.getAttribute(attributeName);
+			}
+			if (actualValue == null) {// Fall back on bean definition attribute
+				actualValue = bd.getAttribute(attributeName);
+			}
+			if (actualValue == null && attributeName.equals(AutowireCandidateQualifier.VALUE_KEY) &&
+					expectedValue instanceof String && bdHolder.matchesName((String) expectedValue)) {// Fall back on bean name (or alias) match
+				continue;
+			}
+			if (actualValue == null && qualifier != null) {// Fall back on default, but only if the qualifier is present
+				actualValue = AnnotationUtils.getDefaultValue(annotation, attributeName);
+			}
+			if (actualValue != null) {
+				actualValue = typeConverter.convertIfNecessary(actualValue, expectedValue.getClass());
+			}
+			if (!expectedValue.equals(actualValue)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBeanPostProcessor/MergedBeanDefinitionPostProcessor (Resource & PostConstruct & PreDestroy)
+CommonAnnotationBeanPostProcessor somehow the same as AutowiredAnnotationBeanPostProcessor
+inject at postProcessPropertyValues
+init at postProcessBeforeInitialization
+destroy at postProcessBeforeDestruction
+checkConfigMembers at postProcessMergedBeanDefinition: registerExternallyManagedInitMethod  & registerExternallyManagedDestroyMethod
