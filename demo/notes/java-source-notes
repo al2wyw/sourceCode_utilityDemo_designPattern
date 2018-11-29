@@ -634,9 +634,9 @@ MagicAccessorImpl
 	-> NativeConstructorAccessorImpl
 	-> BootstrapConstructorAccessorImpl
 	
-annotation数据(raw byte array RawAnnotations AnnotationParser)放到了attribute里面，generic数据(String)放到了signature里面(AST subtree visitor)
-annotatedType数据(raw byte array RawTypeAnnotations TypeAnnotationParser)放到了attribute里面
-Type,AnnotatedType都有对应的impl, CoreReflectionFactory(GenericsFactory), AnnotatedTypeFactory
+annotation数据(raw byte array RawAnnotations)放到了attribute里面(AnnotationParser会解析)，generic数据(String)放到了signature里面(AST subtree visitor)
+annotatedType数据(raw byte array RawTypeAnnotations)放到了attribute里面(TypeAnnotationParser会解析)
+Type,AnnotatedType都有对应的impl, 它们由CoreReflectionFactory(GenericsFactory), AnnotatedTypeFactory来生成
 AnnotationType 是对Annotation的抽象
 
 Proxy:

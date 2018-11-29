@@ -1,5 +1,7 @@
 package reflect;
 
+import annotation.Test;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -33,10 +35,11 @@ abstract class C<T> {
 }
 
 class D extends C<String> {
+	@Test
 	public String id(String x) {
 		return x;
 	}
-	//编译时根据模板C的方法多生成一个synthetic bridge 方法:
+	//编译时根据模板C的方法多生成一个synthetic bridge 方法(带@Test注解):
 	//Object id(Object x){ return id((String)x);}
 	//bridge方法的实现都是这个样子，cast后调用非bridge方法
 }
