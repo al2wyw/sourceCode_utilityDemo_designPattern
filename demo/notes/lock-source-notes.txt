@@ -395,7 +395,7 @@ Sync{
 					else if (rh.count == 0) -> readHolds.set(rh);
 					rh.count++
 				}
-				return 1;
+				return 1;z
 			}
 		}
 	}
@@ -430,6 +430,7 @@ ConcurrentHashMap进行锁segment，segment本身就是锁，写操作加锁，�
 1.8版本: HashMap和ConcurrentHashMap都使用数组作为数据存储，数据结构是一致的，同时对哈希碰撞元素进行红黑tree优化避免链表过长
 1.7版本: HashMap使用数组存储，ConcurrentHashMap使用Segment数组，每个Segment又使用数组存储数据
 1.7版本并发扩容死循环: 1. 扩容前两个元素在同一个slot, A -> B 2. 扩容后A, B 又rehash到同一个slot 3. 扩容时同一个slot的元素会反转 A -> B -> C 变成 C -> B -> A, 所以并发扩容时容易产生循环链表(关键代码在transfer)
+1.8版本capacity调整为2的n次方, 方便取模操作和扩容确定新的index: 1. (h ^ (h >>> 16)) 用高位与或低位，避免table的size太小时碰撞过多，因为取模就是直接 hash & size-1 代替取模操作, 只用到了hash的末尾几位 2. 扩容时 hash & size 为0则不需要移动，为1则新坐标为 index + oldCapacity 3. 扩容时同一个slot的元素保持顺序
 
 DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
 ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)
