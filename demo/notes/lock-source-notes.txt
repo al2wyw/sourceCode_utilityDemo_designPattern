@@ -429,6 +429,7 @@ ConcurrentHashMap进行锁node节点(链表的head或者树的root)，写操作�
 ConcurrentHashMap进行锁segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
 1.8版本: HashMap和ConcurrentHashMap都使用数组作为数据存储，数据结构是一致的，同时对哈希碰撞元素进行红黑tree优化避免链表过长
 1.7版本: HashMap使用数组存储，ConcurrentHashMap使用Segment数组，每个Segment又使用数组存储数据
+1.7版本并发扩容死循环: 1. 扩容前两个元素在同一个slot, A -> B 2. 扩容后A, B 又rehash到同一个slot 3. 扩容时同一个slot的元素会反转 A -> B -> C 变成 C -> B -> A, 所以并发扩容时容易产生循环链表(关键代码在transfer)
 
 DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
 ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)

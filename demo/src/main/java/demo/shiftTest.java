@@ -5,7 +5,9 @@ package demo;
  * User: johnny.ly
  * Date: 2017/1/3
  * Time: 16:44
- * Desc:
+ * Desc:  >>>运算符的操作数高位补0，而>>运算符的操作数高位移入原来高位的值
+ *        0异或任何数 ＝ 任何数, 1异或任何数 = 任何数取反
+ *        a = a^b^b, 可以用来交换两个变量的值
  */
 public class shiftTest {
 
@@ -18,6 +20,19 @@ public class shiftTest {
         double f =34.54D;
         f << 4; //can not apply to float
         */
+
+        byte i = (byte)32;
+        System.out.println(Integer.toBinaryString(i)+ " " + i);
+
+        //byte 会先转换成int再做左右移动，这里做了强转截取低8位
+        i = (byte)(i << 2);
+        System.out.println(Integer.toBinaryString(i) + " " + i);//i = -128
+        System.out.println(Byte.toUnsignedInt(i));
+
+        int j = i >>> 2;
+        System.out.println(Integer.toBinaryString(j) + " " + j);
+        j = i >> 2;
+        System.out.println(Integer.toBinaryString(j) + " " + j);
     }
 
     public static long doShiftI(int shift) {
