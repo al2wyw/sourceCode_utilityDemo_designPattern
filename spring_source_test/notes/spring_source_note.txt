@@ -24,6 +24,8 @@ Bug ? Indexer will change Properties to Map and get value from a Map. see getVal
 However, Properties has a default Properties which created by Properties(Properties default), when Properties can not get 
 the value, it will query from default Properties. Map will not do this!
 
+PathMatchingResourcePatternResolver 搭配 DefaultResourceLoader 解析获取到所有的Resource
+
 useful utils:
 org.springframework.beans.BeanUtils, org.springframework.util.ClassUtils
 

@@ -2,6 +2,7 @@ package com.test;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.lookup.LookupTest;
 import com.model.Information;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -95,6 +96,9 @@ public class testController implements BeanFactoryAware{
 
 	@Autowired
 	private test_aspectj_ltw test_aspectj_ltw;
+
+	@Autowired
+	private LookupTest lookupTest;
 	
 /*	@Autowired
 	public testController(test2 t2){
@@ -149,6 +153,8 @@ public class testController implements BeanFactoryAware{
 		son.test();
 
 		test_aspectj_ltw.test();
+
+		lookupTest.test();
 		
 		System.out.println("this works Jrebel test....");
 		
