@@ -13,4 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Lazy
 public class LazyWithoutAOP {
+    {
+        System.out.println(getClass() + " born");
+    }
 }

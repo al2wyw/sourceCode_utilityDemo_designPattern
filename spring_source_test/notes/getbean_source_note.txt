@@ -9,6 +9,7 @@ getBean Process Flow:
 4.3. postProcessMergedBeanDefinition
 ...
 
+earlyReference: createBean -> singletonFactories -> earlySingletonObjects
 addSingleton(String beanName, Object singletonObject) {
 		synchronized (this.singletonObjects) {
 			this.singletonObjects.put(beanName, (singletonObject != null ? singletonObject : NULL_OBJECT));

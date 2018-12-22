@@ -48,7 +48,7 @@ xml config can use placeholder anywhere: PropertySourcesPlaceholderConfigurer(do
 PropertySourcesPlaceholderConfigurer is priorityOrderedBeanFactoryPostProcessor !!!
 ConfigurationClassPostProcessor is priorityOrderedBeanDefinitionRegistryPostProcessor !!! go fisrt
 
-BeanMethodInterceptor ConstructorResolver ???
+ConstructorResolver ???
 
 DependencyDescriptor extends InjectionPoint:
 getAnnotations()(this.field.getAnnotations() or this.methodParameter.getParameterAnnotations()) 
@@ -199,15 +199,10 @@ AbstractApplicationContext.refresh(){
 				
 				//do not introduce the BeanDefinitionRegistryPostProcessor in the same group, otherwise it will be processed as the next group
 				String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);{
-					比较复杂 ???
 					if (!isConfigurationFrozen()  || type == null || !allowEagerInit) {
-						return doGetBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit){
-							// Check all bean definitions.
-							
-							// Check manually registered singletons.
-						}
+						return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
 					}
-					//check the cache and then call doGetBeanNamesForType and cache the result
+					check the cache and then call doGetBeanNamesForType and cache the result
 				}
 				for (String ppName : postProcessorNames) {
 					if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
@@ -358,6 +353,18 @@ AbstractApplicationContext.refresh(){
 
 	no resourceLoader? because AbstractApplicationContext extends DefaultResourceLoader!
 }
+	//finally call AbstractBeanFactory.isTypeMatch to match the type -> typeToMatch.isAssignableFrom(type) or typeToMatch.isInstance(beanInstance)
+	DefaultListableBeanFactory.doGetBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit){
+		比较复杂 ???
+		// Check all bean definitions.
+		for (String beanName : this.beanDefinitionNames) {
+		
+		}
+		// Check manually registered singletons.
+		for (String beanName : this.manualSingletonNames) {
+			
+		}
+	}
 
 	DefaultBeanDefinitionDocumentReader.parseDefaultElement(){												
 		importBeanDefinitionResource(DefaultBeanDefinitionDocumentReader);//IMPORT_ELEMENT

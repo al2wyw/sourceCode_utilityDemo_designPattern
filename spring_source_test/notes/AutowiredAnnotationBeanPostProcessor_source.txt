@@ -401,7 +401,8 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 	}
 	
 	DefaultListableBeanFactory.findAutowireCandidates(String beanName, Class<?> requiredType, DependencyDescriptor descriptor){
-		String[] candidateNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors
+		//getBeanNamesForType and getBeanNamesForType from parent factory
+		String[] candidateNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this, requiredType, true, descriptor.isEager());//includeNonSingletons=true
 		
 		//resolvableDependencies contains BeanFactory.class, ResourceLoader.class, ApplicationEventPublisher.class, ApplicationContext.class and so on
 		for (Class<?> autowiringType : this.resolvableDependencies.keySet()) {
@@ -419,6 +420,7 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 			if (!isSelfReference(beanName,candidateName) && isAutowireCandidate(candidateName, descriptor)) {
 				addCandidateEntry(result, candidateName, descriptor, requiredType);{
 					if (descriptor instanceof MultiElementDescriptor || containsSingleton(candidateName)) {
+						//resolveCandidate -> this.getBean(candidateName, requiredType)
 						result.put(candidateName, descriptor.resolveCandidate(candidateName, requiredType, this));
 					}else {
 						result.put(candidateName, getType(candidateName));
@@ -451,43 +453,6 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 	DefaultListableBeanFactory.isAutowireCandidate(String beanName, DependencyDescriptor descriptor, AutowireCandidateResolver resolver){
 		if (containsBeanDefinition(beanDefinitionName)) {
 			return isAutowireCandidate(beanName, getMergedLocalBeanDefinition(beanDefinitionName), descriptor, resolver);
-			{
-				resolveBeanClass(mbd, beanDefinitionName);
-				if (mbd.isFactoryMethodUnique) {//for @Bean not static method
-					if (mbd.resolvedConstructorOrFactoryMethod == null) {
-						new ConstructorResolver(this).resolveFactoryMethodIfPossible(mbd);//try to resolve FactoryMethod
-					}
-				}
-				return resolver.isAutowireCandidate(new BeanDefinitionHolder(mbd, beanName, getAliases(beanDefinitionName)), descriptor);{
-					boolean match = super.isAutowireCandidate(bdHolder, descriptor){
-						//private boolean autowireCandidate = true; component scanner can setup autowireCandidatePatterns to reset autowireCandidate
-						if (!bdHolder.getBeanDefinition().isAutowireCandidate()) {
-							return false;
-						}
-						//if No generic type, it will return true
-						return (descriptor == null || checkGenericTypeMatch(bdHolder, descriptor));
-					}
-					if (match && descriptor != null) {
-						//descriptor.getAnnotations() returns field's annotations or methodParameter's annotations
-						//getParameterAnnotations of reflect
-						match = checkQualifiers(bdHolder, descriptor.getAnnotations());
-						if (match) {
-							MethodParameter methodParam = descriptor.getMethodParameter();
-							//Why we do this (Qualifier can be used on method and parameters)
-							if (methodParam != null) {
-								Method method = methodParam.getMethod();
-								//Constructor parameters or void method
-								if (method == null || void.class.equals(method.getReturnType())) {
-									//methodParam.getMethodAnnotations() returns all annotations of method/constructor
-									//getAnnotations of reflect
-									match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
-								}
-							}
-						}
-					}
-					return match;
-				}
-			}
 		}else if (containsSingleton(beanName)) {
 			//the same function as above
 			return isAutowireCandidate(beanName, new RootBeanDefinition(getType(beanName)), descriptor, resolver);
@@ -501,7 +466,44 @@ AutowiredAnnotationBeanPostProcessor extends SmartInstantiationAwareBeanPostProc
 			return true;
 		}
 	}
-	
+	DefaultListableBeanFactory.isAutowireCandidate(String beanName, RootBeanDefinition mbd, DependencyDescriptor descriptor, AutowireCandidateResolver resolver){
+		String beanDefinitionName = BeanFactoryUtils.transformedBeanName(beanName);
+		resolveBeanClass(mbd, beanDefinitionName);
+		if (mbd.isFactoryMethodUnique) {//for @Bean not static method
+			if (mbd.resolvedConstructorOrFactoryMethod == null) {
+				new ConstructorResolver(this).resolveFactoryMethodIfPossible(mbd);//try to resolve FactoryMethod
+			}
+		}
+		return resolver.isAutowireCandidate(new BeanDefinitionHolder(mbd, beanName, getAliases(beanDefinitionName)), descriptor);{
+			boolean match = super.isAutowireCandidate(bdHolder, descriptor){
+				//private boolean autowireCandidate = true; component scanner can setup autowireCandidatePatterns to reset autowireCandidate
+				if (!bdHolder.getBeanDefinition().isAutowireCandidate()) {
+					return false;
+				}
+				//if No generic type, it will return true
+				return (descriptor == null || checkGenericTypeMatch(bdHolder, descriptor));
+			}
+			if (match && descriptor != null) {
+				//descriptor.getAnnotations() returns field's annotations or methodParameter's annotations
+				//getParameterAnnotations of reflect
+				match = checkQualifiers(bdHolder, descriptor.getAnnotations());
+				if (match) {
+					MethodParameter methodParam = descriptor.getMethodParameter();
+					//Why we do this (Qualifier can be used on method and parameters)
+					if (methodParam != null) {
+						Method method = methodParam.getMethod();
+						//Constructor parameters or void method
+						if (method == null || void.class.equals(method.getReturnType())) {
+							//methodParam.getMethodAnnotations() returns all annotations of method/constructor
+							//getAnnotations of reflect
+							match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
+						}
+					}
+				}
+			}
+			return match;
+		}
+	}
 	checkQualifiers(BeanDefinitionHolder bdHolder, Annotation[] annotationsToSearch){
 		for (Annotation annotation : annotationsToSearch) {
 			Class<? extends Annotation> type = annotation.annotationType();

@@ -486,7 +486,14 @@ ConfigurationClassEnhancer{
 			NoOp.INSTANCE
 	};
 	private static class BeanMethodInterceptor implements MethodInterceptor, ConditionalCallback {
-		... ???
-		// objenesis is used
+		get the target bean name from ScopedProxy if @Scope exists
+		deal with FactoryBean // objenesis is used
+		if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
+			// The factory is calling the bean method in order to instantiate and register the bean
+			// invoke the super implementation of the method to actually create the bean instance.
+			return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
+		}
+		//else get bean from Factory rather than call the bean method in case of creating bean again (bean method call the other bean method)
+		return obtainBeanInstanceFromFactory(beanMethod, beanMethodArgs, beanFactory, beanName);//beanFactory.getBean(beanName)
 	}
 }

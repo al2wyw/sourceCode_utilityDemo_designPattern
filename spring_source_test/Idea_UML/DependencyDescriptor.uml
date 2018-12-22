@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.beans.factory.support.DefaultListableBeanFactory.MultiElementDescriptor</OriginalElement>
+  <nodes>
+    <node x="431.0" y="420.0">org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement</node>
+    <node x="627.0" y="170.0">org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.ShortcutDependencyDescriptor</node>
+    <node x="917.0" y="170.0">org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.LookupDependencyDescriptor</node>
+    <node x="0.0" y="170.0">org.springframework.beans.factory.support.DefaultListableBeanFactory.NestedDependencyDescriptor</node>
+    <node x="279.0" y="170.0">org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.AutowireByTypeDependencyDescriptor</node>
+    <node x="533.5" y="0.0">org.springframework.beans.factory.InjectionPoint</node>
+    <node x="0.0" y="505.0">org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.ResourceElement</node>
+    <node x="177.0" y="420.0">org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement</node>
+    <node x="216.5" y="335.0">org.springframework.beans.factory.annotation.InjectionMetadata.InjectedElement</node>
+    <node x="500.0" y="85.0">org.springframework.beans.factory.config.DependencyDescriptor</node>
+    <node x="23.5" y="255.0">org.springframework.beans.factory.support.DefaultListableBeanFactory.MultiElementDescriptor</node>
+    <node x="6.0" y="420.0">org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.LookupElement</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement" target="org.springframework.beans.factory.annotation.InjectionMetadata.InjectedElement">
+      <point x="0.0" y="-17.5" />
+      <point x="535.5" y="395.0" />
+      <point x="345.66666666666663" y="395.0" />
+      <point x="51.66666666666663" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.support.DefaultListableBeanFactory.MultiElementDescriptor" target="org.springframework.beans.factory.support.DefaultListableBeanFactory.NestedDependencyDescriptor">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.support.DefaultListableBeanFactory.NestedDependencyDescriptor" target="org.springframework.beans.factory.config.DependencyDescriptor">
+      <point x="0.0" y="-17.5" />
+      <point x="129.5" y="140.0" />
+      <point x="525.625" y="140.0" />
+      <point x="-76.875" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.ShortcutDependencyDescriptor" target="org.springframework.beans.factory.config.DependencyDescriptor">
+      <point x="0.0" y="-17.5" />
+      <point x="762.0" y="150.0" />
+      <point x="628.125" y="150.0" />
+      <point x="25.625" y="17.5" />
+    </edge>
+    <edge source="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.LookupDependencyDescriptor" target="org.springframework.beans.factory.config.DependencyDescriptor">
+      <point x="0.0" y="-17.5" />
+      <point x="1048.0" y="140.0" />
+      <point x="679.375" y="140.0" />
+      <point x="76.875" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement" target="org.springframework.beans.factory.annotation.InjectionMetadata.InjectedElement">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.LookupElement" target="org.springframework.beans.factory.annotation.InjectionMetadata.InjectedElement">
+      <point x="0.0" y="-17.5" />
+      <point x="81.5" y="395.0" />
+      <point x="242.33333333333334" y="395.0" />
+      <point x="-51.66666666666666" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.config.DependencyDescriptor" target="org.springframework.beans.factory.InjectionPoint">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.AutowireByTypeDependencyDescriptor" target="org.springframework.beans.factory.config.DependencyDescriptor">
+      <point x="0.0" y="-17.5" />
+      <point x="443.0" y="150.0" />
+      <point x="576.875" y="150.0" />
+      <point x="-25.625" y="17.5" />
+    </edge>
+    <edge source="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.ResourceElement" target="org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.LookupElement">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="347.5" y="265.5" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
