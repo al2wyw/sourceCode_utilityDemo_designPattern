@@ -1,13 +1,8 @@
 package com.cglib;
 
-import net.sf.cglib.core.DebuggingClassWriter;
 import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.CallbackFilter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.NoOp;
-
-import java.io.File;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -15,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class test {
     public static void main(String[] args) throws Exception {
-        File f = new File(test.class.getResource("/").getFile());
-        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, f.getPath());
+		CglibUtils.setupOutPutDir();
         Enhancer enhancer = new Enhancer();
         //setSuperclass or setInterfaces will generate subclass codes file, extends or implements
         //if neither of them is called, no codes file generated but class object(extends Object)

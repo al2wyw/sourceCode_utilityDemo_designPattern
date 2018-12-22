@@ -1,30 +1,19 @@
 package com.cglib;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import net.sf.cglib.asm.Type;
 import net.sf.cglib.beans.BeanGenerator;
-import net.sf.cglib.core.ClassGenerator;
-import net.sf.cglib.core.CodeEmitter;
-import net.sf.cglib.core.Constants;
-import net.sf.cglib.core.DebuggingClassWriter;
-import net.sf.cglib.core.DefaultGeneratorStrategy;
-import net.sf.cglib.core.DefaultNamingPolicy;
-import net.sf.cglib.core.EmitUtils;
-import net.sf.cglib.core.Predicate;
-import net.sf.cglib.core.ReflectUtils;
-import net.sf.cglib.core.Signature;
+import net.sf.cglib.core.*;
 import net.sf.cglib.transform.ClassEmitterTransformer;
 import net.sf.cglib.transform.TransformingClassGenerator;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class testBeanGenerator {
 
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
-		
-		File f = new File(test.class.getResource("/").getFile());
-        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, f.getPath());
+
+		CglibUtils.setupOutPutDir();
         
         BeanGenerator bg = new BeanGenerator();
         bg.addProperty("name", String.class);

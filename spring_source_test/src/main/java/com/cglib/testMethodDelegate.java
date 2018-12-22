@@ -8,7 +8,6 @@ import net.sf.cglib.reflect.MethodDelegate;
 public class testMethodDelegate {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		DelegatedBean bean = new DelegatedBean("this is a test");
 		Delegator d = (Delegator)MethodDelegate.create(bean, "getName", Delegator.class);
 		System.out.println(d.test());

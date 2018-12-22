@@ -1,17 +1,20 @@
 package com.cglib;
 
-import java.io.File;
-import java.lang.reflect.*;
-
-import net.sf.cglib.core.DebuggingClassWriter;
-import net.sf.cglib.proxy.*;
+import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.InvocationHandler;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+/**
+ * Created by apple on 23/04/2015.
+ * InvocationHandler 就是jdk的InvocationHandler, 实现的机制是一模一样的!!!
+ * 由于jdk代理实现的都是接口，需要在InvocationHandler的实现里显性调用被代理的实例，如这里的son s
+ */
 public class testInvocationHandler {
     public static void main(String args[]) {
 
-        File f = new File(test.class.getResource("/").getFile());
-        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, f.getPath());
+        CglibUtils.setupOutPutDir();
 
         final son s = new son();
         Enhancer enhancer = new Enhancer();

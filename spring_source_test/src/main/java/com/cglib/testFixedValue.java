@@ -1,19 +1,16 @@
 package com.cglib;
 
-import net.sf.cglib.core.DebuggingClassWriter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.FixedValue;
 
-import java.io.File;
-
 /**
  * Created by apple on 23/04/2015.
+ * 所有方法直接返回一个定值
  */
 public class testFixedValue {
     public static void main(String args[]) {
 
-        File f = new File(test.class.getResource("/").getFile());
-        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, f.getPath());
+        CglibUtils.setupOutPutDir();
 
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(son.class);
