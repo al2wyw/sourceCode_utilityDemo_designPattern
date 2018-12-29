@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.springframework.aop.target.SimpleBeanTargetSource</OriginalElement>
+  <nodes>
+    <node x="578.0" y="255.0">org.springframework.aop.target.LazyInitTargetSource</node>
+    <node x="336.00000000000006" y="255.0">org.springframework.aop.target.SimpleBeanTargetSource</node>
+    <node x="693.5" y="0.0">org.springframework.aop.TargetClassAware</node>
+    <node x="939.5000000000001" y="170.0">org.springframework.aop.target.SingletonTargetSource</node>
+    <node x="276.25000000000017" y="85.0">org.springframework.beans.factory.BeanFactoryAware</node>
+    <node x="634.5" y="170.0">org.springframework.aop.target.dynamic.AbstractRefreshableTargetSource</node>
+    <node x="323.25000000000017" y="0.0">org.springframework.beans.factory.Aware</node>
+    <node x="710.5" y="85.0">org.springframework.aop.TargetSource</node>
+    <node x="0.0" y="255.0">org.springframework.aop.target.AbstractPrototypeBasedTargetSource</node>
+    <node x="54.0" y="340.0">org.springframework.aop.target.PrototypeTargetSource</node>
+    <node x="279.5000000000001" y="170.0">org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.springframework.aop.target.PrototypeTargetSource" target="org.springframework.aop.target.AbstractPrototypeBasedTargetSource">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.AbstractPrototypeBasedTargetSource" target="org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource">
+      <point x="0.0" y="-17.5" />
+      <point x="158.0" y="230.0" />
+      <point x="335.3333333333334" y="230.0" />
+      <point x="-111.66666666666669" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.TargetSource" target="org.springframework.aop.TargetClassAware">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource" target="org.springframework.aop.TargetSource">
+      <point x="83.75000000000006" y="-17.5" />
+      <point x="530.7500000000002" y="145.0" />
+      <point x="732.6666666666667" y="145.0" />
+      <point x="-44.33333333333337" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.dynamic.AbstractRefreshableTargetSource" target="org.springframework.aop.TargetSource">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource" target="org.springframework.beans.factory.BeanFactoryAware">
+      <point x="-83.74999999999994" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.SimpleBeanTargetSource" target="org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource">
+      <point x="5.6843418860808015E-14" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.LazyInitTargetSource" target="org.springframework.aop.target.AbstractBeanFactoryBasedTargetSource">
+      <point x="0.0" y="-17.5" />
+      <point x="673.5" y="230.0" />
+      <point x="558.6666666666667" y="230.0" />
+      <point x="111.66666666666669" y="17.5" />
+    </edge>
+    <edge source="org.springframework.aop.target.SingletonTargetSource" target="org.springframework.aop.TargetSource">
+      <point x="0.0" y="-17.5" />
+      <point x="1042.0" y="145.0" />
+      <point x="821.3333333333335" y="145.0" />
+      <point x="44.33333333333337" y="17.5" />
+    </edge>
+    <edge source="org.springframework.beans.factory.BeanFactoryAware" target="org.springframework.beans.factory.Aware">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="401.0" y="325.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

@@ -15,4 +15,10 @@ public class MyClassLoader extends URLClassLoader {
     public MyClassLoader(ClassLoader parent) {
         super(new URL[0], parent);
     }
+
+    @Override
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+        System.out.println(name + " is loaded by MyClassLoader");
+        return super.loadClass(name);
+    }
 }

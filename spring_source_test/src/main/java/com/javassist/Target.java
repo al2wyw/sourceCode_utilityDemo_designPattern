@@ -9,7 +9,7 @@ import java.util.Date;
  * Time: 18:57
  * Desc:
  */
-public class Target {
+public class Target extends GenericTarget<String>{
 
     private int i;
 
@@ -17,6 +17,7 @@ public class Target {
 
     private Date birth;
 
+    @Override
     public String callTarget(){
         System.out.println(this.getClass() + " father is called");
         return name;

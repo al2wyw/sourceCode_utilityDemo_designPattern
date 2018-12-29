@@ -701,8 +701,7 @@ the proxy (bound to ' target).
 
 protected methods are by definition not intercepted, neither for JDK proxies (where this isn’t applicable) nor for CGLIB proxies (where
 this is technically possible but not recommendable for AOP purposes). As a consequence, any given pointcut will be matched against public methods only!
-If your interception needs include protected/private methods or even constructors, consider the
-use of Spring-driven native AspectJ weaving instead of Spring’s proxy-based AOP framework.
+(now we can intercept protected methods)
 
 PCD named ' bean(only supported in Spring AOP):  bean(nameofbean)
 match join points to a particular named Spring bean, or to a set of named Spring beans (when using wildcards).

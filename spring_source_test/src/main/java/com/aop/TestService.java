@@ -17,4 +17,13 @@ public class TestService {
 		test.testProtect(value);
 		return String.valueOf(value);
 	}
+
+	public String methodName(){
+		System.out.println("methodName is called");
+		return "method name";
+	}
+
+	public void methodArgs(Object arg){
+		System.out.println("methodArgs is called: "+arg.toString());
+	}
 }

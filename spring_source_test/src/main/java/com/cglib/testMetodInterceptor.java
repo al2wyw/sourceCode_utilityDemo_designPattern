@@ -1,5 +1,6 @@
 package com.cglib;
 
+import net.sf.cglib.proxy.CallbackFilter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -37,7 +38,14 @@ public class testMetodInterceptor {
             }
         });
         //createUsingReflection of enhancer
-        son proxy = (son) enhancer.create(new Class<?>[]{int.class},new Object[]{10});
+        son proxy = (son) enhancer.create(new Class<?>[]{int.class},new Object[]{10});//没有过滤bridge方法,要升级到高版本才会过滤
+        /**
+         * type.getDeclaredMethods
+         * CollectionUtils.filter(methods, new RejectModifierPredicate(Constants.ACC_STATIC));
+         * CollectionUtils.filter(methods, new VisibilityPredicate(superclass, true)); //accessible is true: public, protect, the same package
+         * CollectionUtils.filter(methods, new DuplicatesPredicate());
+         * CollectionUtils.filter(methods, new RejectModifierPredicate(Constants.ACC_FINAL));
+         * */
         proxy.publicMethodSon("test method interceptor");
         System.out.println(proxy.toString());
     }

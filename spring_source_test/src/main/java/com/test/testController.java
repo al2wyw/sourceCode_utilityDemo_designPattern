@@ -16,7 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.aop.TestService;
-import com.aop.aop_with_flag;
+import com.aop.myMethodBeforeAdvice;
 import com.model.Person;
 import com.qualifier.customQ;
 
@@ -92,7 +92,7 @@ public class testController implements BeanFactoryAware{
 	private test_transactional_Information testLimit;
 
 	@Autowired
-	private aop_with_flag flag;
+	private myMethodBeforeAdvice flag;
 
 	@Autowired
 	private test_aspectj_ltw test_aspectj_ltw;
@@ -139,6 +139,8 @@ public class testController implements BeanFactoryAware{
 		s+=config;
 		
 		testService.changeValue(100);
+
+		testService.methodName();
 		
 		tester.tester();
 		
@@ -186,6 +188,15 @@ public class testController implements BeanFactoryAware{
 	public List<Information> getInfoByLimit(@RequestParam("offset") int offset,@RequestParam("limit") int limit){
 		List<Information> result = testLimit.getInfo(offset,limit);
 		return result;
+	}
+
+	@RequestMapping(value="test/with/args", method=RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public String testWithStringArg(){
+		testService.methodArgs("test with string");
+		testService.methodArgs(123);
+		return "done";
 	}
 	
 	

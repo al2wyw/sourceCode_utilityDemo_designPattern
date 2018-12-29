@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 /**
  * Created by apple on 11/05/2015.
  */
-public class aop_with_flag implements MethodBeforeAdvice {
+public class myMethodBeforeAdvice implements MethodBeforeAdvice {
 
     boolean flag = false;
 

@@ -1,8 +1,8 @@
 package com.aop;
 
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import com.annotation.FunProvider;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 @Aspect
@@ -18,5 +18,11 @@ public class auto_aspect {
 	@Before("pointcut()")
 	public void test(){
 		System.out.println("@Aspect before advisor test is called");
+	}
+
+	@Before(value = "execution(void com.aop.TestService.methodArgs(*)) && args(arg)")
+	public void testArgs(JoinPoint joinPoint, String arg){
+		System.out.println(joinPoint.toLongString());
+		System.out.println("testArgs :" + arg);
 	}
 }
