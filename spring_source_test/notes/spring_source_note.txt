@@ -37,6 +37,8 @@ getLazyResolutionProxyIfNecessary what does the xml do with this (just instantia
 
 @Lazy with @Autowired will create lazyProxy, but the target should be tagged with @Lazy to instantiate later. @Lazy with aop getTarget (jdk/cglib) 
 
+TypeConverter(TypeConverterSupport) pass itself to TypeConverterDelegate and then call convert method of TypeConverterDelegate to  get the ConversionService of itself(PropertyEditorRegistrySupport) and PropertyEditor of property to convert the value
+
 getBean has three args: beanname, args, classtype. always use beanname or beanname plus classtype  !!!
 before getBean it will have condition judgement
 

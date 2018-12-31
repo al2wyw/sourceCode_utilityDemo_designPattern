@@ -77,7 +77,7 @@ AspectJ Proxy logic in AbstractAspectJAdvice & AspectJExpressionPointcut:
 1.bind arguments how??? should read through AbstractAspectJAdvice !!!
 2.AspectJExpressionPointcut extended from introductionAwareMethodMatcher to match with Introductions
 3.AspectJExpressionPointcut.matches -> AopUtils.getMostSpecificMethod -> ClassUtils.getMostSpecificMethod(获取继承层级最低的儿子层中覆写的那个方法) matches太复杂了
-execution表达式: 如果填写的是父类，能否拦截子类的相应方法 ???
+execution表达式: 如果填写的是父类，能否拦截子类的相应方法 (可以的)
 4.AbstractAspectJAdvice has property method, my defined advise will be a property of AfterReturningAdviceInterceptor or MethodBeforeAdviceInterceptor or ThrowsAdviceInterceptor
 5.AbstractAspectJAdvice has five subclass, AspectJAfterReturningAdvice and AspectJMethodBeforeAdvice do not implement MethodInterceptor will be the property of AfterReturningAdviceInterceptor or MethodBeforeAdviceInterceptor
 

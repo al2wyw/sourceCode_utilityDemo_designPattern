@@ -1,6 +1,6 @@
 package com.aop;
 
-public class TestService {
+public class TestService{
 
 	private testProtected test;
 	
@@ -24,6 +24,11 @@ public class TestService {
 	}
 
 	public void methodArgs(Object arg){
-		System.out.println("methodArgs is called: "+arg.toString());
+		System.out.println("methodArgs 1 is called: arg1 "+arg.toString());
 	}
+
+	public void methodArgs(Object arg,Object arg2){
+		System.out.println("methodArgs 2 is called: arg1 "+ arg.toString() + " arg2 " + arg2.toString());
+	}
+
 }

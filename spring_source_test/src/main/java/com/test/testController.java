@@ -2,6 +2,7 @@ package com.test;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.aop.testInterface;
 import com.lookup.LookupTest;
 import com.model.Information;
 import org.springframework.beans.BeansException;
@@ -20,6 +21,7 @@ import com.aop.myMethodBeforeAdvice;
 import com.model.Person;
 import com.qualifier.customQ;
 
+import java.util.Date;
 import java.util.List;
 
 @Controller
@@ -58,6 +60,9 @@ public class testController implements BeanFactoryAware{
 	
 	@Autowired
 	private TestService testService;
+
+	@Autowired
+	private testInterface testInterface;
 	
 	@Autowired
 	private autowireByNameTester tester;
@@ -194,8 +199,13 @@ public class testController implements BeanFactoryAware{
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public String testWithStringArg(){
-		testService.methodArgs("test with string");
-		testService.methodArgs(123);
+		testService.methodArgs("not intercept");
+		testService.methodArgs("test with string", "intercepted 1");
+		testService.methodArgs(123,"intercepted 2");
+		testService.methodArgs("intercepted 3",4333);
+		testService.methodArgs("not intercept",new Date());
+
+		testInterface.testMethod();
 		return "done";
 	}
 	
