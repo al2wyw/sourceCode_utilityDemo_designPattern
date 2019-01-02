@@ -56,9 +56,8 @@ class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
 	</bean> 
 	
 	<!-- context setup start  -->
-	<bean class="com.context.MyBeanFactoryPostProcessorForProxyFactoryContainer"/>
 	<!-- <bean id="proxyAutoCreator" class="com.context.MyProxyAutoCreator"/> 
-	should modify ConfigBeanDefinitionParser to disable default proxy creator, not finished yet
+	should modify AopConfigUtils.registerOrEscalateApcAsRequired to disable default proxy creator
 	-->
 	
 	<!-- aop test start  -->

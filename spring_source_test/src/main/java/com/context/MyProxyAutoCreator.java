@@ -4,23 +4,15 @@ import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.util.ClassUtils;
 
-public class MyProxyAutoCreator extends AspectJAwareAdvisorAutoProxyCreator implements BeanFactoryAware{
+public class MyProxyAutoCreator extends AspectJAwareAdvisorAutoProxyCreator {
 
-	private ProxyFactoryContainer container;
+	private ProxyFactoryContainer container = ProxyFactoryContainer.getInstance();
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	public void setBeanFactory(BeanFactory f){
-		container = (ProxyFactoryContainer)f.getBean("proxyFactoryContainer");
-		if(container!=null)
-			System.out.println("get the ProxyFactoryContainer");
-	}
 	
 	protected Object createProxy(
 			Class<?> beanClass, String beanName, Object[] specificInterceptors, TargetSource targetSource) {
@@ -49,6 +41,10 @@ public class MyProxyAutoCreator extends AspectJAwareAdvisorAutoProxyCreator impl
 		proxyFactory.setFrozen(false);
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
+		}
+
+		if(!proxyFactory.isExposeProxy()){
+			proxyFactory.setExposeProxy(true);
 		}
 
 		if(container!=null)
