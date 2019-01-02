@@ -414,7 +414,7 @@ private static Method searchMethods(Method[] methods,String name,Class<?>[] para
 	for (int i = 0; i < methods.length; i++) {
 		Method m = methods[i];
 		if (m.getName() == name.intern()
-			&& arrayContentsEq(parameterTypes, m.getParameterTypes())
+			&& arrayContentsEq(parameterTypes, m.getParameterTypes())//用==号对Type对象进行逐一匹配
 			&& (res == null || res.getReturnType().isAssignableFrom(m.getReturnType())))
 			res = m;
 	}
