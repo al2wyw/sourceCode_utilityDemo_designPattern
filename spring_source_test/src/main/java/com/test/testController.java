@@ -1,10 +1,13 @@
 package com.test;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
 
 import com.aop.testInterface;
 import com.lookup.LookupTest;
 import com.model.Information;
+import com.validation.BizModel;
+import com.validation.BizService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +25,11 @@ import com.aop.myMethodBeforeAdvice;
 import com.model.Person;
 import com.qualifier.customQ;
 
+import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 public class testController implements BeanFactoryAware{
@@ -104,6 +111,9 @@ public class testController implements BeanFactoryAware{
 
 	@Autowired
 	private LookupTest lookupTest;
+
+	@Autowired
+	private BizService bizService;
 	
 /*	@Autowired
 	public testController(test2 t2){
@@ -208,7 +218,33 @@ public class testController implements BeanFactoryAware{
 		testInterface.testMethod();
 		return "done";
 	}
-	
+
+	@RequestMapping(value="test/with/validate", method=RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public String testWitValidate(@RequestParam("null") boolean isnull){
+		bizService.bizCheck(isnull ? null : new Object());
+		return "done";
+	}
+
+	@RequestMapping(value="test/with/bizModel", method=RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public String testWitValidateAgain(@RequestParam("name") String name,
+									   @RequestParam("birth") String dat,
+									   @RequestParam("i") String i) throws Exception{
+		BizModel bizModel = new BizModel();
+		bizModel.setName(name);
+		bizModel.setBirth(DateFormat.getDateInstance().parse(dat));
+		bizModel.setI(Integer.valueOf(i));
+		bizService.bizCheckAgain(bizModel);
+		return "done";
+	}
+
+	@ExceptionHandler(ConstraintViolationException.class)
+	public void handleConstraintViolationException(ConstraintViolationException e){
+		e.getConstraintViolations().stream().forEach(System.out::println);
+	}
 	
 	@InitBinder
 	public void setHeaders(HttpServletResponse response){

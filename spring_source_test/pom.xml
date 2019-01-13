@@ -14,7 +14,7 @@
 		<servlet.version>2.5</servlet.version>
 		<jstl.version>1.2</jstl.version>
 		<log4j.version>1.2.14</log4j.version>
-		
+		<java.version>1.8</java.version>
 	  	<junit.version>4.8.1</junit.version>
 	  	<json.version>1.4.2</json.version>
 	</properties>
@@ -182,6 +182,14 @@
 			<artifactId>javassist</artifactId>
 			<version>3.18.0-GA</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>5.3.6.Final</version>
+		</dependency>
+
+
 
 	</dependencies>
 	<build>

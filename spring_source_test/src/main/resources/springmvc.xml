@@ -12,7 +12,8 @@
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"
 >
-	<context:component-scan base-package="com.test,com.aop,com.transaction,com.bridgemethod,com.lookup"/>
+	<context:component-scan base-package="com.test,com.aop,com.transaction,
+							com.bridgemethod,com.lookup,com.validation"/>
 	<context:load-time-weaver/>
 
 	<bean id="prototypeBean" class="com.lookup.PrototypeBean" scope="prototype"/>
