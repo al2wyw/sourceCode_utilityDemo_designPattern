@@ -8,6 +8,7 @@ import com.lookup.LookupTest;
 import com.model.Information;
 import com.validation.BizModel;
 import com.validation.BizService;
+import org.codehaus.jackson.JsonGenerator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -175,8 +176,6 @@ public class testController implements BeanFactoryAware{
 		
 		System.out.println("this works Jrebel test....");
 		
-		testTransaction();
-		
 		return s;
 		
 	}
@@ -197,12 +196,21 @@ public class testController implements BeanFactoryAware{
 		return "done";
 	}
 
+	@RequestMapping(value="init", method=RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public String initAllTables(){
+		testTransaction();
+		return "done";
+	}
+
 	@RequestMapping(value="getInfo", method=RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public List<Information> getInfoByLimit(@RequestParam("offset") int offset,@RequestParam("limit") int limit){
+	public String getInfoByLimit(@RequestParam("offset") int offset,@RequestParam("limit") int limit){
 		List<Information> result = testLimit.getInfo(offset,limit);
-		return result;
+		result.stream().forEach(System.out::println);
+		return "done";
 	}
 
 	@RequestMapping(value="test/with/args", method=RequestMethod.GET)

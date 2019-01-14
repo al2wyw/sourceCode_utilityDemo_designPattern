@@ -35,4 +35,13 @@ public class Information implements Serializable {
     public void setCid(String cid) {
         this.cid = cid;
     }
+
+    @Override
+    public String toString() {
+        return "Information{" +
+                "iid='" + iid + '\'' +
+                ", description='" + description + '\'' +
+                ", cid='" + cid + '\'' +
+                '}';
+    }
 }

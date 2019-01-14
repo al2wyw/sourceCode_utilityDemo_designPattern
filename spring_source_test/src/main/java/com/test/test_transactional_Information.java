@@ -5,6 +5,8 @@ import com.model.Information;
 import com.transaction.InformationDao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,11 +30,14 @@ public class test_transactional_Information {
         informationDao.createTable();
     }
 
+    @CacheEvict(cacheNames = "information", allEntries = true)
     public void clearInformation(){
     	informationDao.clearTable();
     }
 
+    @Cacheable(cacheNames = "information")
     public List<Information> getInfo(int offset,int limit){
+        System.out.println("information getInfo offset: " + offset + " limit: " + limit);
         return informationDao.selectInformationByLimit(offset,limit);
     }
     

@@ -36,7 +36,9 @@ ProxyConfig -> AdvisedSupport(manipulate advisors) -> ProxyCreatorSupport(has Ao
 	-> ProxyFactory(programmatic building proxies with AopProxy, works with AbstractAutoProxyCreator)
 	-> AspectJProxyFactory(programmatic building proxies with AspectJ Aspect Class)
 	-> ProxyFactoryBean(create proxies in FactoryBean style)
-
+ProxyConfig -> XXXProxyFactoryBean (特殊的Proxy生成工具)
+ProxyConfig -> AbstractAdvisingBeanPostProcessor (生成特殊Proxy的BeanPostProcesser,直接把bean变成proxy)
+	
 JoinPoint -> ProceedingJoinPoint -> MethodInvocationProceedingJoinPoint
 Joinpoint(is not JoinPoint) -> Invocation -> MethodInvocation -> ProxyMethodInvocation -> ReflectiveMethodInvocation
 MethodInterceptor inovke with MethodInvocation as args
