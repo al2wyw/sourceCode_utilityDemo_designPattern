@@ -12,7 +12,7 @@
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd"
 		>
 	<context:component-scan base-package="com.test,com.aop,com.transaction,
-							com.bridgemethod,com.lookup,com.validation"/>
+							com.bridgemethod,com.lookup,com.validation,com.redis"/>
 	<context:load-time-weaver/>
 
 	<bean id="prototypeBean" class="com.lookup.PrototypeBean" scope="prototype"/>
