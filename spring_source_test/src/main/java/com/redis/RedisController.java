@@ -103,4 +103,34 @@ public class RedisController {
         }
         return "ok";
     }
+
+    @RequestMapping(value="redis/load", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object load(@RequestParam("count") int count) {
+        RList<Object> list = redissonClient.getList("inventory");
+        List<Long> values = Lists.newArrayListWithCapacity(count);
+        long base = System.nanoTime();
+        for(int i = 0; i < count; i ++) {
+            values.add(base + i);
+        }
+        list.addAll(values);
+        return "ok";
+    }
+
+    @RequestMapping(value="redis/unload", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object unload(@RequestParam("count") int count) {
+        for(int i = 0; i < count; i ++) {
+            taskPool.submit(() -> {
+                RList<Object> list = redissonClient.getList("inventory");
+                Stopwatch stopwatch = Stopwatch.createStarted();
+                Object old = list.remove(0);//1500ms delay
+                stopwatch.stop();
+                System.out.println(Thread.currentThread().getName() + " value " + old + " time " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            });
+        }
+        return "ok";
+    }
 }

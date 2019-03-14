@@ -33,6 +33,8 @@ public class RedissonConfig {
         Config config = new Config();
         config.setTransportMode(TransportMode.NIO);
         config.useSingleServer()
+                .setConnectionMinimumIdleSize(200)
+                .setConnectionPoolSize(200)
                 .setAddress(address);
         //config.useClusterServers()
                 // use "rediss://" for SSL connection
