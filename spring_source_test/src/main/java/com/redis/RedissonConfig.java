@@ -2,7 +2,6 @@ package com.redis;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
-import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 import org.redisson.config.TransportMode;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,13 +27,19 @@ public class RedissonConfig {
     @Value("${redis.address}")
     private String address;
 
+    @Value("${redis.pool.size}")
+    private int poolSize;
+
+    @Value("${thread.pool.size}")
+    private int threadPoolSize;
+
     @Bean
     public RedissonClient redissonClient(){
         Config config = new Config();
         config.setTransportMode(TransportMode.NIO);
         config.useSingleServer()
-                .setConnectionMinimumIdleSize(200)
-                .setConnectionPoolSize(200)
+                .setConnectionMinimumIdleSize(poolSize)
+                .setConnectionPoolSize(poolSize)
                 .setAddress(address);
         //config.useClusterServers()
                 // use "rediss://" for SSL connection
@@ -45,7 +50,7 @@ public class RedissonConfig {
 
     @Bean
     public ThreadPoolExecutor taskPool(){
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1000, 1000, 1, TimeUnit.MINUTES, new SynchronousQueue<>()
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(threadPoolSize, threadPoolSize, 1, TimeUnit.MINUTES, new SynchronousQueue<>()
                 , new ThreadFactory() {
 
             private AtomicInteger count = new AtomicInteger(1);
