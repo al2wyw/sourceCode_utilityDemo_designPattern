@@ -3,11 +3,9 @@ package com.redis;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import org.redisson.api.RAtomicLong;
-import org.redisson.api.RBucket;
-import org.redisson.api.RList;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +31,7 @@ import java.util.stream.Stream;
 public class RedisController {
 
     @Autowired
+    @Qualifier("redissonClient")
     private RedissonClient redissonClient;
 
     @Autowired
@@ -86,6 +86,25 @@ public class RedisController {
         RAtomicLong  bucket = redissonClient.getAtomicLong(key);
         long old = bucket.get();
         return bucket.compareAndSet(old, old + value);
+    }
+
+    @RequestMapping(value="redis/mget", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object mget(@RequestParam("key") String key) {
+        List<String> keys = Splitter.on(",").omitEmptyStrings().splitToList(key);
+        RBuckets buckets = redissonClient.getBuckets();
+        return buckets.get(keys.toArray(new String[0]));
+    }
+
+    @RequestMapping(value="redis/mset", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object mset(@RequestParam("object") String object) {
+        Map<String,String> keyValue = Splitter.on(",").omitEmptyStrings().withKeyValueSeparator("|").split(object);
+        RBuckets buckets = redissonClient.getBuckets();
+        buckets.set(keyValue);
+        return "ok";
     }
 
     @RequestMapping(value="redis/test", method= RequestMethod.GET)
