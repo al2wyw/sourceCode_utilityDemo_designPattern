@@ -15,15 +15,15 @@ public class ServerHandler extends SimpleChannelInboundHandler<String> {
     private ExecutorService pool = Executors.newFixedThreadPool(10,new NamedThreadFactory("BIZ-THREAD"));
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
-        ThreadUtils.printThreadName("in", s);
         final String t = s;
         final Channel channel = channelHandlerContext.channel();
+        ThreadUtils.printThreadName("in", s + " " + channel);
         //runnable就够了,future没什么用
         FutureTask<Void> future = new FutureTask<Void>(new Callable<Void>() {
             public Void call() throws Exception {
                 ThreadUtils.sleep(3000);
-                ThreadUtils.printThreadName("in", t);
-                channel.writeAndFlush(t + System.currentTimeMillis() + System.lineSeparator());
+                ThreadUtils.printThreadName("out", t + " " + channel);
+                channel.writeAndFlush(t + " " + System.currentTimeMillis() + System.lineSeparator());
                 return null;
             }
         });

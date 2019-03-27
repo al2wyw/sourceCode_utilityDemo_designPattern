@@ -23,7 +23,7 @@ public class ClientHandler extends ChannelDuplexHandler {
             msg.fromString((String)s);
             requestMap.get(msg.getUuid()).getAnswer().set(msg.getMsg());
         }
-        ThreadUtils.printThreadName("in", test);
+        ThreadUtils.printThreadName("in", test + " " + channelHandlerContext.channel());
     }
 
     @Override
