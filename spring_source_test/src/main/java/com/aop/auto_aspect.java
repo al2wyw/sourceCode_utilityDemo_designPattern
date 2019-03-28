@@ -1,10 +1,13 @@
 package com.aop;
 
+import com.google.common.base.Stopwatch;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.springframework.aop.framework.Advised;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 @Aspect
 @Component
@@ -43,5 +46,16 @@ public class auto_aspect {
 			System.out.println("target is " + o);
 		}
 		return proceedingJoinPoint.proceed();
+	}
+
+	@Around("@within(org.springframework.stereotype.Controller)")
+	public Object profile(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
+		System.out.println("profile method:  " + proceedingJoinPoint.toLongString());
+		Stopwatch stopwatch = Stopwatch.createStarted();
+		try {
+			return proceedingJoinPoint.proceed();
+		}finally {
+			System.out.println(stopwatch.stop().elapsed(TimeUnit.MILLISECONDS));
+		}
 	}
 }

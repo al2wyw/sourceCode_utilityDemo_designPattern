@@ -1,11 +1,14 @@
 package com.redis;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
+import com.utils.DateUtils;
+import freemarker.template.utility.DateUtil;
 import org.redisson.api.RBucket;
 import org.redisson.api.RBuckets;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.RMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -83,15 +86,15 @@ public class RedisClusterController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public Object run(@RequestParam("key") String key, @RequestParam("sleep") int sleep) {
-        taskPool.submit(() ->  {
+        taskPool.submit(() -> {
             flag = true;
-            while (flag){
-                try{
+            while (flag) {
+                try {
                     RBucket bucket = clusterManager.getRedissonClient().getBucket(key);
-                    System.out.println(DateFormat.getDateTimeInstance().format(new Date())  + " " + bucket.get());
+                    System.out.println(DateUtils.format(new Date(),DateUtils.DATE_TIME_MS) + " " + bucket.get());
                     Thread.sleep(sleep);
-                }catch (Exception e){
-                    System.out.println(DateFormat.getDateTimeInstance().format(new Date()));
+                } catch (Exception e) {
+                    System.out.println(DateUtils.format(new Date(), DateUtils.DATE_TIME_MS));
                     e.printStackTrace();
                 }
             }
@@ -100,11 +103,61 @@ public class RedisClusterController {
         return "ok";
     }
 
+    @RequestMapping(value="redis/run2", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object run2(@RequestParam("key") String key, @RequestParam("sleep") int sleep) {
+        taskPool.submit(() -> {
+            flag = true;
+            while (flag) {
+                try {
+                    RBucket bucket = clusterManager.getRedissonClient().getBucket(key);
+                    Long value = System.currentTimeMillis();
+                    bucket.set(value.toString());
+                    System.out.println(DateUtils.format(new Date(),DateUtils.DATE_TIME_MS) + " " + value);
+                    Thread.sleep(sleep);
+                } catch (Exception e) {
+                    System.out.println(DateUtils.format(new Date(), DateUtils.DATE_TIME_MS));
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("run terminal");
+        });
+        return "ok";
+    }
+
+    //todo getAndSet & set 并发效率
+
     @RequestMapping(value="redis/stop", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public Object stop() {
         flag = false;
+        return "ok";
+    }
+
+
+    @RequestMapping(value="redis/hset", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object hset(@RequestParam("key") String key, @RequestParam("size") int size) {
+        RMap<String, Integer> keyMap = clusterManager.getRedissonClient().getMap(key);
+        for(int i = 0; i < size; i++){
+            keyMap.put("test" + i, i);
+        }
+        return "ok";
+    }
+
+    @RequestMapping(value="redis/hset2", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object hset2(@RequestParam("key") String key, @RequestParam("size") int size) {
+        RMap<String, Integer> keyMap = clusterManager.getRedissonClient().getMap(key);
+        Map<String,Integer> map = Maps.newHashMapWithExpectedSize(size);
+        for(int i = 0; i < size; i++){
+            map.put("test" + i, i);
+        }
+        keyMap.putAll(map);
         return "ok";
     }
 }

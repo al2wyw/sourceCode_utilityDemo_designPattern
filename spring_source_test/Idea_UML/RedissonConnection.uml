@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.redisson.connection.MasterSlaveEntry</OriginalElement>
+  <nodes>
+    <node x="23.0" y="585.0">org.redisson.connection.SingleEntry</node>
+    <node x="432.0" y="0.0">org.redisson.connection.ConnectionManager</node>
+    <node x="386.0" y="85.0">org.redisson.connection.MasterSlaveConnectionManager</node>
+    <node x="543.0" y="170.0">org.redisson.cluster.ClusterConnectionManager</node>
+    <node x="805.0" y="170.0">org.redisson.connection.SentinelConnectionManager</node>
+    <node x="26.5" y="335.0">org.redisson.connection.pool.PubSubConnectionPool</node>
+    <node x="472.5" y="335.0">org.redisson.connection.pool.MasterConnectionPool</node>
+    <node x="279.0" y="250.0">org.redisson.connection.pool.ConnectionPool</node>
+    <node x="0.0" y="420.0">org.redisson.connection.pool.MasterPubSubConnectionPool</node>
+    <node x="0.0" y="500.0">org.redisson.connection.MasterSlaveEntry</node>
+    <node x="254.99999999999994" y="170.0">org.redisson.connection.ReplicatedConnectionManager</node>
+    <node x="0.0" y="170.0">org.redisson.connection.SingleConnectionManager</node>
+    <node x="259.5" y="335.0">org.redisson.connection.pool.SlaveConnectionPool</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.redisson.connection.ReplicatedConnectionManager" target="org.redisson.connection.MasterSlaveConnectionManager">
+      <point x="5.6843418860808015E-14" y="-17.5" />
+      <point x="389.0" y="150.0" />
+      <point x="491.375" y="150.0" />
+      <point x="-35.125" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.SingleEntry" target="org.redisson.connection.MasterSlaveEntry">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.SingleConnectionManager" target="org.redisson.connection.MasterSlaveConnectionManager">
+      <point x="0.0" y="-17.5" />
+      <point x="117.5" y="140.0" />
+      <point x="421.125" y="140.0" />
+      <point x="-105.375" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.pool.MasterConnectionPool" target="org.redisson.connection.pool.ConnectionPool">
+      <point x="0.0" y="-17.5" />
+      <point x="576.0" y="310.0" />
+      <point x="407.33333333333337" y="310.0" />
+      <point x="51.33333333333337" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.MasterSlaveConnectionManager" target="org.redisson.connection.ConnectionManager">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.pool.MasterPubSubConnectionPool" target="org.redisson.connection.pool.PubSubConnectionPool">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.pool.SlaveConnectionPool" target="org.redisson.connection.pool.ConnectionPool">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="org.redisson.cluster.ClusterConnectionManager" target="org.redisson.connection.MasterSlaveConnectionManager">
+      <point x="0.0" y="-17.5" />
+      <point x="664.0" y="150.0" />
+      <point x="561.625" y="150.0" />
+      <point x="35.125" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.pool.PubSubConnectionPool" target="org.redisson.connection.pool.ConnectionPool">
+      <point x="0.0" y="-17.5" />
+      <point x="133.0" y="310.0" />
+      <point x="304.6666666666667" y="310.0" />
+      <point x="-51.333333333333314" y="17.5" />
+    </edge>
+    <edge source="org.redisson.connection.SentinelConnectionManager" target="org.redisson.connection.MasterSlaveConnectionManager">
+      <point x="0.0" y="-17.5" />
+      <point x="930.0" y="140.0" />
+      <point x="631.875" y="140.0" />
+      <point x="105.375" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.803125" x="528.2490272373541" y="310.0" />
+  <SelectedNodes>
+    <node>org.redisson.connection.MasterSlaveConnectionManager</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

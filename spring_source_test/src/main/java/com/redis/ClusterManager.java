@@ -53,11 +53,11 @@ public class ClusterManager {
         config.setTransportMode(TransportMode.NIO);
         ClusterServersConfig clusterServersConfig = config.useClusterServers();
         clusterServersConfig.setScanInterval(1000) //do not interfere with capture data
-                .setReadMode(ReadMode.MASTER)
+                .setReadMode(ReadMode.MASTER_SLAVE)
                 .setMasterConnectionPoolSize(poolSize)
                 .setMasterConnectionMinimumIdleSize(poolSize)
-                //.setSlaveConnectionMinimumIdleSize(poolSize)
-                //.setSlaveConnectionPoolSize(poolSize)
+                .setSlaveConnectionMinimumIdleSize(poolSize)
+                .setSlaveConnectionPoolSize(poolSize)
                 .addNodeAddress(address1)
                 .addNodeAddress(address2)
                 .addNodeAddress(address3);

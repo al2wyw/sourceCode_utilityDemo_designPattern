@@ -72,6 +72,7 @@ echo "start to kill cluster"
 ps -ef | grep redis | awk '{print $2}'| xargs kill -9
 
 #!/bin/sh
+# (()),$(()) > $[], let > expr
 a=9;b=13;c=-1;d=+4;e=7.2
 echo "a=9;b=13;c=-1;d=+4;e=7.2"
 
