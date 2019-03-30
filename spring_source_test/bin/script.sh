@@ -6,8 +6,11 @@
 #cluster-config-file nodes-6379.conf
 #cluster-node-timeout 5000
 
+#date: system datetime, clock/hwclock: hardware clock
+#ntpdate time.nist.gov: adjust system datetime to internet datetime
+
 #!/bin/sh
-#awk {} : BEGIN{action} or END{action}, /REG/{action}, ≤º∂˚±Ì¥Ô Ω($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
+#awk {} : BEGIN{action} or END{action}, /REG/{action}, Â∏ÉÂ∞îË°®ËææÂºè($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
 
 echo "start to create cluster for $1 and port $2 and number of master $3"
 
@@ -42,6 +45,7 @@ while [ $i -lt $3 ]; do
 		PORT=`expr $PORT +  1 \* 2`
         i=`expr $i +  1 `
 done
+sleep 3s #wait redis to startup before creating cluster, this is not a good way!!!
 echo "$HOST_LIST"
 # two ways to interact with bash:
 # 1. echo "yes" | command
