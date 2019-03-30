@@ -5,6 +5,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.utils.DateUtils;
 import freemarker.template.utility.DateUtil;
+import org.redisson.api.RAtomicLong;
 import org.redisson.api.RBucket;
 import org.redisson.api.RBuckets;
 import org.redisson.api.RMap;
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by IntelliJ IDEA.
@@ -126,8 +128,42 @@ public class RedisClusterController {
         return "ok";
     }
 
-    //todo getAndSet & set 并发效率
-    //挂掉的node 停服时间太长
+    //getAndSet & set 并发效率, 差不多的效果
+    //挂掉的node 停服时间太长 ???
+
+    @RequestMapping(value="redis/test", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object conflict(@RequestParam("count") int count) {
+        for(int i = 0; i < count; i ++) {
+            final int value = i;
+            taskPool.submit(() -> {
+                RBucket<String> bucket = clusterManager.getRedissonClient().getBucket("conflict");
+                Stopwatch stopwatch =  Stopwatch.createStarted();
+                bucket.set("test" + value);
+                stopwatch.stop();
+                System.out.println(Thread.currentThread().getName() + " value " + " time " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            });
+        }
+        return "ok";
+    }
+
+    @RequestMapping(value="redis/test2", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object conflict2(@RequestParam("count") int count) {
+        for(int i = 0; i < count; i ++) {
+            final int value = i;
+            taskPool.submit(() -> {
+                RBucket<String> bucket = clusterManager.getRedissonClient().getBucket("conflict");
+                Stopwatch stopwatch =  Stopwatch.createStarted();
+                String old = bucket.getAndSet("test" + value);
+                stopwatch.stop();
+                System.out.println(Thread.currentThread().getName() + " value " + old + " time " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            });
+        }
+        return "ok";
+    }
 
     @RequestMapping(value="redis/stop", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

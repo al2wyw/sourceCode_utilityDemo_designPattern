@@ -65,7 +65,7 @@ public class ClusterManager {
         config.setTransportMode(TransportMode.NIO);
         ClusterServersConfig clusterServersConfig = config.useClusterServers();
         clusterServersConfig.setScanInterval(1000) //do not interfere with capture data
-                //.setReadMode(ReadMode.MASTER)
+                .setReadMode(ReadMode.MASTER)
                 .setMasterConnectionPoolSize(poolSize)
                 .setMasterConnectionMinimumIdleSize(poolSize)
                 .setSlaveConnectionMinimumIdleSize(poolSize)
