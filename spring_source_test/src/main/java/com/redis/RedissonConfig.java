@@ -44,7 +44,7 @@ public class RedissonConfig {
         //config.useClusterServers()
                 // use "rediss://" for SSL connection
                 //.addNodeAddress(address);
-        RedissonClient redisson = Redisson.create(config);
+        RedissonClient redisson = null;//Redisson.create(config);
         return redisson;
     }
 

@@ -127,6 +127,7 @@ public class RedisClusterController {
     }
 
     //todo getAndSet & set 并发效率
+    //挂掉的node 停服时间太长
 
     @RequestMapping(value="redis/stop", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

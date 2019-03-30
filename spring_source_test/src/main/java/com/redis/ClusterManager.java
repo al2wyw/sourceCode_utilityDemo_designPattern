@@ -6,8 +6,12 @@ import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
 import org.redisson.config.ReadMode;
 import org.redisson.config.TransportMode;
+import org.redisson.connection.MasterSlaveConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,11 +37,19 @@ public class ClusterManager {
 
     private RedissonClient redissonClient;
 
+    private static final Field COMMAND_EXECUTOR_FIELD = ReflectionUtils.findField(MasterSlaveConnectionManager.class, "commandExecutor");
+
     public RedissonClient getRedissonClient() {
         if(redissonClient == null) {
             Config config = buildConfig(null);
             this.redissonClient = Redisson.create(config);
         }
+        Redisson redisson = (Redisson) this.redissonClient;
+        ClusterDownRetryService exe = new ClusterDownRetryService(redisson.getConnectionManager());
+        if(!COMMAND_EXECUTOR_FIELD.isAccessible()){
+            COMMAND_EXECUTOR_FIELD.setAccessible(true);
+        }
+        ReflectionUtils.setField(COMMAND_EXECUTOR_FIELD,redisson.getConnectionManager(),exe);
         return redissonClient;
     }
 
@@ -53,7 +65,7 @@ public class ClusterManager {
         config.setTransportMode(TransportMode.NIO);
         ClusterServersConfig clusterServersConfig = config.useClusterServers();
         clusterServersConfig.setScanInterval(1000) //do not interfere with capture data
-                .setReadMode(ReadMode.MASTER_SLAVE)
+                .setReadMode(ReadMode.MASTER)
                 .setMasterConnectionPoolSize(poolSize)
                 .setMasterConnectionMinimumIdleSize(poolSize)
                 .setSlaveConnectionMinimumIdleSize(poolSize)

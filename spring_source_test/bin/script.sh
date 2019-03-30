@@ -7,6 +7,7 @@
 #cluster-node-timeout 5000
 
 #!/bin/sh
+#awk {} : BEGIN{action} or END{action}, /REG/{action}, 布尔表达式($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
 
 echo "start to create cluster for $1 and port $2 and number of master $3"
 
@@ -29,6 +30,7 @@ while [ $i -lt $3 ]; do
                 '{  if($0~/^bind/){print "bind " bind}
                         else if($0 ~ /^port/){print "port " port} 
                         else if($0~/^protected-mode/){print "protected-mode no"}
+                        else if($0~/^logfile/){print "logfile redis.log"}
                         else{ print $0}} 
                         END{print "cluster-enabled yes";
                                 print "cluster-config-file nodes.conf";
@@ -69,7 +71,11 @@ echo "$ORI_ID to $TAG_ID"
 echo "start to kill cluster"
 
 #xargs use white space to split words by default
-ps -ef | grep redis | awk '{print $2}'| xargs kill -9
+test -z $1 && exit 1
+test $1 = all && ps -ef | grep redis | awk '{print $2}'| xargs kill -9
+test $1 = all || ps -ef | grep redis | awk -v port=$1 '$0~port{print $2}'| xargs kill -9
+#$1 = all , $1 == all , $1 = "all" all the same
+#test string equal is tricky! do not use test "$1" = all, no matter what $1 is, always true
 
 #!/bin/sh
 # (()),$(()) > $[], let > expr
