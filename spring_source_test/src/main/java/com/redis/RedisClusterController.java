@@ -128,7 +128,7 @@ public class RedisClusterController {
         return "ok";
     }
 
-    //getAndSet & set 并发效率, 差不多的效果
+    //getAndSet & set 并发效率, 差不多的效果, 并发受连接池大小影响较大
     //挂掉的node 停服时间太长 ???
 
     @RequestMapping(value="redis/test", method= RequestMethod.GET)
