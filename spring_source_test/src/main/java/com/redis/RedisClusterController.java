@@ -129,7 +129,8 @@ public class RedisClusterController {
     }
 
     //getAndSet & set 并发效率, 差不多的效果, 并发受连接池大小影响较大
-    //挂掉的node 停服时间太长 ???
+    //挂掉的node 停服时间太长 ??? 由于建立连接池后才更改引用
+    //slot2entry 全部为null ???
 
     @RequestMapping(value="redis/test", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

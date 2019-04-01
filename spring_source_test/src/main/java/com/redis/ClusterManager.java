@@ -2,11 +2,14 @@ package com.redis;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.cluster.ClusterConnectionManager;
 import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
 import org.redisson.config.ReadMode;
 import org.redisson.config.TransportMode;
+import org.redisson.connection.ClientConnectionsEntry;
 import org.redisson.connection.MasterSlaveConnectionManager;
+import org.redisson.connection.MasterSlaveEntry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
@@ -39,17 +42,36 @@ public class ClusterManager {
 
     private static final Field COMMAND_EXECUTOR_FIELD = ReflectionUtils.findField(MasterSlaveConnectionManager.class, "commandExecutor");
 
+    private static final Field WRITE_CONNECTION_POOL_FIELD = ReflectionUtils.findField(MasterSlaveEntry.class, "writeConnectionPool");
+
+    private static final Field CLIENT_CONNECTIONS_ENTRY_FIELD = ReflectionUtils.findField(MasterSlaveEntry.class, "masterEntry");
+
     public RedissonClient getRedissonClient() {
         if(redissonClient == null) {
             Config config = buildConfig(null);
             this.redissonClient = Redisson.create(config);
+
+            Redisson redisson = (Redisson) this.redissonClient;
+            ClusterConnectionManager manager = (ClusterConnectionManager)redisson.getConnectionManager();
+
+            ClusterDownRetryService exe = new ClusterDownRetryService(manager);
+            if(!COMMAND_EXECUTOR_FIELD.isAccessible()){
+                COMMAND_EXECUTOR_FIELD.setAccessible(true);
+            }
+            ReflectionUtils.setField(COMMAND_EXECUTOR_FIELD, manager, exe);
+
+            /*MasterSlaveEntry entry = manager.getEntry(0);
+            if(!CLIENT_CONNECTIONS_ENTRY_FIELD.isAccessible()){
+                CLIENT_CONNECTIONS_ENTRY_FIELD.setAccessible(true);
+            }
+            ClientConnectionsEntry clientConnectionsEntry = (ClientConnectionsEntry)ReflectionUtils.getField(CLIENT_CONNECTIONS_ENTRY_FIELD, entry);
+
+            MyMasterConnectionPool pool = new MyMasterConnectionPool(manager.getConfig(), manager, entry, clientConnectionsEntry);
+            if(!WRITE_CONNECTION_POOL_FIELD.isAccessible()){
+                WRITE_CONNECTION_POOL_FIELD.setAccessible(true);
+            }
+            ReflectionUtils.setField(WRITE_CONNECTION_POOL_FIELD, entry, pool);*/
         }
-        Redisson redisson = (Redisson) this.redissonClient;
-        ClusterDownRetryService exe = new ClusterDownRetryService(redisson.getConnectionManager());
-        if(!COMMAND_EXECUTOR_FIELD.isAccessible()){
-            COMMAND_EXECUTOR_FIELD.setAccessible(true);
-        }
-        ReflectionUtils.setField(COMMAND_EXECUTOR_FIELD,redisson.getConnectionManager(),exe);
         return redissonClient;
     }
 
