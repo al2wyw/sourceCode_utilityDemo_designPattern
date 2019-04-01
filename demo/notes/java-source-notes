@@ -550,6 +550,7 @@ private synchronized  Map<Class<? extends Annotation>, Annotation> declaredAnnot
 	}
 	return declaredAnnotations;
 }
+
 Method:
 public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException,InvocationTargetException{
 	//override 校验
@@ -568,6 +569,7 @@ private MethodAccessor acquireMethodAccessor() {
 	return tmp;
 }
 其他的方法 ???
+
 Constructor:
 public T newInstance(Object ... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 	//override 校验
@@ -577,6 +579,8 @@ public T newInstance(Object ... initargs) throws InstantiationException, Illegal
 	return (T) ca.newInstance(initargs);
 }
 其他的方法 ???
+
+
 ReflectionFactory:
 public FieldAccessor newFieldAccessor(Field field, boolean override) {
 	return UnsafeFieldAccessorFactory.newFieldAccessor(field, override);{
@@ -628,7 +632,7 @@ AbstractRepository has GenericsFactory and Tree(AST subtree), Tree and subclasse
 	-> ConstructorRepository(paramTypes,exceptionTypes) -> MethodRepository (returnType)
 
 MagicAccessorImpl
--> FieldAccessorImpl -> UnsafeFieldAccessorImpl
+-> FieldAccessorImpl -> UnsafeFieldAccessorImpl -> ...
 -> MethodAccessorImpl
 	-> DelegatingMethodAccessorImpl
 	-> NativeMethodAccessorImpl

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>sun.reflect.UnsafeObjectFieldAccessorImpl</OriginalElement>
+  <nodes>
+    <node x="0.0" y="340.0">sun.reflect.UnsafeStaticObjectFieldAccessorImpl</node>
+    <node x="1015.375" y="0.0">sun.reflect.MethodAccessor</node>
+    <node x="530.75" y="85.0">sun.reflect.FieldAccessorImpl</node>
+    <node x="745.25" y="170.0">sun.reflect.DelegatingMethodAccessorImpl</node>
+    <node x="481.87499999999994" y="0.0">sun.reflect.FieldAccessor</node>
+    <node x="332.99999999999994" y="340.0">sun.reflect.UnsafeQualifiedStaticFieldAccessorImpl</node>
+    <node x="504.24999999999994" y="170.0">sun.reflect.UnsafeFieldAccessorImpl</node>
+    <node x="307.9999999999999" y="425.0">sun.reflect.UnsafeQualifiedStaticObjectFieldAccessorImpl</node>
+    <node x="196.25" y="255.0">sun.reflect.UnsafeStaticFieldAccessorImpl</node>
+    <node x="792.875" y="255.0">sun.reflect.UnsafeQualifiedFieldAccessorImpl</node>
+    <node x="680.5" y="0.0">sun.reflect.MagicAccessorImpl</node>
+    <node x="767.875" y="340.0">sun.reflect.UnsafeQualifiedObjectFieldAccessorImpl</node>
+    <node x="479.24999999999994" y="255.0">sun.reflect.UnsafeObjectFieldAccessorImpl</node>
+    <node x="926.25" y="85.0">sun.reflect.MethodAccessorImpl</node>
+    <node x="1041.25" y="170.0">sun.reflect.NativeMethodAccessorImpl</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="sun.reflect.DelegatingMethodAccessorImpl" target="sun.reflect.MethodAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="883.25" y="145.0" />
+      <point x="974.5" y="145.0" />
+      <point x="-48.25" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.FieldAccessorImpl" target="sun.reflect.MagicAccessorImpl">
+      <point x="42.0" y="-17.5" />
+      <point x="656.75" y="60.0" />
+      <point x="725.25" y="60.0" />
+      <point x="-44.75" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.FieldAccessorImpl" target="sun.reflect.FieldAccessor">
+      <point x="-42.0" y="-17.5" />
+      <point x="572.75" y="60.0" />
+      <point x="548.875" y="60.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeQualifiedObjectFieldAccessorImpl" target="sun.reflect.UnsafeQualifiedFieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeFieldAccessorImpl" target="sun.reflect.FieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeStaticFieldAccessorImpl" target="sun.reflect.UnsafeFieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="327.75" y="230.0" />
+      <point x="541.0833333333333" y="230.0" />
+      <point x="-73.66666666666663" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.MethodAccessorImpl" target="sun.reflect.MagicAccessorImpl">
+      <point x="-48.25" y="-17.5" />
+      <point x="974.5" y="60.0" />
+      <point x="814.75" y="60.0" />
+      <point x="44.75" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.NativeMethodAccessorImpl" target="sun.reflect.MethodAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="1162.25" y="145.0" />
+      <point x="1071.0" y="145.0" />
+      <point x="48.25" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeStaticObjectFieldAccessorImpl" target="sun.reflect.UnsafeStaticFieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="156.5" y="315.0" />
+      <point x="262.0" y="315.0" />
+      <point x="-65.75" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeQualifiedFieldAccessorImpl" target="sun.reflect.UnsafeFieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="937.875" y="230.0" />
+      <point x="688.4166666666667" y="230.0" />
+      <point x="73.66666666666674" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.MethodAccessorImpl" target="sun.reflect.MethodAccessor">
+      <point x="48.25" y="-17.5" />
+      <point x="1071.0" y="60.0" />
+      <point x="1094.875" y="60.0" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeQualifiedStaticObjectFieldAccessorImpl" target="sun.reflect.UnsafeQualifiedStaticFieldAccessorImpl">
+      <point x="5.6843418860808015E-14" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeObjectFieldAccessorImpl" target="sun.reflect.UnsafeFieldAccessorImpl">
+      <point x="0.0" y="-17.5" />
+      <point x="0.0" y="17.5" />
+    </edge>
+    <edge source="sun.reflect.UnsafeQualifiedStaticFieldAccessorImpl" target="sun.reflect.UnsafeStaticFieldAccessorImpl">
+      <point x="5.6843418860808015E-14" y="-17.5" />
+      <point x="499.0" y="315.0" />
+      <point x="393.5" y="315.0" />
+      <point x="65.75" y="17.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="898.5" y="305.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
