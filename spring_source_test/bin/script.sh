@@ -79,7 +79,7 @@ test -z $1 && exit 1
 test $1 = all && ps -ef | grep redis | awk '{print $2}'| xargs kill -9
 test $1 = all || ps -ef | grep redis | awk -v port=$1 '$0~port{print $2}'| xargs kill -9
 #$1 = all , $1 == all , $1 = "all" all the same
-#test string equal is tricky! do not use test "$1" = all, no matter what $1 is, always true
+#test string equal is tricky! do not use test "$1" = all, no matter what $1 is, always true (not true!!!)
 
 #!/bin/sh
 # (()),$(()) > $[], let > expr

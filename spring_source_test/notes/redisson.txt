@@ -1,0 +1,445 @@
+CommandAsyncService extends CommandAsyncExecutor
+CommandAsyncService.readAsync(String key, Codec codec, RedisCommand<T> command, Object... params) {
+	RPromise<R> mainPromise = createPromise();
+	NodeSource source = getNodeSource(key);{
+		int slot = connectionManager.calcSlot(key);
+        MasterSlaveEntry entry = connectionManager.getEntry(slot); // slot2entry.get(slot);
+        return new NodeSource(entry);
+	}
+	async(true, source, codec, command, params, mainPromise, 0, false);
+	return mainPromise;
+}
+CommandAsyncService.async(boolean readOnlyMode, NodeSource source, Codec codec,
+            RedisCommand<V> command, Object[] params, RPromise<R> mainPromise, int attempt, 
+            boolean ignoreRedirect){
+	...
+	Codec codecToUse = getCodec(codec);
+	RFuture<RedisConnection> connectionFuture = getConnection(readOnlyMode, source, command);{
+		if (readOnlyMode) {
+            connectionFuture = connectionManager.connectionReadOp(source, command);{
+				MasterSlaveEntry entry = getEntry(source);//根据source的字段值获取entry
+				处理redirect
+				return entry.connectionReadOp(command);//从连接池获取connection{
+					if (config.getReadMode() == ReadMode.MASTER) return connectionWriteOp(command);
+					return slaveBalancer.nextConnection(command);//slaveBalancer包含master和slaves
+				}
+			}
+        } else {
+            connectionFuture = connectionManager.connectionWriteOp(source, command);{
+				MasterSlaveEntry entry = getEntry(source);
+				if (source.getRedirect() != null && !URIBuilder.compare(entry.getClient().getAddr(), source.getAddr()) 
+						&& entry.hasSlave(source.getAddr())) {
+					return entry.redirectedConnectionWriteOp(command, source.getAddr());
+				}
+				return entry.connectionWriteOp(command);{
+					return writeConnectionPool.get(command);{
+						return acquireConnection(command, entries.get(0));
+					}
+				}
+			}
+        }
+	}
+	RPromise<R> attemptPromise = new RedissonPromise<R>();
+	details.init(connectionFuture, attemptPromise, readOnlyMode, source, codecToUse, command, params, mainPromise, attempt);//只是调用构造函数
+	BiConsumer<R, Throwable> mainPromiseListener: 如果mainPromise已经cancel -> details.getTimeout().cancel();
+	TimerTask retryTimerTask = new TimerTask() { //处理超时和重试
+		//处理 ConnectionFuture(获取连接), WriteFuture(发送命令), AttemptPromise(重试), MainPromise
+		if (details.getConnectionFuture().cancel(false)) {
+			details.setException(RedisTimeoutException)//Unable to get connection
+		}else {
+			处理 WriteFuture 和重试
+		}
+		处理 MainPromise, AttemptPromise
+	}
+	Timeout timeout = connectionManager.newTimeout(retryTimerTask, connectionManager.getConfig().getRetryInterval(), TimeUnit.MILLISECONDS);
+	details.setTimeout(timeout);
+	details.setupMainPromiseListener(mainPromiseListener);
+	connectionFuture.onComplete{
+		sendCommand(details, connection);{
+			if (details.getSource().getRedirect() == Redirect.ASK) {
+				处理ask
+				ChannelFuture future = connection.send(new CommandsData(main, list, false));//channel.writeAndFlush(data);
+				details.setWriteFuture(future);
+			}else{
+				ChannelFuture future = connection.send(new CommandData<V, R>(details.getAttemptPromise(), details.getCodec(), details.getCommand(), details.getParams()));
+				details.setWriteFuture(future);
+			}
+		}
+		details.getWriteFuture().addListener(new ChannelFutureListener() {
+			checkWriteFuture(details, ignoreRedirect, connection);{
+				ChannelFuture future = details.getWriteFuture();
+				if (!future.isSuccess()) {
+					details.setException(new WriteRedisConnectionException)
+				}
+				details.getTimeout().cancel();
+				adjust timeout
+				TimerTask timeoutTask = new TimerTask() {
+					if (details.getAttempt() < connectionManager.getConfig().getRetryAttempts()) {
+						int count = details.getAttempt() + 1;
+						async(details.isReadOnlyMode(), details.getSource(), details.getCodec(), details.getCommand(), details.getParams(), details.getMainPromise(), count, ignoreRedirect);
+					}
+				}
+				Timeout timeout = connectionManager.newTimeout(timeoutTask, timeoutTime, TimeUnit.MILLISECONDS);
+				details.setTimeout(timeout);
+			}
+		});
+		releaseConnection(source, connectionFuture, details.isReadOnlyMode(), details.getAttemptPromise(), details);//attemptPromise 注册 onComplete 回调去release连接
+	}
+	attemptPromise.onComplete{
+		checkAttemptFuture(source, details, attemptPromise, ignoreRedirect);{
+			处理MOVE, ASK
+			处理 RedisLoadingException, RedisTryAgainException
+			MainPromise trySuccess / tryFailure
+		}
+	}
+}
+acquireConnection(RedisCommand<?> command, ClientConnectionsEntry entry){
+	AcquireCallback<T> callback = new AcquireCallback<T>() {
+		boolean executed;
+		public void run() {// called by acquire
+			executed = true;
+			connectTo(entry, result);//poll from freeConnections and result.trySuccess(con)
+		}
+		public void accept(T t, Throwable u) {//triggered by onComplete
+			if (executed) return;
+			entry.removeConnection(this);//remove callback from listeners
+		}
+	};
+	
+	result.onComplete(callback);
+	acquireConnection(entry, callback);{
+		entry.acquireConnection(runnable);{
+			freeConnectionsCounter.acquire(runnable);{ acquire(runnable, 1);}
+		}
+	}
+	return result;
+}
+
+public void acquire(Runnable listener, int permits) {
+	boolean run = false;
+	synchronized (this) {
+		if (counter < permits) {
+			listeners.add(new Entry(listener, permits)); return;//add to listeners to wait for running
+		} else {
+			counter -= permits; run = true;
+		}
+	}
+	if (run) listener.run();
+}
+
+CommandsQueue(write) -> ch.attr(CURRENT_COMMAND).set(data); queue 一般只有一个command
+CommandDecoder(read) -> ctx.channel().attr(CommandsQueue.CURRENT_COMMAND).get(); -> data.getPromise().trySuccess(result)//mainPromise
+每次请求, 没返回应答前, ch不能释放, 因为CURRENT_COMMAND存放在ch的attr里面, 为了避免被后续的请求覆盖掉，只能hold住
+
+ClusterConnectionManager extends MasterSlaveConnectionManager (主逻辑)
+private final Map<Object, RedisConnection> nodeConnections = new ConcurrentHashMap<>();//记录每个已经连接的节点, 用于connectToNode和后续的clustern/clusteri命令
+
+scheduleClusterChangeCheck{
+	monitorFuture = group.schedule(new Runnable() {
+		for (ClusterPartition partition : getLastPartitions()) {
+			if (!partition.isMasterFail()) nodes.add(partition.getMasterAddress());
+			Set<URI> partitionSlaves = new HashSet<URI>(partition.getSlaveAddresses());
+			partitionSlaves.removeAll(partition.getFailedSlaveAddresses());
+			slaves.addAll(partitionSlaves);
+		}
+		// master nodes first
+		nodes.addAll(slaves);
+		
+		nodesIterator = nodes.iterator();
+		checkClusterState(cfg, nodesIterator, lastException)；{
+			if (!iterator.hasNext()) scheduleClusterChangeCheck(cfg, null);return;
+			if (!getShutdownLatch().acquire()) return;
+			URI uri = iterator.next();
+			RFuture<RedisConnection> connectionFuture = connectToNode(cfg, uri, null, configEndpointHostName);//even if con is active, still try to create con again
+			connectionFuture.onComplete((connection, e) -> {
+				if (e != null) {
+					lastException.set(e);
+					getShutdownLatch().release();
+					checkClusterState(cfg, iterator, lastException);
+					return;
+				}
+				updateClusterState(cfg, connection, iterator, uri, lastException);
+			});
+		}
+	}, cfg.getScanInterval(), TimeUnit.MILLISECONDS);
+}
+updateClusterState(ClusterServersConfig cfg, RedisConnection connection, 
+            Iterator<URI> iterator, URI uri, AtomicReference<Throwable> lastException){
+	RFuture<List<ClusterNodeInfo>> future = connection.async(clusterNodesCommand);
+	future.onComplete((nodes, e) -> {
+		if (e != null) {
+			closeNodeConnection(connection);
+			lastException.set(e);
+			getShutdownLatch().release();
+			checkClusterState(cfg, iterator, lastException);
+			return;
+		}
+		lastClusterNode = uri;
+		//newPartitions have master nodes only
+		Collection<ClusterPartition> newPartitions = parsePartitions(nodes);//nodes from parse the response of clusterNodesCommand, including slave nodes
+		RFuture<Void> masterFuture = checkMasterNodesChange(cfg, newPartitions);{
+			//1. map the the slot of failed master to new masters
+			List<ClusterPartition> newMasters = new ArrayList<ClusterPartition>();
+			Set<ClusterPartition> lastPartitions = getLastPartitions(); //获取原来的分区
+			for (ClusterPartition newPart : newPartitions) {//即使原来的master fail了也会出现在newPartitions
+				boolean masterFound = false;
+				for (ClusterPartition currentPart : lastPartitions) {
+					//找到fail的master
+					if (!newPart.getMasterAddress().equals(currentPart.getMasterAddress())) {
+						continue;
+					}
+					masterFound = true;
+					if (!newPart.isMasterFail()) {
+						continue;
+					}
+					
+					for (Integer slot : currentPart.getSlots()) {
+						ClusterPartition newMasterPart = find(newPartitions, slot);//找到原来的slot对应的现在的分区
+						if (!newMasterPart.getMasterAddress().equals(currentPart.getMasterAddress())) {//现在的分区代表的是新master
+							URI newUri = newMasterPart.getMasterAddress();
+							URI oldUri = currentPart.getMasterAddress();
+							
+							RFuture<RedisClient> future = changeMaster(slot, newUri);{
+								final MasterSlaveEntry entry = getEntry(slot);
+								final RedisClient oldClient = entry.getClient();
+								RFuture<RedisClient> future = entry.changeMaster(address);
+								future.onComplete((res, e) -> {
+									if (e == null) {
+										client2entry.remove(oldClient); //移除老的client
+										client2entry.put(entry.getClient(), entry);//加入新的client
+									}
+								});
+								return future;
+							}
+							future.onComplete((res, e) -> {
+								if (e != null) { //异常回滚到旧的uri
+									currentPart.setMasterAddress(oldUri);
+								}
+							});
+							currentPart.setMasterAddress(newUri);
+						}
+					}
+					break;
+				}
+
+				if (!masterFound && !newPart.getSlotRanges().isEmpty()) {//如果是新增的mater
+					newMasters.add(newPart);
+				}
+			}
+			//2. add new master to partitions
+			RPromise<Void> result = new RedissonPromise<Void>();
+			AtomicInteger masters = new AtomicInteger(newMasters.size());
+			Queue<RFuture<Void>> futures = new ConcurrentLinkedQueue<RFuture<Void>>(); 
+			for (ClusterPartition newPart : newMasters) {
+				RFuture<Collection<RFuture<Void>>> future = addMasterEntry(newPart, cfg);{
+					RPromise<Collection<RFuture<Void>>> result = new RedissonPromise<Collection<RFuture<Void>>>();
+					RFuture<RedisConnection> connectionFuture = connectToNode(cfg, partition.getMasterAddress(), null, configEndpointHostName);
+					connectionFuture.onComplete((connection, ex1) -> {
+						RFuture<Map<String, String>> clusterFuture = connection.async(RedisCommands.CLUSTER_INFO);//cluster info
+						clusterFuture.onComplete((params, ex2) -> {
+							MasterSlaveEntry e;
+							List<RFuture<Void>> futures = new ArrayList<RFuture<Void>>();
+							if (config.checkSkipSlavesInit()) {//getReadMode() == ReadMode.MASTER && getSubscriptionMode() == SubscriptionMode.MASTER;
+								e = new SingleEntry(ClusterConnectionManager.this, config);
+							} else {
+								config.setSlaveAddresses(partition.getSlaveAddresses());
+								e = new MasterSlaveEntry(ClusterConnectionManager.this, config);
+								List<RFuture<Void>> fs = e.initSlaveBalancer(partition.getFailedSlaveAddresses());
+								futures.addAll(fs);
+							}
+							RFuture<RedisClient> f = e.setupMasterEntry(config.getMasterAddress());
+							RPromise<Void> initFuture = new RedissonPromise<Void>();
+							futures.add(initFuture);
+							f.onComplete((res, ex3) -> {
+								for (Integer slot : partition.getSlots()) {
+									addEntry(slot, e);
+									lastPartitions.put(slot, partition);
+								}
+								if (!initFuture.trySuccess(null)) throw new IllegalStateException();
+							}
+							if (!result.trySuccess(futures)) throw new IllegalStateException();
+						}
+					}
+				}
+				future.onComplete((res, e) -> { future全部完成时 -> result.trySuccess(null) });
+			}
+			return result;
+		}
+		checkSlaveNodesChange(newPartitions);
+		masterFuture.onComplete((res, ex) -> {
+			checkSlotsMigration(newPartitions); //update lastPartitions, slot2entry and client2entry
+			checkSlotsChange(cfg, newPartitions);//update lastPartitions, slot2entry and client2entry if slot size changed
+			getShutdownLatch().release();
+			scheduleClusterChangeCheck(cfg, null);
+		});
+	}
+}
+MasterSlaveEntry.changeMaster(URI address){
+	ClientConnectionsEntry oldMaster = masterEntry;
+    RFuture<RedisClient> future = setupMasterEntry(address);{
+		RedisClient client = connectionManager.createClient(NodeType.MASTER, address, sslHostname);//netty boostrap
+        return setupMasterEntry(client);{
+			setup masterEntry with new client
+			CountableListener<RedisClient> listener = new CountableListener<RedisClient>(result, client, counter);//result.trySuccess
+            RFuture<Void> writeFuture = writeConnectionPool.add(masterEntry);{
+				RPromise<Void> promise = new RedissonPromise<Void>();
+				promise.onComplete((r, e) -> entries.add(entry));
+				//createConnection -> add connection to allConnections
+				//releaseConnection -> add connection to freeConnections
+				initConnections(entry, promise, true);//promise.trySuccess until all connections init finished
+				return promise;
+			}
+            writeFuture.onComplete(listener);
+			add masterEntry to pubSubConnectionPool like writeConnectionPool does
+			
+			return result;
+		}
+	}
+    changeMaster(address, oldMaster, future);//future.onComplete -> {
+		writeConnectionPool.remove(oldMaster);
+		pubSubConnectionPool.remove(oldMaster);
+		
+		oldMaster.freezeMaster(FreezeReason.MANAGER);
+		slaveDown(oldMaster);
+	
+		slaveBalancer.changeType(oldMaster.getClient().getAddr(), NodeType.SLAVE);
+		slaveBalancer.changeType(newMasterClient.getAddr(), NodeType.MASTER);
+		slaveDown(oldMaster.getClient().getAddr(), FreezeReason.MANAGER);// freeze in slaveBalancer
+	
+		// more than one slave available, so master can be removed from slaves
+		if (!config.checkSkipSlavesInit() && slaveBalancer.getAvailableClients() > 1) {
+			slaveDown(newMasterClient.getAddr(), FreezeReason.SYSTEM);
+		}
+		oldMaster.getClient().shutdownAsync(); //关闭netty boostrap
+	}
+    return future;
+}
+
+public void releaseConnection() { //释放 freeConnectionsCounter 增加里面的 counter
+	freeConnectionsCounter.release();
+}
+
+public void releaseConnection(RedisConnection connection) {//添加到 freeConnections
+	if (client != connection.getRedisClient()) {
+		connection.closeAsync();
+		return;
+	}
+
+	connection.setLastUsageTime(System.currentTimeMillis());
+	freeConnections.add(connection);
+}
+
+MasterSlaveEntry 里面的masterEntry(就是连接池ClientConnectionsEntry,内含RedisClient->netty boostrap), 在加入到ConnectionPool时会触发连接(ConnectionPool内含entries)
+ConnectionEventsHub 可以扩展
+
+public class NodeSource {
+
+    public enum Redirect {MOVED, ASK}
+
+    private Integer slot;
+    private URI addr;
+    private RedisClient redisClient;
+    private Redirect redirect;
+    private MasterSlaveEntry entry;
+}
+
+public class ClusterPartition { //一个node(不包含slave)对应一个ClusterPartition, lastPartitions里面有多个重复的引用
+
+    public enum Type {MASTER, SLAVE}
+    
+    private Type type = Type.MASTER;
+    
+    private final String nodeId;
+    private boolean masterFail;
+    private URI masterAddress;
+    private final Set<URI> slaveAddresses = new HashSet<URI>();
+    private final Set<URI> failedSlaves = new HashSet<URI>();
+    
+    private final Set<Integer> slots = new HashSet<Integer>();
+    private final Set<ClusterSlotRange> slotRanges = new HashSet<ClusterSlotRange>();
+
+    private ClusterPartition parent;
+}
+
+public class MasterSlaveEntry { //一个node(不包含slave)对应一个MasterSlaveEntry, slot2entry里面有多个重复的引用
+
+    LoadBalancerManager slaveBalancer;
+    ClientConnectionsEntry masterEntry;
+
+    int references;
+    
+    final MasterSlaveServersConfig config;
+    final ConnectionManager connectionManager;
+
+    final MasterConnectionPool writeConnectionPool;
+    
+    final MasterPubSubConnectionPool pubSubConnectionPool;
+
+    final AtomicBoolean active = new AtomicBoolean(true);
+    
+    String sslHostname;
+}
+
+abstract class ConnectionPool<T extends RedisConnection> {
+
+    protected final List<ClientConnectionsEntry> entries = new CopyOnWriteArrayList<ClientConnectionsEntry>(); // MasterConnectionPool 只含有一个 masterEntry, SlaveConnectionPool 拥有多个entries
+
+    final ConnectionManager connectionManager;
+
+    final MasterSlaveServersConfig config;
+
+    final MasterSlaveEntry masterSlaveEntry;
+}
+
+public class ClientConnectionsEntry { //连接池的实体
+    private final Queue<RedisPubSubConnection> allSubscribeConnections = new ConcurrentLinkedQueue<RedisPubSubConnection>();
+    private final Queue<RedisPubSubConnection> freeSubscribeConnections = new ConcurrentLinkedQueue<RedisPubSubConnection>();
+    private final AsyncSemaphore freeSubscribeConnectionsCounter;
+
+    private final Queue<RedisConnection> allConnections = new ConcurrentLinkedQueue<RedisConnection>();
+    private final Queue<RedisConnection> freeConnections = new ConcurrentLinkedQueue<RedisConnection>();
+    private final AsyncSemaphore freeConnectionsCounter;
+
+    public enum FreezeReason {MANAGER, RECONNECT, SYSTEM}
+
+    private volatile boolean freezed;
+    private FreezeReason freezeReason;
+    final RedisClient client;
+
+    private volatile NodeType nodeType;
+    private ConnectionManager connectionManager;
+}
+
+public class RedisConnection implements RedisCommands {
+
+    private static final AttributeKey<RedisConnection> CONNECTION = AttributeKey.valueOf("connection");
+
+    final RedisClient redisClient;
+
+    private volatile RPromise<Void> fastReconnect;
+    private volatile boolean closed;
+    volatile Channel channel;
+
+    private RPromise<?> connectionPromise;
+    private long lastUsageTime;
+    private Runnable connectedListener;
+    private Runnable disconnectedListener;
+}
+
+public class CommandData<T, R> implements QueueCommand {
+
+    final RPromise<R> promise;
+    final RedisCommand<T> command;
+    final Object[] params;
+    final Codec codec;
+    final MultiDecoder<Object> messageDecoder;	
+}
+public class CommandsData implements QueueCommand {
+
+    private final List<CommandData<?, ?>> commands;
+    private final List<CommandData<?, ?>> attachedCommands;
+    private final RPromise<Void> promise;
+    private final boolean skipResult;
+    private final boolean atomic;
+    private final boolean queued;
+}
