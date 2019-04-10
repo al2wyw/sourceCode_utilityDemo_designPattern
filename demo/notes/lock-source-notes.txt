@@ -427,12 +427,22 @@ StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。�
 
 CopyOnWriteArrayList所有的写操作,包括set和add都会上锁, 读操作不加锁
 ConcurrentLinkedQueue所有的操作都是使用CAS，无锁
-ConcurrentHashMap进行锁node节点(链表的head或者树的root)，写操作加synchronize，读操作不加锁(1.8)
+ConcurrentHashMap进行锁node节点(链表的head或者树的root)，写操作，变树和迁移时加synchronize，读操作不加锁(1.8)
 ConcurrentHashMap进行锁segment，segment本身就是锁，写操作加锁，读操作不加锁(1.7)
-1.8版本: HashMap和ConcurrentHashMap都使用数组作为数据存储，数据结构是一致的，同时对哈希碰撞元素进行红黑tree优化避免链表过长
 1.7版本: HashMap使用数组存储，ConcurrentHashMap使用Segment数组，每个Segment又使用数组存储数据
 1.7版本并发扩容死循环: 1. 扩容前两个元素在同一个slot, A -> B 2. 扩容后A, B 又rehash到同一个slot 3. 扩容时同一个slot的元素会反转 A -> B -> C 变成 C -> B -> A, 所以并发扩容时容易产生循环链表(关键代码在transfer)
+1.8版本: HashMap和ConcurrentHashMap都使用数组作为数据存储，数据结构是一致的，同时对哈希碰撞元素进行红黑tree优化避免链表过长
 1.8版本capacity调整为2的n次方, 方便取模操作和扩容确定新的index: 1. (h ^ (h >>> 16)) 用高位与或低位，避免table的size太小时碰撞过多，因为取模就是直接 hash & size-1 代替取模操作, 只用到了hash的末尾几位 2. 扩容时 hash & size 为0则不需要移动，为1则新坐标为 index + oldCapacity 3. 扩容时同一个slot的元素保持顺序
+1.8版本扩容:(数组容量超过扩容阈值或者treeifyBin时数组大小未超过64均可扩容) HashMap没有考虑并发情况，先把新数组赋值给table字段，再迁移存量数据，会有put数据丢失或者get短暂查询不到的情况。ConcurrentHashMap需要两个数组，按定步长不停地逐步迁移，迁移中无法更新(helpTransfer投入到扩容中，但是也有可能超过扩容线程最大个数而直接返回(最大个数为65535，而且有bug)), 但是可以访问。
+1.8版本ConcurrentHashMap关键字段:
+nextTable: 扩容期间，将table数组中的元素 迁移到 nextTable
+sizeCtl：扩容的阈值，也是数组的大小size
+未初始化：sizeCtl=0：表示没有指定初始容量。 sizeCtl>0：表示初始容量。
+初始化中： sizeCtl=-1,标记作用，告知其他线程，正在初始化
+正常状态： sizeCtl=0.75n ,扩容阈值
+扩容中：sizeCtl < 0 : 表示有其他线程正在执行扩容。sizeCtl = (resizeStamp(n) << RESIZE_STAMP_SHIFT) + 2 :表示此时只有一个线程在执行扩容，此线程会进行收尾工作
+transferIndex：扩容索引，表示已经分配给扩容线程的table数组索引位置。(从数据组尾开始往前迁移： transferIndex-stride -> transferIndex => bound -> i )
+
 
 DelayQueue所有操作共用一个锁，内含一个PriorityQueue，Delayed接口实现了Comparable
 ArrayBlockingQueue所有操作共用一个锁，环形array的实现，有takeIndex和putIndex，构造函数的fair是锁的属性(内含一个迭代器Itrs,比较复杂，意义不明)
