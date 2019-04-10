@@ -1,3 +1,54 @@
+基础知识:
+对象结构:typedef struct redisObject {
+    unsigned type; unsigned encoding; unsigned lru: int refcount; void *ptr; }
+数据类型: string, list, hash, set, zset, stream
+数据结构:
+#define OBJ_ENCODING_RAW 0     /* Raw representation */
+#define OBJ_ENCODING_INT 1     /* Encoded as integer */
+#define OBJ_ENCODING_HT 2      /* Encoded as hash table */
+#define OBJ_ENCODING_ZIPMAP 3  /* Encoded as zipmap */
+#define OBJ_ENCODING_LINKEDLIST 4 /* No longer used: old list encoding. */
+#define OBJ_ENCODING_ZIPLIST 5 /* Encoded as ziplist */
+#define OBJ_ENCODING_INTSET 6  /* Encoded as intset */
+#define OBJ_ENCODING_SKIPLIST 7  /* Encoded as skiplist */
+#define OBJ_ENCODING_EMBSTR 8  /* Embedded sds string encoding */
+#define OBJ_ENCODING_QUICKLIST 9 /* Encoded as linked list of ziplists */
+#define OBJ_ENCODING_STREAM 10 /* Encoded as a radix tree of listpacks */
+OBJ_ENCODING_HT: 渐进式扩容，扩容时两个数组同时存在
+OBJ_ENCODING_QUICKLIST: ZIPLIST+双向链表，避免ZIPLIST扩容时大量复制操作和list过度消耗内存
+OBJ_ENCODING_SKIPLIST: zset的底层实现
+压缩数据结构:
+OBJ_ENCODING_ZIPLIST: 连续的内存空间，有固定的数据大小格式，通过pre-node-length可以从尾部倒序地直接定位数据内容
+OBJ_ENCODING_INTSET: 数据类型升级
+bitset使用的是string类型raw编码
+
+数据库功能:
+RDB实现
+AOF实现: 处理文件消息(IO) -> 处理事件消息(serverCron) -> AOF缓存是否刷盘
+- always
+- every second
+- no
+AOF重写
+CLIENT实现: 读取缓冲区， 写入缓冲区
+SERVER实现: 命令执行过程 (前置处理 -> 执行命令(写入client缓冲区) -> 后置处理(写入AOF缓存等等))
+
+集群功能:
+主从模式
+
+哨兵模式(主从模式的HA版本，由哨兵来进行选举并通知客户端)
+
+集群模式
+partition的问题:
+- 多key操作不支持，就算 slot 在同一个node也不支持
+- 事务包含的key在不同node上不支持
+只要有一个节点down掉，整个集群状态会变成fail，无法服务(挂掉的节点有slave的话集群可以恢复服务，非挂掉的节点停服的时间短，挂掉的节点停服的时间长)
+nodeTime可以控制slave 接管master的时间
+slave端的 expire 实现: master发送del到slave
+
+集群重定向
+MOVED重定向
+ASK重定向(重新分片数据迁移)
+
 故障检测:
 集群中的节点会定期向其他的节点发送ping消息，如果接收方在规定时间内没有返回pong消息，则会被标记为pfail，集群中的节点通过ping/pong来交换节点状态
 如果集群里超过半数的主节点都把某个主节点标记为pfail，则会被标记为fail，把此主节点标记为fail的主节点会广播fail消息
