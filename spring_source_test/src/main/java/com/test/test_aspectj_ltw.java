@@ -4,9 +4,7 @@ package com.test;
  * Created by apple on 17/05/2015.
  */
 
-import org.springframework.stereotype.Component;
 
-@Component
 public class test_aspectj_ltw {
     public void test(){
         System.out.println("call the public method of "+test_aspectj_ltw.class.getName());

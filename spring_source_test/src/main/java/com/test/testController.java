@@ -107,8 +107,7 @@ public class testController implements BeanFactoryAware{
 	@Autowired
 	private myMethodBeforeAdvice flag;
 
-	@Autowired
-	private test_aspectj_ltw test_aspectj_ltw;
+	private test_aspectj_ltw test_aspectj_ltw = new test_aspectj_ltw();
 
 	@Autowired
 	private LookupTest lookupTest;
