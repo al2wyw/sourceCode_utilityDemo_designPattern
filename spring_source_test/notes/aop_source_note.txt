@@ -473,4 +473,20 @@ this.advised.getInterceptorsAndDynamicInterceptionAdvice(DefaultAdvisorChainFact
 			}
 		}
 }
+
+LoadTimeWeaverBeanDefinitionParser // 解析配置
+->  DefaultContextLoadTimeWeaver // 根据运行时创建相应的 LoadTimeWeaver, 主要是agent和classLoader改造两大类
+->  AspectJWeavingEnabler // 开启 aspectj weaving
+->  InstrumentationLoadTimeWeaver#addTransformer // 增加 aspectj class transformer 到 instrumentation, agent模式
+->  ClassPreProcessorAgentAdapter#transform (aspectj-weaver.jar) // aspectj 拦截 class 装载
+public static void enableAspectJWeaving(LoadTimeWeaver weaverToUse, ClassLoader beanClassLoader) {
+	if (weaverToUse == null) {
+		if (InstrumentationLoadTimeWeaver.isInstrumentationAvailable()) {
+			weaverToUse = new InstrumentationLoadTimeWeaver(beanClassLoader);
+		}else{
+			throw new IllegalStateException("No LoadTimeWeaver available");
+		}
+	}
+	weaverToUse.addTransformer(new AspectJClassBypassingClassFileTransformer(new ClassPreProcessorAgentAdapter()));
+}
 -------------source code ends----------------
