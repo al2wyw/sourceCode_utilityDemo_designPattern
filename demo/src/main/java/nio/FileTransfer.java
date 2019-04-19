@@ -50,7 +50,7 @@ public class FileTransfer {
     private static void fileChannelZeroCopy(){
         try{
             SocketChannel scc = SocketChannel.open();
-            scc.connect(new InetSocketAddress(InetAddress.getByName("localhost"), 7777));
+            scc.connect(new InetSocketAddress(InetAddress.getByName("192.168.100.104"), 7777));
             //once be registered with selector, can not change blocking any more
             scc.configureBlocking(true);//plus -Djdk.nio.enableFastFileTransfer=true
 
