@@ -21,7 +21,9 @@ import java.net.InetSocketAddress;
  * 写是channel主动写，读是selector驱动被动读
  * 服务器端先读后写不间断，客户端先写间断一段时间后读需要处理读写关联
  * Java NIO selector由 selectorProvider提供，根据不同的系统有Epoll实现， Netty的epoll实现是edgeTrigger(更高效)而不是NIO2的epoll的levelTrigger???
- * Socket的input,output stream在调用close时会调用Socket的close方法，Socket的shutdownInput,output(即使都调用了)都不会调用Socket的close方法(ALLOW_HALF_CLOSURE)
+ * Socket的input,output stream在调用close时会调用Socket的close方法
+ * Socket的shutdownInput,output(即使都调用了)都不会调用Socket的close方法
+ * shutdownOutput后socket处于半关闭(fin_wait2,可以读不可写)，另一端进行read会返回-1，但可以正常写，ALLOW_HALF_CLOSURE支持半关闭，在read到-1时不马上调用close(与TCP半关闭一致)
  * Socket的close会关闭input,output stream和channel(不是所有的Socket都有channel，必须是来自channel的socket)
  * 服务器连接异常，一般就是两种情况: time_wait是主动发起关闭的一端(对方是closed)，通过更改tcp参数可以优化(减少fin_wait时间，reuse address等等)，close_wait是被动关闭的一端(对方是fin_wait2)，是代码逻辑出错导致没有关闭
  */
@@ -44,7 +46,7 @@ public class testNettyServerDemo {
                 //TCP_NODELAY set true to disable Nagle's algorithm,
                 //Nagle will wait until the previous packet ack received(buffer the packet), DelayedAcknowledgment will buffer ack to send, which lead to low performance
                 .childOption(ChannelOption.SO_REUSEADDR, true)//in order to reuse time_wait socket, allow to bind the same socket more than once
-                .childOption(ChannelOption.SO_BACKLOG, 100)//syn -> syn queue -> ack -> accepted queue -> accept, the size of syn & accepted queue
+                .childOption(ChannelOption.SO_BACKLOG, 100)//syn -> syn queue -> ack -> accepted queue -> accept, the size of accepted queue, syn queue 由tcp_max_syn_backlog设置
                 .childOption(ChannelOption.SO_LINGER, 100)//wait to close the socket gracefully, packets can be all flushed out in time
                 .childOption(ChannelOption.SO_TIMEOUT, 400)//the time out of receiving data
                 .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)//socket不支持的参数，由netty schedule task实现(AbstractNioChannel)

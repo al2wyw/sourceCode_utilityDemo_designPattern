@@ -165,7 +165,13 @@ SingleThreadEventExecutor{
 	}
 }
 
-WindowsSelectorImpl的MAX_SELECTABLE_FDS = 1024，windows的特殊实现，每1024个channel会分配一个线程去做select
+SelectorProvider 提供了 selector 的不同平台实现(socketChannel的实现在 SelectorProviderImpl):
+WindowsSelectorProvider extends SelectorProviderImpl extends SelectorProvider{
+	public AbstractSelector openSelector() throws IOException {
+        return new WindowsSelectorImpl(this);
+    }
+}
+WindowsSelectorImpl 的MAX_SELECTABLE_FDS = 1024，windows的特殊实现，每1024个channel会分配一个线程去做select
 Selector的wakeUp可以被selectNow清除，wakeUp和LockSupport的unpark效果类似，可以先wakeUp保证下一次select立即返回
 Selector各个系统会实现四个方法: doSelect, implClose, implRegister, implDereg
 sun.nio.ch.WindowsSelectorImpl extends SelectorImpl extends AbstractSelector extends Selector{
