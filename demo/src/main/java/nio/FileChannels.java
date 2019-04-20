@@ -20,7 +20,7 @@ public class FileChannels {
 
     public static void main(String[] args) throws Exception{
 
-        mappedFileChannelLock();
+        //mappedFileChannelLock();
 
         // Create a temp file and get a channel connected to it
         File tempFile = File.createTempFile ("mmaptest", null);
@@ -136,6 +136,7 @@ public class FileChannels {
                 bfile = new RandomAccessFile("hehe.txt", "rw");
                 fcb = bfile.getChannel();
                 fileLock = fcb.tryLock(0, length, false);
+                //read FileChannel.map doc & MappedByteBuffer doc
                 MappedByteBuffer mbbb = fcb.map(FileChannel.MapMode.READ_WRITE, 0, length);
 
                 /*for (int i = 0; i < length; i++) {
