@@ -68,6 +68,9 @@ public class FileTransfer {
              at nio.FileTransfer.main(FileTransfer.java:28)
              * */
             fileChannel.transferTo(0,fileChannel.size(),scc);
+            //transferToDirectly: zero copy
+            //transferToTrustedChannel: MappedByteBuffer without sys-call(read/write)
+            //transferToArbitraryChannel: normal read/write with DirectBuffer
             IOUtils.closeQuietly(fin);
             scc.close();
 
