@@ -12,7 +12,6 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * Created by johnny.ly on 2016/6/26.
- * BigObject没有被回收是因为被object1s引用了
  */
 public class testPhamGC {
 
@@ -22,12 +21,15 @@ public class testPhamGC {
 
     public static void main(String[] args) throws Exception{
 
-        object1s.add(new PhantomReference<Object>(new BigObject(),queue));
-        object1s.add(new PhantomReference<Object>(new BigObject(),queue));
-        object1s.add(new PhantomReference<Object>(new BigObject(),queue));
+        //如果不放入object1s, 那么 full gc 时PhantomReference本身会被回收掉，也就不会被放入queue
+        SmallObject smallObject = new SmallObject();
+        object1s.add(new PhantomReference<Object>(smallObject,queue));
+        object1s.add(new PhantomReference<Object>(new SmallObject(),queue));
+        object1s.add(new PhantomReference<Object>(new SmallObject(),queue));
+        smallObject = null; //young gc 为什么没有回收 smallObject ???
 
         for(int i=0;i<1000;i++){
-            SmallObject o = new SmallObject();
+            BigObject o = new BigObject();
             System.out.println(o);
             o = null;
             Object r;
