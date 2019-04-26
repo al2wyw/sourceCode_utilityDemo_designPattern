@@ -26,7 +26,7 @@ public class testPhamGC {
         object1s.add(new PhantomReference<Object>(smallObject,queue));
         object1s.add(new PhantomReference<Object>(new SmallObject(),queue));
         object1s.add(new PhantomReference<Object>(new SmallObject(),queue));
-        smallObject = null; //young gc 为什么没有回收 smallObject ???
+        smallObject = null; //young gc 为什么没有回收 smallObject, PhantomReference的引用对象需要至少两次gc,必须queue.poll后才能在第二次gc时被回收
 
         for(int i=0;i<1000;i++){
             BigObject o = new BigObject();
