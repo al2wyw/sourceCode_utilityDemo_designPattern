@@ -4,20 +4,34 @@ import demoObject.BigObject;
 import demoObject.SmallObject;
 import utils.GCUtils;
 
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.PhantomReference;
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
 /**
  * Created by johnny.ly on 2016/6/26.
+ * 使用sa来查看object
  */
 public class testPhamGC {
 
     private static List<PhantomReference<Object>> object1s = new LinkedList<PhantomReference<Object>>();
 
     private static ReferenceQueue<Object> queue = new ReferenceQueue<>();
+
+    private static Field ref;
+
+    static{
+        try {
+            ref = Reference.class.getDeclaredField("referent");
+            ref.setAccessible(true);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) throws Exception{
 
@@ -36,7 +50,7 @@ public class testPhamGC {
             //GCUtils.gcWithSleep();
             while((r = queue.poll())!=null){
                 PhantomReference<Object> mr = (PhantomReference<Object>)r;
-                System.out.println("object from queue " + mr.get() + " " + mr.get());
+                System.out.println("object from queue " + mr.get() + " " + ref.get(mr));
             }
             LockSupport.parkNanos(1000000000L);
         }
