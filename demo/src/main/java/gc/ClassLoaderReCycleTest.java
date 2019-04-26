@@ -20,7 +20,7 @@ public class ClassLoaderReCycleTest {
 
     public static void main( String args[] ) throws Exception{
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        InputStream in = cl.getResourceAsStream("./demoObject/BigClass.class");
+        InputStream in = cl.getResourceAsStream("demoObject/BigClass.class");// ./demoObject/BigClass.class 打成jar包后读取不到
         byte[] code = new byte[1024*128];
         int len = in.read(code);
         byte[] byteCodes = Arrays.copyOf(code,len);
