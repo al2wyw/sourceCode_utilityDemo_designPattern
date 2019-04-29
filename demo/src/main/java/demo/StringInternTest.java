@@ -18,5 +18,14 @@ public class StringInternTest {
         System.out.println(s1 == s1.intern()); //true，"javva"字符串不在常量池，intern把"javva"存储到常量池里面并返回地址，并且常量池在堆里面，所有地址相同
         String s2 = new StringBuilder().append("ja").append("va").toString();
         System.out.println(s2 == s2.intern()); //false，"java"字符串已经在常量池了，intern返回"java"在常量池里面的地址
+
+        String s3 = new StringBuilder().append("print").append("ln").toString();
+        System.out.println(s3 == s3.intern());//true, println 虽然出现在class文件的常量池里，但是运行时并不在字符串常量池里
+
+        String s4 = ConstantTest.my;//compiled to: ldc "test", no ConstantTest relevance
+    }
+
+    private static class ConstantTest {
+        private final static String my = "test";
     }
 }
