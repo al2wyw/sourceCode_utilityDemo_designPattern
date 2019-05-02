@@ -1,7 +1,0 @@
-*.class
-/bin
-/.settings
-.classpath
-.project
-.DS_Store
-/build
