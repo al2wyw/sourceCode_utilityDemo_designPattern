@@ -420,7 +420,7 @@ WriteLock{
 }
 
 //to be done: StampedLock，TransferQueue，ConcurrentHashMap, ConcurrentSkipListMap
-ReentrantReadWriteLock的某个线程获取读锁后可以重复进入(即使有写锁线程在等待),会导致写锁线程饥饿，有写锁线程在等待后新的读锁线程(HoldCounter为0)也无法获得读锁
+ReentrantReadWriteLock的某个线程获取读锁后可以重复进入(即使有写锁线程在等待),会导致写锁线程饥饿(重入次数应该是有限的,不会造成饥饿)，有写锁线程在等待后新的读锁线程(HoldCounter为0)就无法获得读锁
 StampedLock为解决写锁饥饿和提高读写效率，分成三种锁：乐观读，悲观读，写 (使用悲观读，写的效率还不如读写锁)
 乐观读: 锁前获取stamp和读锁后再次获取的stamp比较，一致则读取成功否则重读，实质上并没有上锁。写锁依然是悲观锁，同时会更新stamp。
 StampedLock的readLock死循环逻辑中，没有处理有关中断的逻辑。因此，这就会导致阻塞在park()上的线程被中断后，会再次进入循环。而当退出条件得不到满足时，就会发生疯狂占用CPU的情况。(先上writeLock，writeLock不释放，同时中断readLock就会导致readLock死循环)
