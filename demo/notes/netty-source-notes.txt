@@ -1,0 +1,163 @@
+AtomicReferenceFieldUpdater 只能在要update的class内部声明使用，会做很多不必要的额外校验(caller class校验等)，netty实现了一个简易版本，性能更高
+
+netty4.0.34:(nio的坑，netty的坑，tcp协议带来的稳定性问题，buffer池，eventloop\channel\unsafe底层的操作)
+数据流转:
+in: eventLoop -> javaSelector -> unsafe -> channel -> channelPipeline -> channelHandlerContext -> channelHandler
+out: channel -> channelPipeline -> channelHandlerContext -> channelHandler -> unsafe -> javaChannel
+io.netty.util.concurrent.Future:
+1. Future(同步器synchronized), Promise(set方法), ProgressivePromise(setProgress方法)各有特色，ChannelFuture只是它们三者的具体实现并和它们三者一一对应(ChannelFuture对应Future)
+2. ChannelFuture是三者的Void实现(Future<Void>)
+3. AbstractFuture只是两个get方法的实现，没有其他内容，DefaultPromise才是Future的真正实现
+io.netty.util.concurrent.EventExecutorGroup:
+1. 主要逻辑在MultithreadEventExecutorGroup和SingleThreadEventExecutor, 一个group包含多个单体，单体是一个特殊的group，单体的parent是group，group拥有EventExecutorChooser来next选择一个单体
+2. EventExecutor继承自EventExecutorGroup继承自ScheduledExecutorService，AbstractEventExecutor继承自AbstractExecutorService
+io.netty.channel.nio.NioEventLoop:
+1. rebuildSelector解决jdk不停空select的bug
+2. cancel key时调用selectNow为了解决time wait问题，cancel只会把key放到cancelKeySet里面，selectNow会真正关闭socketfd (看了源码，确实如此)
+3. SelectedSelectionKeySet是个1024大小的array，如果channel太多，不会塞爆吗 (add方法会扩容)
+4. OneTimeTask，AbstractWriteTask等等的使用 ??? (都继承于MpscLinkedQueueNode)
+5. io.netty.util.internal.MpscLinkedQueue使用的pading为什么是16个long，而不是8个long ???
+6. NioEventLoop extends SingleThreadEventLoop extends SingleThreadEventExecutor extends AbstractScheduledEventExecutor extends AbstractEventExecutor extends AbstractExecutorService(juc, 只有submit,invokeAll方法的实现)
+7. SingleThreadEventExecutor复写了execute方法(AbstractExecutorService在submit时调用execute方法)，会先addTask然后调用NioEventLoop的wakeup方法; AbstractScheduledEventExecutor调用schedule时只是往scheduledTaskQueue进行add操作，最后NioEventLoop的runAllTasks方法会fetch触发时间小于当前时间的task; NioEventLoop的select方法会循环的select(使用第一个scheduledTask的delayNanos来控制timeout时长,如果没有scheduledTask则默认1s)，select完后会判断wakeup/hasTasks/hasScheduledTasks等来结束select;其实IOratio的设定是假设task的运行不需要时间的
+io.netty.channel.Channel:
+1. 基本所有的要素都在channel里面，包括产生各种Future，默认使用eventLoop(ChannelHandlerContext也能产生各种Future,默认使用context自带的executor)
+2. 拥有Unsafe(不是java的Unsafe)来封装处理底层IO
+3. Channel包含一个ChannelPipeLine，ChannelPipeLine里面包含多个ChannelHandlerContext，每个ChannelHandlerContext包含一个ChannelHandler(这是调用的顺序,doBind0就是例子)
+4. 主要是三种实现: AbstractOioChannel(old blocking io) AbstractNioChannel AbstractEpollChannel(edge-triggered epoll)
+io.netty.channel.Channel.Unsafe:
+1. 每个channel带一个unsafe实现，unsafe的实现又会调用channel的接口，NioUnsafe的close和disconnect都是调用NioChannel的doClose方法
+2. channel和unsafe的设计采用了模板方法模式，把各个不同的channel实现封装在channel接口，unsafe调用channel接口达到多种实现
+io.netty.channel.ChannelHandler:
+1. 每个ChannelHandler都有一个ChannelHandlerContext，ChannelHandlerContext的executor默认就是channel的eventLoop,除非addLast时传入executor
+2. ChannelPipeline的执行顺序: inbound -> 从head到tail, outbound -> 从tail到head， addLast是加到tail的前面
+3. ChannelHandlerContext作为驱动器，会判断线程是否在executor里面，然后调用ChannelHandler的方法
+4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等,其他的Handler都加到Head和Tail之间
+5. OutboundHandler有个read方法，貌似只是用来初始化selectionKey的interestOps
+io.netty.bootstrap.AbstractBootstrap:
+1. 只能配置一个handler和一个group和一个channel
+2. 一个bind只能把一个ServerSocketChannel注册到一个EventLoop上面，又不能重复bind相同的socket，所以accept线程只有一个!!!
+ChannelOutboundBuffer:
+1. write会写入这个buffer，等待flush，isWritable跟WaterMark的配置有关
+bind{
+	ChannelFuture regFuture = initAndRegister(){
+		final Channel channel = channelFactory().newChannel(); -> NioServerSocketChannel(初始化,NON-BLOCK,设置OP_ACCEPT;Selector在EventLoop里面)
+		init(channel){
+			ChannelPipeline p = channel.pipeline();
+			if (handler() != null) {
+				p.addLast(handler()); -> handler(parent的handler)
+			}
+			p.addLast(new ChannelInitializer<Channel>() {
+				@Override
+				public void initChannel(Channel ch) throws Exception {//channelRegistered时调用initChannel
+					ch.pipeline().addLast(new ServerBootstrapAcceptor(
+							currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+				}
+			});
+		}
+		ChannelFuture regFuture = group().register(channel); -> next().register(channel) -> channel.unsafe().register(this, promise);{ //this指向next()(就是NioEventLoop)
+			AbstractUnsafe.register(EventLoop eventLoop, final ChannelPromise promise){
+				AbstractChannel.this.eventLoop = eventLoop;
+				register0(promise){
+					doRegister(); -> selectionKey = javaChannel().register(eventLoop().selector, 0, this); //this指向AbstractNioChannel
+					pipeline.fireChannelRegistered();
+					if (isActive()) {
+						pipeline.fireChannelActive();
+					}
+				}
+			}
+		}
+		return regFuture;
+	}
+	if (regFuture.isDone()) {
+            promise = channel.newPromise();
+            doBind0(regFuture, channel, localAddress, promise);
+	} else {
+		// Registration future is almost always fulfilled already, but just in case it's not.
+		promise = new DefaultChannelPromise(channel, GlobalEventExecutor.INSTANCE);
+		regFuture.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				doBind0(regFuture, channel, localAddress, promise);
+			}
+		});
+	}
+}
+doBind0(){
+	channel.eventLoop().execute(() -> {
+			if (regFuture.isSuccess()) {
+				channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);{
+					pipeline.bind(localAddress, promise){
+						tail.bind(localAddress, promise){ -> tail(DefaultChannelHandlerContext)
+							final AbstractChannelHandlerContext next = this.findContextOutbound();//查找下一个HandlerContext
+							EventExecutor executor = next.executor();
+							if(next.isHandlerAddedCalled() && executor.inEventLoop()) {
+								next.invokeBind(localAddress, promise);
+							} else {
+								safeExecute(executor, new OneTimeTask() {
+									public void run() {
+										next.invokeBind(localAddress, promise);
+									}
+								}, promise, (Object)null);
+							}
+						}
+					}
+				}
+			} else {
+				promise.setFailure(regFuture.cause());
+			}
+        });
+}
+invokeBind(localAddress, promise){
+	((ChannelOutboundHandler)this.handler()).bind(this, localAddress, promise); -> HeadHandler的bind
+}
+ServerBootstrapAcceptor extends ChannelInboundHandlerAdapter{
+	channelRead(ChannelHandlerContext ctx, Object msg){
+		final Channel child = (Channel) msg;
+		child.pipeline().addLast(childHandler);
+		childGroup.register(child).addListener(new ChannelFutureListener() {
+				public void operationComplete(ChannelFuture future) throws Exception {
+					!future.isSuccess() -> forceClose(child, future.cause());{
+												child.unsafe().closeForcibly();
+											}
+				}
+			});
+	}
+}
+SingleThreadEventExecutor{
+	thread = threadFactory.newThread(() -> {
+		SingleThreadEventExecutor.this.run();{
+			processSelectedKey(SelectionKey k, AbstractNioChannel ch){
+				if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+					unsafe.read(); -> pipeline.fireChannelRead(readBuf); pipeline.fireChannelReadComplete();等等, 这里会创建NioSocketChannel(OP_READ)
+				}
+				if ((readyOps & SelectionKey.OP_WRITE) != 0) {
+					// Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write
+					ch.unsafe().forceFlush();
+				}
+				if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
+					unsafe.finishConnect();
+				}
+			}
+		}
+	});
+
+	public void execute(Runnable task) {
+		if (inEventLoop) {
+            addTask(task);{
+				if (isShutdown()) {
+					reject();
+				}
+				taskQueue.add(task);
+			}
+        } else {
+            startThread();
+            addTask(task);
+            if (isShutdown() && removeTask(task)) {
+                reject();
+            }
+        }
+		if (!addTaskWakesUp && wakesUpForTask(task)) {
+            wakeup(inEventLoop); -> selector.wakeup()
+        }
+	}
+}

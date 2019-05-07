@@ -19,7 +19,7 @@ public class Unsafe {
     private static CyclicBarrier cb = new CyclicBarrier(THREAD_NUM);
 
     public static void main(String[] args) throws Exception{
-        test1();
+        testMemoryAllocate();
     }
 
 
@@ -62,7 +62,7 @@ public class Unsafe {
         }
     }
 
-    private static void test2() throws Exception{
+    private static void testCASwithNormalVar() throws Exception{
         MyThread t = new MyThread();
         List<Thread> pool = new ArrayList<>();
         for(int i = 0; i< THREAD_NUM; i++){
@@ -78,7 +78,7 @@ public class Unsafe {
         System.out.println(t.getI());
     }
 
-    private static void test0() throws Exception{
+    private static void testFieldOffset() throws Exception{
         UnsafeTest testO = new UnsafeTest();
         Field test = UnsafeTest.class.getDeclaredField("test");
         Field count = UnsafeTest.class.getDeclaredField("count");
@@ -91,7 +91,7 @@ public class Unsafe {
         System.out.println(testO);
     }
 
-    private static void test1(){
+    private static void testMemoryAllocate(){
         long oneHundred = 1073774772L;
         byte size = 8;
         System.out.println(unsafe.addressSize());

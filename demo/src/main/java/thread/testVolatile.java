@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Time: 15:39
  * Desc: failed!!!!
  *
- * AtomicReferenceFieldUpdater 只能在要update的class内部声明使用，会做很多不必要的额外校验(caller class校验等)，netty实现了一个简易版本，性能更高
  */
 public class testVolatile {
 

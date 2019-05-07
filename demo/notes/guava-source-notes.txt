@@ -1,0 +1,5 @@
+guava16.0.1:(版本不一样实现不一样)
+com.google.common.util.concurrent.ListenableFuture:
+1. ListenableFutureTask继承自FutureTask，只是复写了done方法来触发listener
+2. AbstractFuture只是一个同步器，内置一个ASQ，有多种实现，在set方法里触发listener
+3. TOMBSTONE的用法是什么 ???

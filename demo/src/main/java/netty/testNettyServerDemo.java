@@ -26,6 +26,11 @@ import java.net.InetSocketAddress;
  * shutdownOutput后socket处于半关闭(fin_wait2,可以读不可写)，另一端进行read会返回-1，但可以正常写，ALLOW_HALF_CLOSURE支持半关闭，在read到-1时不马上调用close(与TCP半关闭一致)
  * Socket的close会关闭input,output stream和channel(不是所有的Socket都有channel，必须是来自channel的socket)
  * 服务器连接异常，一般就是两种情况: time_wait是主动发起关闭的一端(对方是closed)，通过更改tcp参数可以优化(减少fin_wait时间，reuse address等等)，close_wait是被动关闭的一端(对方是fin_wait2)，是代码逻辑出错导致没有关闭
+ * 三次握手的必要性: 防止长时间滞留网路的sync报文(已超过sync_timeout)再次建立连接。 深层次原因: 需要三次握手来使得双方可以确认双向链路的可达性(实质就是双方交换确认对方的seq，并初始化窗口)
+ * 四次挥手的必要性: 双工链路，可以支持一方先关闭，另一方传输完毕后再关闭
+ * time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发起fin包； 等待长时间滞留网路的数据包失效(与三次握手相似)
+ * 流量控制: 滑动接收窗口控制流量(动态实时调整窗口大小): seq 是发送的字节流的开始index， ack 是接收到的字节流的结尾index + 1
+ * 网络拥塞控制: 拥塞窗口控制网络拥塞: 慢开始和拥塞避免； 快重传和快恢复
  */
 public class testNettyServerDemo {
     public static void main(String args[]) throws Exception{
@@ -81,8 +86,3 @@ public class testNettyServerDemo {
         }
     }
 }
-
-/**
- *  inbound, outbound use nio group thread(io thread)
- *
-* */
