@@ -1,0 +1,23 @@
+DB -> REMOTE CACHE -> LOCAL CACHE
+
+local cache(热点,击穿):
+过期时间短，TTL = min(REMOTE CACHE TTL，1s)
+本地缓存过期更新本地缓存:
+    设置本地缓存更新的触发时间, 发起一条线程去更新本地缓存
+    并发线程判断更新时间是否为0，不为0则直接返回过期数据不阻塞本地线程
+    线程判断更新时间，如果经过一定时间还没有更新，则发起另一条线程去更新本地缓存, 长时间没有更新则报错(稳定性设计)
+缓存更新线程,需要先读取remote cache，然后再读DB，然后更新remote cache和本地缓存，期间需要使用分布锁保证读和写是原子操作
+
+private int ttl;
+private volatile long updateStamp;
+private int updateInterval;
+
+private Object key;
+private volatile Object value;
+
+remote cache:
+缓存模式:
+    cache aside, r/w through, write back
+一致性(读和写必须是原子的):
+    周期性从DB加载数据
+    监听DB的bin log实时更新
