@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
  * User: johnny.ly
  * Date: 2017/4/5
  * Time: 11:26
- * Desc:
+ * Desc: -javaagent:agent.jar
  */
 public class ObjectSizeTest {
 
@@ -28,10 +28,19 @@ public class ObjectSizeTest {
         }
     }
 
+    private static long getObjectSize(Object objectToSize){
+        return InstrumentationSteal.instrumentation.getObjectSize(objectToSize);
+    }
+
     public static void main(final String[] args) throws Exception {
+
         System.out.println(unsafe.objectFieldOffset(TestClass.class.getDeclaredField("i")));
         System.out.println(unsafe.objectFieldOffset(TestClass.class.getDeclaredField("h")));
         System.out.println(unsafe.objectFieldOffset(TestClass.class.getDeclaredField("n")));
+
+        TestClass testClass = new TestClass();
+        System.out.println(getObjectSize(testClass));
+
         System.out.println(unsafe.objectFieldOffset(TestClassExt.class.getDeclaredField("j")));
         System.out.println(unsafe.objectFieldOffset(TestClassExt2.class.getDeclaredField("m")));
         System.out.println();
@@ -43,6 +52,9 @@ public class ObjectSizeTest {
         System.out.println(unsafe.objectFieldOffset(Togeth.class.getDeclaredField("test")));
         System.out.println(unsafe.objectFieldOffset(Togeth.class.getDeclaredField("test1")));
         System.out.println(unsafe.objectFieldOffset(Test.class.getDeclaredField("count")));
+
+        Togeth togeth = new Togeth();
+        System.out.println(getObjectSize(togeth));
     }
 }
 class TestClassExt2 extends  TestClassExt{
