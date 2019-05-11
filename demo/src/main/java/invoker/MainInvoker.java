@@ -34,7 +34,7 @@ public class MainInvoker {
             field.setAccessible(true);
             defineClass0 = field;
         } catch (Exception e){
-
+            e.printStackTrace();
         }
     }
 
