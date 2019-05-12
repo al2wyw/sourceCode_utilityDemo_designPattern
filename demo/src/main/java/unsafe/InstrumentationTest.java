@@ -2,6 +2,7 @@ package unsafe;
 
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.bytecode.Descriptor;
 import org.apache.poi.util.IOUtils;
@@ -46,8 +47,15 @@ public class InstrumentationTest {
                     ByteArrayInputStream bin = new ByteArrayInputStream(classfileBuffer);
 
                     CtClass ctClass = cp.makeClass(bin);
-                    CtMethod ctMethod = ctClass.getMethod("clean", Descriptor.ofMethod(CtClass.voidType, null));
-                    ctMethod.insertBefore("System.out.println(\"clean invoke\");");
+                    ctClass.addField(CtField.make("private String name",ctClass));
+                    ctClass.addMethod(CtMethod.make("private void setName(String name){" +
+                                "this.name = name;"+
+                            "}",ctClass));
+                    CtMethod ctMethod = ctClass.getDeclaredMethod("add");
+                    ctMethod.insertBefore("setName(utils.ThreadUtils.name.get());");
+
+                    ctMethod = ctClass.getMethod("clean", Descriptor.ofMethod(CtClass.voidType, null));
+                    ctMethod.insertBefore("System.out.println(\"clean invoke: \" + this.name);");
 
                     byte[] newContent = ctClass.toBytecode();
                     IOUtils.closeQuietly(bin);
