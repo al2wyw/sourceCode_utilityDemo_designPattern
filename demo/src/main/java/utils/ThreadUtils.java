@@ -5,8 +5,6 @@ package utils;
  */
 public class ThreadUtils {
 
-    public static ThreadLocal<String> name = new ThreadLocal<>();
-
     public static void printThreadName(String direct, String mess){
         System.out.println(direct+"---------------"+Thread.currentThread().getName()+"--------------"+mess);
     }
