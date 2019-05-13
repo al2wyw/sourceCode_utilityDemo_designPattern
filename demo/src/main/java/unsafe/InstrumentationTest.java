@@ -8,6 +8,7 @@ import javassist.CtMethod;
 import javassist.bytecode.Descriptor;
 import org.apache.poi.util.IOUtils;
 import sun.misc.Cleaner;
+import sun.misc.SharedSecrets;
 
 import java.io.ByteArrayInputStream;
 import java.lang.instrument.ClassFileTransformer;
@@ -44,6 +45,7 @@ public class InstrumentationTest {
             ThreadLocals.name.set("test " + i);
             ByteBuffer db = ByteBuffer.allocateDirect(1024 * 1024);
             db.put((byte) 1);
+            System.out.println(SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed() / (1024 * 1024) + " mb");
         }
     }
 

@@ -1,5 +1,6 @@
 package gc;
 
+import sun.misc.SharedSecrets;
 import sun.misc.VM;
 
 import java.nio.ByteBuffer;
@@ -21,9 +22,11 @@ public class TestCMS {
     public static void main(String[] args) throws Exception{
         System.out.println(Runtime.getRuntime().maxMemory()/(1024*1024) + " mb");
         System.out.println(VM.maxDirectMemory()/(1024*1024) + " mb");
+        System.out.println(SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed()/(1024*1024) + " mb");
         for(int i=0; i<100;i++) {
             ByteBuffer db = ByteBuffer.allocateDirect(1024 * 1024);
             db.put((byte) 1);
+            System.out.println(SharedSecrets.getJavaNioAccess().getDirectBufferPool().getMemoryUsed() / (1024 * 1024) + " mb");
         }
 
     }
