@@ -1,6 +1,6 @@
 package com.cglib;
 
-import net.sf.cglib.asm.Type;
+import org.objectweb.asm.Type;
 import net.sf.cglib.beans.BeanGenerator;
 import net.sf.cglib.core.*;
 import net.sf.cglib.transform.ClassEmitterTransformer;
@@ -9,6 +9,16 @@ import net.sf.cglib.transform.TransformingClassGenerator;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/**
+ * ClassVisitor -> ClassTransformer -> ClassEmitter 封装了ASM 接口，更易于编写字节码
+ * MethodVisitor -> CodeEmitter	封装了ASM 接口，更易于编写字节码
+ *
+ * ClassGenerator 封装了生成代码的逻辑: BeanGenerator, Enhancer，TransformingClassGenerator(对ClassGenerator通过ClassTransformer进行增强)
+ * DefaultGeneratorStrategy 对 ClassGenerator 和 ClassGenerator生成的bytecode 进行拦截，可以使用TransformingClassGenerator进行扩展，这个设计很赞 !!!
+ * ClassTransformer 对 ASM的 ClassVisitor进行扩展增强， 封装了特殊的代码生成逻辑 （ClassTransformer类似于 delegate 模式）
+ *
+ * 主要代码集中在 ClassEmitter的子类 和 AbstractClassGenerator的子类
+ * */
 public class testBeanGenerator {
 
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
