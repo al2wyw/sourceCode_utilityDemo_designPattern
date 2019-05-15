@@ -6,18 +6,20 @@ import net.sf.cglib.core.*;
 import net.sf.cglib.transform.ClassEmitterTransformer;
 import net.sf.cglib.transform.TransformingClassGenerator;
 
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * ClassVisitor -> ClassTransformer -> ClassEmitter 封装了ASM 接口，更易于编写字节码
- * MethodVisitor -> CodeEmitter	封装了ASM 接口，更易于编写字节码
+ * ClassVisitor -> ClassTransformer -> ClassEmitter 封装了ASM 接口，更易于编写字节码，最终还是调用ClassWriter
+ * MethodVisitor -> CodeEmitter	封装了ASM 接口，更易于编写字节码，最终还是调用MethodWriter
  *
- * ClassGenerator 封装了生成代码的逻辑: BeanGenerator, Enhancer，TransformingClassGenerator(对ClassGenerator通过ClassTransformer进行增强)
- * DefaultGeneratorStrategy 对 ClassGenerator 和 ClassGenerator生成的bytecode 进行拦截，可以使用TransformingClassGenerator进行扩展，这个设计很赞 !!!
+ * ClassGenerator 封装了生成代码的逻辑(使用ClassVisitor进行编写): BeanGenerator, Enhancer，TransformingClassGenerator(对ClassGenerator通过ClassTransformer进行增强)
+ * DefaultGeneratorStrategy 对 ClassGenerator 和 ClassGenerator生成的bytecode 进行拦截，可以使用TransformingClassGenerator对ClassGenerator进行扩展，这个设计很赞 !!!
  * ClassTransformer 对 ASM的 ClassVisitor进行扩展增强， 封装了特殊的代码生成逻辑 （ClassTransformer类似于 delegate 模式）
  *
  * 主要代码集中在 ClassEmitter的子类 和 AbstractClassGenerator的子类
+ * 主要缺陷就是不支持Annotation和Generic
  * */
 public class testBeanGenerator {
 
@@ -66,6 +68,18 @@ public class testBeanGenerator {
 				        
 						super.end_class();
 					}
+
+					@Override
+					public CodeEmitter begin_method(int access, Signature sig, Type[] exceptions) {
+						CodeEmitter codeEmitter = super.begin_method(access, sig, exceptions);
+						String methName = sig.getName();
+						if("myMethod".equals(methName)){
+							codeEmitter.getstatic(Type.getType(System.class),"out",Type.getType(PrintStream.class));
+							codeEmitter.visitLdcInsn("my string");
+							codeEmitter.invoke_virtual(Type.getType(PrintStream.class),new Signature("println",Type.VOID_TYPE,new Type[]{Constants.TYPE_STRING}));
+						}
+						return codeEmitter;
+					}
 				};
 				return new TransformingClassGenerator(cg, transformer);
 			}
@@ -78,6 +92,8 @@ public class testBeanGenerator {
         System.out.println(s);
         String special = (String)o.getClass().getField("special").get(o);
         System.out.println(special);
+		m = o.getClass().getMethod("myMethod",Boolean.TYPE, Boolean.class);
+		m.invoke(o,false,false);
 	}
 
 }
