@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
  * User: johnny.ly
  * Date: 2018/12/31
  * Time: 17:14
- * Desc:
+ * Desc: -Dsun.reflect.inflationThreshold=0
  */
 public class testReflect {
 

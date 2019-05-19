@@ -1,4 +1,4 @@
-package reflect;
+package reflect.dispatcher;
 
 import sun.reflect.MethodAccessor;
 
@@ -52,3 +52,32 @@ public class MethodAccessorTest {
         }
     }
 }
+/**
+ *
+public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
+    public GeneratedMethodAccessor1() {
+        super();
+    }
+
+    public Object invoke(Object obj, Object[] args)
+            throws IllegalArgumentException, InvocationTargetException {
+        // prepare the target and parameters
+        if (obj == null) throw new NullPointerException();
+        try {
+            A target = (A) obj; //type cast, if obj is an object of parent class, here will throw exception
+            if (args.length != 1) throw new IllegalArgumentException();
+            String arg0 = (String) args[0]; //type cast
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException(e.toString());
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(e.toString());
+        }
+        // make the invocation
+        try {
+            target.foo(arg0);
+        } catch (Throwable t) {
+            throw new InvocationTargetException(t);
+        }
+    }
+}
+ */
