@@ -1,4 +1,4 @@
-package demo;
+package reflect.dispatcher;
 
 /**
  * Created by IntelliJ IDEA.

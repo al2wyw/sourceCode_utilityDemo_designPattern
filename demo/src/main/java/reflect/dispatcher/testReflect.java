@@ -14,12 +14,12 @@ public class testReflect {
     public static void main(String[] args) throws Exception{
         Method method = testInterface.class.getDeclaredMethod("testMethod");//MethodAccessor invokeInterface
         Method method1 = testImpl.class.getDeclaredMethod("testMethod");//MethodAccessor invokeVirtual
-        testImpl test = new testImpl();
-        method.invoke(test);
+        testImpl testImpl = new testImpl();
+        method.invoke(testImpl);
 
-        testInterface test2 = test;
-        test2.testMethod(); //invokeInterface
-        test.testMethod(); //invokeVirtual
+        testInterface testInterface = testImpl;
+        testInterface.testMethod(); //invokeInterface
+        testImpl.testMethod(); //invokeVirtual
 
         /** test dispatcher **/
         testInterface testDisp = new testImpl();
