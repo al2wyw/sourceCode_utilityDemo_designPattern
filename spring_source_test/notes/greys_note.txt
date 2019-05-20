@@ -1,0 +1,4 @@
+PathTraceCommand: 在匹配的方法头部后尾部增加代码进行时间统计
+返回ReflectAdviceListenerAdapter，不含有tracingInvoke****方法的实现
+TraceCommand: 在匹配的方法体里，对每个方法调用增加代码进行时间统计 (实现 DefaultCommandHandler -> Enhancer -> AdviceWeaver -> visitMethod -> visitMethodInsn -> isTracing(决定是否在方法调用周围织入代码))
+返回ReflectAdviceTracingListenerAdapter，含有tracingInvoke****方法的实现
