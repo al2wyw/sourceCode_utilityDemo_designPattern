@@ -2,3 +2,31 @@ PathTraceCommand: 在匹配的方法头部后尾部增加代码进行时间统计
 返回ReflectAdviceListenerAdapter，不含有tracingInvoke****方法的实现
 TraceCommand: 在匹配的方法体里，对每个方法调用增加代码进行时间统计 (实现 DefaultCommandHandler -> Enhancer -> AdviceWeaver -> visitMethod -> visitMethodInsn -> isTracing(决定是否在方法调用周围织入代码))
 返回ReflectAdviceTracingListenerAdapter，含有tracingInvoke****方法的实现
+
+ptrace *AuthInterceptor preHandle --path com.abcd.web.rmsui.interceptor*
+
+    `---+[31,30ms]com.alibaba.onetouch.product.domain.service.impl.ProductClassifyInfoServiceImpl:findByIdListForICBU()
+        +---[1,0ms]org.apache.commons.collections.CollectionUtils:isEmpty(@259)
+        +---[1,0ms]java.util.List:size(@262)
+        +---[1,0ms]java.util.ArrayList:<init>(@262)
+        +---[1,0ms]com.alibaba.onetouch.product.domain.valueobject.ClassifyInfoSelector$SelectorBuilder:newBuilder(@266)
+        +---[1,0ms]com.alibaba.onetouch.zeus.selector.ProductSelector:isIncludeAttachments(@267)
+        +---[1,0ms]com.alibaba.onetouch.product.domain.valueobject.ClassifyInfoSelector$SelectorBuilder:withAttachments(@267)
+        +---[1,0ms]com.alibaba.onetouch.zeus.selector.ProductSelector:isIncludeAttributes(@268)
+        +---[1,0ms]com.alibaba.onetouch.product.domain.valueobject.ClassifyInfoSelector$SelectorBuilder:withAttributes(@268)
+        +---[1,0ms]com.alibaba.onetouch.product.domain.valueobject.ClassifyInfoSelector$SelectorBuilder:build(@269)
+        +---[16,15ms]com.alibaba.onetouch.product.domain.repository.ProductClassifyInfoRepository:queryProductClassifyInfoByIds(@265)
+        +---[16,0ms]java.util.List:stream(@271)
+        +---[19,0ms]java.util.stream.Stream:map(@272)
+        +---[19,0ms]java.util.stream.Collectors:toList(@273)
+        +---[30,11ms]java.util.stream.Stream:collect(@273)
+        +---[30,0ms]java.util.List:addAll(@271)
+        +---[30,0ms]java.util.List:stream(@276)
+        +---[30,0ms]java.util.stream.Stream:map(@277)
+        +---[30,0ms]java.util.stream.Collectors:toSet(@278)
+        +---[30,0ms]java.util.stream.Stream:collect(@278)
+        +---[30,0ms]java.util.List:stream(@280)
+        +---[31,0ms]java.util.stream.Stream:filter(@281)
+        +---[31,0ms]java.util.stream.Collectors:toList(@282)
+        +---[31,0ms]java.util.stream.Stream:collect(@282)
+        `---[31,0ms]org.apache.commons.collections.CollectionUtils:isEmpty(@284)
