@@ -1,7 +1,7 @@
-PathTraceCommand: ��ƥ��ķ���ͷ����β�����Ӵ������ʱ��ͳ��
-����ReflectAdviceListenerAdapter��������tracingInvoke****������ʵ��
-TraceCommand: ��ƥ��ķ��������ÿ�������������Ӵ������ʱ��ͳ�� (ʵ�� DefaultCommandHandler -> Enhancer -> AdviceWeaver -> visitMethod -> visitMethodInsn -> isTracing(�����Ƿ��ڷ���������Χ֯�����))
-����ReflectAdviceTracingListenerAdapter������tracingInvoke****������ʵ��
+PathTraceCommand: 在匹配的方法头部后尾部增加代码进行时间统计
+返回ReflectAdviceListenerAdapter，不含有tracingInvoke****方法的实现
+TraceCommand: 在匹配的方法体里，对每个方法调用增加代码进行时间统计 (实现 DefaultCommandHandler -> Enhancer -> AdviceWeaver -> visitMethod -> visitMethodInsn -> isTracing(决定是否在方法调用周围织入代码))
+返回ReflectAdviceTracingListenerAdapter，含有tracingInvoke****方法的实现
 
 ptrace *AuthInterceptor preHandle --path com.abcd.web.rmsui.interceptor*
 
@@ -30,3 +30,30 @@ ptrace *AuthInterceptor preHandle --path com.abcd.web.rmsui.interceptor*
         +---[31,0ms]java.util.stream.Collectors:toList(@282)
         +---[31,0ms]java.util.stream.Stream:collect(@282)
         `---[31,0ms]org.apache.commons.collections.CollectionUtils:isEmpty(@284)
+
+方法的参数和方法的接收者称为方法的宗量，根据宗量的多少来对目标方法进行选择，可以划分为单分派和多分派: java语言是静态多分派，动态单分派语言,同时是静态类型语言
+
+动态类型语言特点:
+类型检查发生在运行期:
+动态类型语言的变量无类型而变量值才有类型(运行期可知)，静态类型语言的变量的类型是静态的(编译期可知)
+动态类型语言只有在运行期才能确定方法的接收者类型，静态类型语言在编译期就已经明确接收者类型(MethodRef_info)
+
+invokedynamic:
+实现: 编译时留个占位符类型，运行时动态生成字节码实现具体类型到占位符类型的适配
+
+invoke包:
+Lookup ???
+Reflection VS MethodHandle:
+Ref 是模拟java代码层次的调用，mh是模拟字节码层次的调用
+Ref 包含类的全面信息，是重量级的，mh只包含方法调用相关信息，是轻量级的
+Ref 是为java语言服务的，mh是给java虚拟机之上的语言服务的
+
+invokedynamic指令: ???
+invokeDynamic_info:
+--引导方法 Boostrap Method: 返回CallSite对象,包含了MethodHandle (class文件的BoostrapMethods属性)
+--方法类型 MethodType
+--名称
+MethodHandle_info:
+MethodType_info:
+
+掌控分派规则：代码failed了 ???
