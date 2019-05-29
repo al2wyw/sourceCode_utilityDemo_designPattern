@@ -5,7 +5,7 @@ package com.dynamicInvoke;
  * User: johnny.ly
  * Date: 2019/5/24
  * Time: 10:19
- * Desc:
+ * Desc: -Djdk.internal.lambda.dumpProxyClasses=
  */
 public class MethodReference {
     public static void main(String[] args) {

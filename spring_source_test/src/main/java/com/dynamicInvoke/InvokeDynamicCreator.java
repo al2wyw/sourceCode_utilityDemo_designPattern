@@ -22,7 +22,7 @@ public class InvokeDynamicCreator {
         final String outputClassName = "com/dynamicInvoke/Dynamic";
         try (FileOutputStream fos
                      = new FileOutputStream(new File("target/classes/" + outputClassName + ".class"))) {
-            fos.write(dump(outputClassName, "bootstrap", "()V"));
+            fos.write(dump(outputClassName, "bootstrap", "(Ljava/lang/String;)V"));
         }
     }
 
@@ -38,7 +38,7 @@ public class InvokeDynamicCreator {
         mv = cw.visitMethod(ACC_PUBLIC, "", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "", "()V");
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "", "()V", false);
         mv.visitInsn(RETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
@@ -47,12 +47,13 @@ public class InvokeDynamicCreator {
         mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
         mv.visitCode();
         MethodType mt = MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class,
-                MethodType.class);
+                MethodType.class, String.class);
         Handle bootstrap = new Handle(H_INVOKESTATIC, "com/dynamicInvoke/InvokeDynamicCreator", bsmName,
                 mt.toMethodDescriptorString(),false);
-        mv.visitInvokeDynamicInsn("runDynamic", targetMethodDescriptor, bootstrap);
+        mv.visitLdcInsn("come arg1");
+        mv.visitInvokeDynamicInsn("runDynamic", targetMethodDescriptor, bootstrap, "test");
         mv.visitInsn(RETURN);
-        mv.visitMaxs(0, 1);
+        mv.visitMaxs(1, 1);
         mv.visitEnd();
 
         cw.visitEnd();
@@ -60,15 +61,16 @@ public class InvokeDynamicCreator {
         return cw.toByteArray();
     }
 
-    private static void targetMethod() {
-        System.out.println("Hello World!");
+    private static void targetMethod(String arg1) {
+        System.out.println("Hello World! " + arg1);
     }
 
-    public static CallSite bootstrap(MethodHandles.Lookup caller, String name, MethodType type) throws NoSuchMethodException, IllegalAccessException {
+    public static CallSite bootstrap(MethodHandles.Lookup caller, String name, MethodType type, String arg1) throws NoSuchMethodException, IllegalAccessException {
+        System.out.println("arg1=" + arg1);
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
         // 需要使用lookupClass()，因为这个方法是静态的
         final Class currentClass = lookup.lookupClass();
-        final MethodType targetSignature = MethodType.methodType(void.class);
+        final MethodType targetSignature = MethodType.methodType(void.class, String.class);
         final MethodHandle targetMH = lookup.findStatic(currentClass, "targetMethod", targetSignature);
         return new ConstantCallSite(targetMH.asType(type));
     }

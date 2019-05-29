@@ -35,7 +35,7 @@
 
     <dependency>
       <groupId>com.sun</groupId>
-      <artifactId>tools</artifactId>
+      <artifactId>sa</artifactId>
       <version>1.8</version>
       <scope>system</scope>
       <systemPath>${java.home}/../lib/sa-jdi.jar</systemPath>

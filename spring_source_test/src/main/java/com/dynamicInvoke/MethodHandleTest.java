@@ -16,7 +16,7 @@ public class MethodHandleTest {
     public static void main( String args[] ) throws Throwable{
         new Son().action();
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandles.Lookup lookup = MethodHandles.lookup();// Lookup class used to check visibility and access
         MethodHandle mh = lookup.findVirtual(String.class, "indexOf",
                 MethodType.methodType(int.class, String.class, int.class));
         mh = mh.bindTo("Hello").bindTo("l");//调用接收者，第1个参数
@@ -32,7 +32,9 @@ public class MethodHandleTest {
 
             int ret;
             try {
-                ret = (int)mhr.invoke(rcvr); //mhr.invokeExact(rcvr) -> WrongMethodTypeException
+                ret = (int)mhr.invoke(rcvr);
+                //ret = (int)mhr.invokeExact(rcvr); //WrongMethodTypeException
+                //ret = (int)mhr.invokeExact((String)rcvr); //fine
                 System.out.println(ret);
             } catch (Throwable t) {
                 t.printStackTrace();

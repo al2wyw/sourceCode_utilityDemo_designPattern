@@ -50,10 +50,15 @@ Ref 是为java语言服务的，mh是给java虚拟机之上的语言服务的
 
 invokedynamic指令: ???
 invokeDynamic_info:
---引导方法 Boostrap Method: 返回CallSite对象,包含了MethodHandle (class文件的BoostrapMethods属性)
---方法类型 MethodType
---名称
+--引导方法 Boostrap Method index: 返回CallSite对象,包含了MethodHandle (class文件的BoostrapMethods属性)
+--方法名称类型 nameAndType ???
 MethodHandle_info:
+ref kind (MethodHandle invoke type: getField, invokevirtual ...)
+ref index (normal methodRef/fieldRed)
 MethodType_info:
+type: method description
+BoostrapMethods:
+bootstrap_method_ref (MethodHandle_info)
+bootstrap_arguments (if required)
 
 掌控分派规则：代码failed了 ???
