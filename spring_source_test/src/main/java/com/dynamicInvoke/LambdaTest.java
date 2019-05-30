@@ -13,6 +13,11 @@ import java.util.stream.Stream;
  * Desc:
  */
 public class LambdaTest {
+
+    public static void print(String s){
+        System.out.println(s);
+    }
+
     public static void main( String args[] ) throws Throwable{
         String local = "test";
         List<String> test = Lists.newArrayList("Str","test","access");
@@ -20,7 +25,7 @@ public class LambdaTest {
                 .filter(str -> str.contains(local))
                 .forEach(str -> Stream.of(str.split("e"))
                                 .filter(s -> s.contains("t"))
-                                .peek(System.out::println)
+                                .peek(LambdaTest::print)
                                 .forEach(s -> System.out.println(s))
                 );
     }

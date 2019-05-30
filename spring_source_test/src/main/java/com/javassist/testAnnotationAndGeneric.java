@@ -1,10 +1,7 @@
 package com.javassist;
 
 import javassist.*;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.SignatureAttribute;
+import javassist.bytecode.*;
 import javassist.bytecode.annotation.Annotation;
 
 import javax.annotation.Resource;
@@ -17,6 +14,12 @@ import java.lang.reflect.Type;
  * Date: 2018/10/30
  * Time: 23:57
  * Desc:
+ *      对整个类文件进行抽象: ClassFile -> ConstPool, FieldInfo， MethodInfo(code在attr里面)，AttributeInfo(拥有很多子类)
+ *                                 |                    |               |
+ *                           CtClassType ->         CtField         CtMethod
+ *      Javac(解析成语法树) -> JvstCodeGen(Visitor，转换成字节码) -> Bytecode(生成代码的核心，类似于cglib CodeEmitter)
+ *      CtMethod.make ->  Javac ->  MethodInfo -> CtMethod --addedTo--> CtClassType
+ *      ClassFileWriter: a util to generate class file, not easy to use(类似于asm ClassWriter)
  */
 public class testAnnotationAndGeneric {
     public static void main( String args[] ) throws Exception{
