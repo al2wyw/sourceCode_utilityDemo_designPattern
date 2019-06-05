@@ -18,7 +18,8 @@ import java.lang.reflect.Method;
  * User: johnny.ly
  * Date: 2019/5/30
  * Time: 17:38
- * Desc:
+ * Desc: 使用class reader来构建class writer的话，class pool和boostrap methods会保持不变
+ *       使用ClassNode可以分析到boostrap methods吗?
  */
 public class ModifyOriginalClassFileTest {
 
@@ -40,7 +41,7 @@ public class ModifyOriginalClassFileTest {
                 return codeEmitter;
             }
         };
-        //使用class reader来构建class writer的话，class pool和boostrap methods会保持不变
+
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cv.setTarget(classWriter);
 
