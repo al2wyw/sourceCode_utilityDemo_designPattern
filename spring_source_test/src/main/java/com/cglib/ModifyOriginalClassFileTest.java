@@ -9,6 +9,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 
@@ -39,6 +40,7 @@ public class ModifyOriginalClassFileTest {
                 return codeEmitter;
             }
         };
+        //使用class reader来构建class writer的话，class pool和boostrap methods会保持不变
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cv.setTarget(classWriter);
 
@@ -47,5 +49,9 @@ public class ModifyOriginalClassFileTest {
         Class klass =  ClassLoaderUtils.defineClass(cl, "com.dynamicInvoke.LambdaTest", newContent);
         Method method = klass.getDeclaredMethod("main", String[].class);
         method.invoke(null, (Object) null);
+
+        FileOutputStream fileOutputStream = new FileOutputStream("test.class");//class pool的index发生改变了
+        fileOutputStream.write(newContent);
+        fileOutputStream.close();
     }
 }
