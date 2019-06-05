@@ -14,7 +14,7 @@ import java.lang.reflect.Type;
  * Date: 2018/10/30
  * Time: 23:57
  * Desc:
- *      对整个类文件进行抽象: ClassFile -> ConstPool, FieldInfo， MethodInfo(code在attr里面)，AttributeInfo(拥有很多子类)
+ *      对整个类文件进行抽象: ClassFile -> ConstPool, FieldInfo， MethodInfo(code在attr里面)，AttributeInfo(拥有很多子类) ConstPool里面的ConstInfo(拥有很多子类)
  *                                 |                    |               |
  *                           CtClassType ->         CtField         CtMethod
  *      Javac(解析成语法树) -> JvstCodeGen(Visitor，转换成字节码) -> Bytecode(生成代码的核心，类似于cglib CodeEmitter)

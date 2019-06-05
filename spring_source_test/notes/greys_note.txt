@@ -54,7 +54,7 @@ invokeDynamic_info:
 --方法名称类型 nameAndType ???
 MethodHandle_info:
 ref kind (MethodHandle invoke type: getField, invokevirtual ...)
-ref index (normal methodRef/fieldRed)
+ref index (normal methodRef/fieldRef)
 MethodType_info:
 type: method description
 BoostrapMethods:
