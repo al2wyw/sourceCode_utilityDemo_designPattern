@@ -29,4 +29,11 @@ public class LambdaTest {
                                 .forEach(s -> System.out.println(s))
                 );
     }
+
+    public static void test(){
+        List<String> test = Lists.newArrayList("test1","test2","test3");
+        test.stream()
+                .filter(str -> str.startsWith("test"))
+                .forEach(System.out::println);
+    }
 }
