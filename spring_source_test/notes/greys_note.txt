@@ -48,10 +48,10 @@ Ref 是模拟java代码层次的调用，mh是模拟字节码层次的调用
 Ref 包含类的全面信息，是重量级的，mh只包含方法调用相关信息，是轻量级的
 Ref 是为java语言服务的，mh是给java虚拟机之上的语言服务的
 
-invokedynamic指令: ???
+invokedynamic指令:
 invokeDynamic_info:
 --引导方法 Boostrap Method index: 返回CallSite对象,包含了MethodHandle (class文件的BoostrapMethods属性)
---方法名称类型 nameAndType ???
+--方法名称类型 nameAndType
 MethodHandle_info:
 ref kind (MethodHandle invoke type: getField, invokevirtual ...)
 ref index (normal methodRef/fieldRef)

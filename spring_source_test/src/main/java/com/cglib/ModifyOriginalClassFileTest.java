@@ -25,6 +25,17 @@ import java.util.stream.Stream;
  * Time: 17:38
  * Desc: 使用class reader来构建class writer的话，class pool和boostrap methods会保持不变
  *       使用ClassNode可以分析到boostrap methods
+ *
+         visitInsn -> no operand ins
+         visitVarInsn -> local variable ins
+         visitTypeInsn -> NEW, ANEWARRAY, CHECKCAST or INSTANCEOF
+         visitIntInsn -> BIPUSH, SIPUSH or NEWARRAY
+         visitIincInsn -> IINC ins
+         visitFieldInsn -> GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD
+         visitMethodInsn
+         visitInvokeDynamicInsn
+         visitJumpInsn
+         visitLdcInsn
  */
 public class ModifyOriginalClassFileTest {
 
@@ -81,6 +92,7 @@ public class ModifyOriginalClassFileTest {
                     .forEach(abstractInsnNode -> {
                         if (abstractInsnNode.getOpcode() == Opcodes.INVOKEDYNAMIC) {
                             InvokeDynamicInsnNode node = (InvokeDynamicInsnNode) abstractInsnNode;
+                            Type type = (Type) node.bsmArgs[0];
                             Handle target = (Handle)node.bsmArgs[1];
                             if(target.getOwner().contains(owner)) {
                                 System.out.println(target.getName());
