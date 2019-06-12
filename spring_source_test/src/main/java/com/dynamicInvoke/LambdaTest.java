@@ -28,12 +28,15 @@ public class LambdaTest {
                                 .peek(LambdaTest::print)
                                 .forEach(s -> System.out.println(s))
                 );
+        test();
     }
 
     public static void test(){
+        LambdaTestAgain again = new LambdaTestAgain();
         List<String> test = Lists.newArrayList("test1","test2","test3");
         test.stream()
                 .filter(str -> str.startsWith("test"))
+                .map(again::convert)
                 .forEach(System.out::println);
     }
 }

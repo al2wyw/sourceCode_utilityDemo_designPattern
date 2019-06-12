@@ -75,12 +75,12 @@ public class ModifyOriginalClassFileTest {
         ClassNode cn = new ClassNode();
         classReader.accept(cn, ClassReader.EXPAND_FRAMES);
         Map<String,MethodNode> methodNodeMap = cn.methods.stream()
-                .collect(Collectors.toMap(methodNode -> methodNode.name, Function.identity()));
+                .collect(Collectors.toMap(methodNode -> methodNode.name + methodNode.desc, Function.identity()));
 
         Set<String> methodExplored = new HashSet<>();
         List<String> methodToExplore = new LinkedList<>();
         String owner = "LambdaTest";
-        methodToExplore.add("test");
+        methodToExplore.add("test" + "()V");
         while(!methodToExplore.isEmpty()) {
             String name = methodToExplore.remove(0);
             if(!methodExplored.add(name)){
@@ -95,8 +95,8 @@ public class ModifyOriginalClassFileTest {
                             Type type = (Type) node.bsmArgs[0];
                             Handle target = (Handle)node.bsmArgs[1];
                             if(target.getOwner().contains(owner)) {
-                                System.out.println(target.getName());
-                                methodToExplore.add(target.getName());
+                                System.out.println(target.getName() + target.getDesc());
+                                methodToExplore.add(target.getName() + target.getDesc());
                             }
                         }
                     });
