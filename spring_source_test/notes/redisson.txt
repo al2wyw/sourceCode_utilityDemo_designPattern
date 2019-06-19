@@ -443,3 +443,16 @@ public class CommandsData implements QueueCommand {
     private final boolean atomic;
     private final boolean queued;
 }
+
+abstract class PublishSubscribe<E extends PubSubEntry<E>> { //各种发布订阅能力的顶层处理类
+	private final PublishSubscribeService service;//发布,订阅的核心服务,比较复杂
+	protected abstract E createEntry(RPromise<E> newPromise);
+	protected abstract void onMessage(E value, Long message);
+}
+LockPubSub, CountDownLatchPubSub, SemaphorePubSub
+public interface PubSubEntry<E> { //同步器 ???
+    void aquire();
+    int release();
+    RPromise<E> getPromise();
+}
+RedissonLockEntry, RedissonCountDownLatchEntry

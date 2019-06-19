@@ -1,6 +1,14 @@
 基础知识:
-对象结构:typedef struct redisObject {
-    unsigned type; unsigned encoding; unsigned lru: int refcount; void *ptr; }
+对象结构:
+typedef struct redisObject {
+         unsigned type:4;
+         unsigned encoding:4;
+         unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                                 * LFU data (least significant 8 bits frequency
+                                 * and most significant 16 bits access time). */
+         int refcount;
+         void *ptr;
+     } robj;
 数据类型: string, list, hash, set, zset, stream
 数据结构:
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
@@ -21,9 +29,54 @@ OBJ_ENCODING_SKIPLIST: zset的底层实现
 OBJ_ENCODING_ZIPLIST: 连续的内存空间，有固定的数据大小格式，通过pre-node-length可以从尾部倒序地直接定位数据内容
 OBJ_ENCODING_INTSET: 数据类型升级
 bitset使用的是string类型raw编码
+typedef struct redisDb {
+    dict *dict;                 /* The keyspace for this DB */
+    dict *expires;              /* Timeout of keys with a timeout set */
+    dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)*/
+    dict *ready_keys;           /* Blocked keys that received a PUSH */
+    dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
+    int id;                     /* Database ID */
+    long long avg_ttl;          /* Average TTL, just for stats */
+    list *defrag_later;         /* List of key names to attempt to defrag one by one, gradually. */
+} redisDb;
+
+内存回收
+- 引用计数 refcount
+当创建一个新对象时，引用计数初始化为1
+当调用incrRefCount时，引用计数加1
+当调用decrRefCount时，引用计数减1，当引用计数为0时回收对象内存
+
+共享对象 (对象引用计数增1)
+只对整数值对象进行共享(字符串需要更复杂的比对算法，占用cpu多，所以不共享)
 
 数据库功能:
-RDB实现
+最大内存设置(当物理内存被占满后会使用swap空间)
+根据配置的数据淘汰策略尝试淘汰数据，释放空间
+如果没有数据可以淘汰，或者没有配置数据淘汰策略，那么Redis会对所有写请求返回错误，但读请求仍然可以正常执行
+如果采用了Redis的主从同步，主节点向从节点同步数据时，会占用掉一部分内存空间
+
+数据淘汰机制
+volatile-lru：使用LRU算法进行数据淘汰，只淘汰设定了有效期的key
+allkeys-lru：使用LRU算法进行数据淘汰，所有的key都可以被淘汰
+volatile-random：随机淘汰数据，只淘汰设定了有效期的key
+allkeys-random：随机淘汰数据，所有的key都可以被淘汰
+volatile-ttl：淘汰剩余有效期最短的key
+
+
+过期数据实现
+redisDb结构的expires指向拥有过期时间的key
+过期数据清理
+- 定期清除(数据量大时cpu占用大)
+- 惰性清除(数据量大时空间占用大)
+- 定频定时长清除
+清除策略: 定频定时长清除(保证cpu占用率低) + 惰性清除
+AOF,RDB,主从复制对过期数据处理: 全部转换成DEL操作，从库不会对key进行过期处理
+
+RDB实现:
+- SAVE 进程阻塞，等待数据全部保存完毕
+- BGSAVE fork子进程，主进程不阻塞
+配置间隙性SAVE(其实是BGSAVE)
+
 AOF实现: 处理文件消息(IO) -> 处理事件消息(serverCron) -> AOF缓存是否刷盘
 - always
 - every second
@@ -34,6 +87,8 @@ SERVER实现: 命令执行过程 (前置处理 -> 执行命令(写入client缓�
 
 集群功能:
 主从模式
+- 全量复制
+- 增量复制
 
 哨兵模式(主从模式的HA版本，由哨兵来进行选举并通知客户端)
 
@@ -73,3 +128,7 @@ ping/pong实现: 从已知节点随机选取两个节点信息，发送ping消�
 接收方从已知节点随机选取两个节点信息返回pong消息给发送方
 
 fail实现: gossip消息太慢，直接向所有节点广播fail消息，fail消息只需要携带fail的节点标识
+
+发布与订阅:
+- 频道的订阅 subscribe channelName
+- 模式的订阅 subscribe channelName*
