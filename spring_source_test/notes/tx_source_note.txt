@@ -2,23 +2,36 @@ TxAdviceBeanDefinitionParser to parse <tx:advice> -> NameMatchTransactionAttribu
 TransactionAttributeSource  subclass AnnotationTransactionAttributeSource has one or more TransactionAnnotationParser subclass
 SpringTransactionAnnotationParser to parse @Transactional  ->  BeanFactoryTransactionAttributeSourceAdvisor(internalTransactionAdvisor)
 
-TransactionSynchronizationManager(thread oriented):
- resources map key DataSource/SqlSessionFactory value ConnectionHolder/SqlSessionHolder; 
- synchronizations set key TransactionSynchronization(ConnectionSynchronization(JDBC)/SqlSessionSynchronization(myBatis));(bind to/unbind from thread)
-
 AbstractPlatformTransactionManager has  int transactionSynchronization
  
 DataSourceTransactionManager.DataSourceTransactionObject hold the connectionholder, savePointAllow(b), newConnectionHolder(b), mustRestoreAutoCommit(b)
 
-TransactionSynchronizationManager:
+TransactionSynchronizationManager(thread oriented,用于tx和orm框架交互):
+ resources map key DataSource/SqlSessionFactory value ConnectionHolder/SqlSessionHolder; 
+ synchronizations set key TransactionSynchronization(ConnectionSynchronization(JDBC)/SqlSessionSynchronization(myBatis));(bind to/unbind from thread)
 initSynchronization() -> isSynchronizationActive() true
 setActualTransactionActive(true) -> isActualTransactionActive() true
 
 ConnectionHolder has ConnectionHandle to handle all the method call of ConnectionHolder
 
-Transaction(DataSourceTransactionObject) and TransactionSynchronization two main things go along with the transactional
+Transaction(DataSourceTransactionObject,包含connection) and TransactionSynchronization(用于tx流程扩展,数据清理) two main things go along with the transactional
 
 two places to create ConnectionHolder, one is to register ConnectionSynchronization(no transaction), another is not(has transaction).
+
+isNestedTransactionAllowed -> SavepointAllowed
+
+support current tx:
+PROPAGATION_SUPPORTS	if no -> do nothing
+PROPAGATION_MANDATORY 	if no -> exception
+PROPAGATION_REQUIRED	if no -> new
+
+not support current tx:
+PROPAGATION_NOT_SUPPORTED 	if has -> suspend
+PROPAGATION_NEVER			if has -> exception
+
+create new tx:
+PROPAGATION_REQUIRES_NEW 	if has -> suspend
+PROPAGATION_NESTED			if has -> save point
 
 main classes:
 DataSource(获取数据库连接), ORM框架需要它, DataSourceTransactionManager也需要它, spring tx需要ORM配合才能完成
@@ -33,7 +46,7 @@ TransactionInfo{
 		private final PlatformTransactionManager transactionManager;
 		private final TransactionAttribute transactionAttribute;
 		private final String joinpointIdentification;
-		private TransactionStatus transactionStatus;
+		private TransactionStatus transactionStatus;//has SuspendedResourcesHolder(connection)
 		private TransactionInfo oldTransactionInfo;
 }
 
@@ -51,37 +64,16 @@ interface TransactionSynchronization { //please notice every method has its own 
 }
 
 MyBatis ORM:
-MapperProxy invoke -> MapperMethod execute -> sqlSessionTemplate insert/delete/update/select -> sqlSessionProxy invoke{
-	SqlSessionUtils.getSqlSession{
-		SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
-		if (holder != null && holder.isSynchronizedWithTransaction()) {
-		  if (holder.getExecutorType() != executorType) {
-			throw new TransientDataAccessResourceException();
-		  }
-		  holder.requested();
-		  return holder.getSqlSession();
-		}
-		//DefaultSqlSession
-		SqlSession session = sessionFactory.openSession(executorType);
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {//always active even no transaction
-		  Environment environment = sessionFactory.getConfiguration().getEnvironment();
-		  if (environment.getTransactionFactory() instanceof SpringManagedTransactionFactory) {
-			holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
-			TransactionSynchronizationManager.bindResource(sessionFactory, holder);
-			TransactionSynchronizationManager.registerSynchronization(new SqlSessionSynchronization(holder, sessionFactory));
-			holder.setSynchronizedWithTransaction(true);//everytime when resourceholder created it will set to true
-			holder.requested();
-		  }
-		}
-		return session;
-	}
+MapperProxy(jdk InvocationHandler) invoke -> MapperMethod execute -> SqlSessionTemplate insert/delete/update/select -> SqlSessionInterceptor(jdk InvocationHandler) invoke
+{
+	SqlSession sqlSession = SqlSessionUtils.getSqlSession(SqlSessionTemplate.this.sqlSessionFactory, SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
 	try{
-		//DefaultSqlSession.selectList -> BaseExecutor.queryFromDatabase -> SimpleExecutor.doQuery -> SimpleExecutor.prepareStatement -> BaseExecutor.getConnection -> SpringManagedTransaction.getConnection -> DataSourceUtils.doGetConnection
-		//Transaction has JdbcTransaction, ManagedTransaction and SpringManagedTransaction(integrate with spring)
 		//method is selectList
 		Object result = method.invoke(sqlSession, args);{
+			//DefaultSqlSession.selectList -> BaseExecutor.queryFromDatabase -> SimpleExecutor.doQuery -> SimpleExecutor.prepareStatement -> BaseExecutor.getConnection -> SpringManagedTransaction.getConnection -> DataSourceUtils.doGetConnection
+			//Transaction has JdbcTransaction, ManagedTransaction and SpringManagedTransaction(integrate with spring)
 			...
-			DataSourceUtils.doGetConnection{
+			DataSourceUtils.doGetConnection(DataSource dataSource){
 				ConnectionHolder conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(dataSource);
 				if (conHolder != null && (conHolder.hasConnection() || conHolder.isSynchronizedWithTransaction())) {
 					conHolder.requested();
@@ -109,27 +101,52 @@ MapperProxy invoke -> MapperMethod execute -> sqlSessionTemplate insert/delete/u
 						TransactionSynchronizationManager.bindResource(dataSource, holderToUse);
 					}
 				}
-			return con;
+				return con;
 			}
 			...
 		}
-		//(holder != null) && (holder.getSqlSession() == session)
+		//SqlSessionHolder holder = (SqlSessionHolder)TransactionSynchronizationManager.getResource(sessionFactory);
+		//holder != null && holder.getSqlSession() == sqlSession
         if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
           sqlSession.commit(true);
         }
         return result;
 	} finally {
         if (sqlSession != null) {
-          closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);{
-				SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
-				if ((holder != null) && (holder.getSqlSession() == session)) {
-				  holder.released();
-				} else {
-				  session.close();
-				}
-			}
+          SqlSessionUtils.closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
         }
     }
+}
+SqlSessionUtils.getSqlSession(SqlSessionFactory sessionFactory, ExecutorType executorType, PersistenceExceptionTranslator exceptionTranslator){
+	SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
+	if (holder != null && holder.isSynchronizedWithTransaction()) {
+	  if (holder.getExecutorType() != executorType) {
+		throw new TransientDataAccessResourceException();
+	  }
+	  holder.requested();
+	  return holder.getSqlSession();
+	}
+	//DefaultSqlSession
+	SqlSession session = sessionFactory.openSession(executorType);
+	if (TransactionSynchronizationManager.isSynchronizationActive()) {//always active even no transaction
+	  Environment environment = sessionFactory.getConfiguration().getEnvironment();
+	  if (environment.getTransactionFactory() instanceof SpringManagedTransactionFactory) {
+		holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
+		TransactionSynchronizationManager.bindResource(sessionFactory, holder);
+		TransactionSynchronizationManager.registerSynchronization(new SqlSessionSynchronization(holder, sessionFactory));
+		holder.setSynchronizedWithTransaction(true);//everytime when resourceholder created it will set to true
+		holder.requested();
+	  }
+	}
+	return session;
+}
+SqlSessionUtils.closeSqlSession(SqlSession session, SqlSessionFactory sessionFactory){
+	SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
+	if ((holder != null) && (holder.getSqlSession() == session)) {
+	  holder.released();
+	} else {
+	  session.close();
+	}
 }
 
 Spring TX:
@@ -230,7 +247,7 @@ invokeWithinTransaction(Method method, Class<?> targetClass, final InvocationCal
 		// It's a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.
 	}
 }
-	
+
 createTransactionIfNecessary(PlatformTransactionManager tm, TransactionAttribute txAttr, final String joinpointIdentification){
 	If no name specified, apply method identification as transaction name.
 	TransactionStatus status = tm.getTransaction(txAttr);{
@@ -312,7 +329,7 @@ createTransactionIfNecessary(PlatformTransactionManager tm, TransactionAttribute
 }
 
 handleExistingTransaction(definition, transaction, debugEnabled){
-	...
+	处理其他PROPAGATION
 	
 	if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
 		if (!isNestedTransactionAllowed()) 
@@ -336,13 +353,14 @@ handleExistingTransaction(definition, transaction, debugEnabled){
 			doBegin(transaction, definition);
 			prepareSynchronization(status, definition);
 			return status;
-		}	
+		}
 	}
 	
-	...
+	boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+	return prepareTransactionStatus(definition, transaction, false, newSynchronization, debugEnabled, null);
 }
 
-suspend(null){
+suspend(Object transaction){
 	if (TransactionSynchronizationManager.isSynchronizationActive()) {
 		List<TransactionSynchronization> suspendedSynchronizations = doSuspendSynchronization();{
 			suspendedSynchronizations =

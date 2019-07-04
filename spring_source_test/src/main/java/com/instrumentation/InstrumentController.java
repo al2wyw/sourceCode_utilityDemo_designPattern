@@ -20,7 +20,7 @@ import java.util.List;
  *       -Dsun.reflect.inflationThreshold=0
  *       即使transform成新的方法，也不影响已经被缓存下来的Method的调用
  */
-@Controller
+//@Controller
 public class InstrumentController {
 
     private static Instrumentation instrumentation;

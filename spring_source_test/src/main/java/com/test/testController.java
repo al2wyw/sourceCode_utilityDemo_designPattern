@@ -1,14 +1,15 @@
 package com.test;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
-
+import com.aop.TestService;
+import com.aop.myMethodBeforeAdvice;
 import com.aop.testInterface;
 import com.lookup.LookupTest;
 import com.model.Information;
+import com.model.Person;
+import com.qualifier.customQ;
+import com.utils.LoggerUtils;
 import com.validation.BizModel;
 import com.validation.BizService;
-import org.codehaus.jackson.JsonGenerator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -16,25 +17,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import com.aop.TestService;
-import com.aop.myMethodBeforeAdvice;
-import com.model.Person;
-import com.qualifier.customQ;
-
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
 import java.text.DateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 @Controller
 public class testController implements BeanFactoryAware{
-	
+
 	@Autowired
 	@Qualifier("eles")
 	private test ttt;
@@ -63,7 +58,7 @@ public class testController implements BeanFactoryAware{
 	@Autowired//required = "true" by default
 	public testController(test1 t1){
 		this.t1 = t1;
-		System.out.println("testcontroller born with test1!");
+		LoggerUtils.getLogger().info("testcontroller born with test1!");
 	}
 	
 	@Autowired
@@ -118,7 +113,7 @@ public class testController implements BeanFactoryAware{
 /*	@Autowired
 	public testController(test2 t2){
 		this.t2 = t2;
-		System.out.println("testcontroller born with test2!");
+		log.info("testcontroller born with test2!");
 	}*/
 	
 	@RequestMapping(value="test", method=RequestMethod.GET)
@@ -172,8 +167,8 @@ public class testController implements BeanFactoryAware{
 		test_aspectj_ltw.test();
 
 		lookupTest.test();
-		
-		System.out.println("this works Jrebel test....");
+
+		LoggerUtils.getLogger().info("this works Jrebel test....");
 		
 		return s;
 		

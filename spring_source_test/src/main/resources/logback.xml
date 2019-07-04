@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <jmxConfigurator/>
+
+    <!--- Duser.home=d:/home/test -->
+    <appender name="main" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${user.home}/main.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${user.home}/main.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>3</maxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[[%d{yyyy-MM-dd HH:mm:ss}][%level] %logger{35} - %m%n]]></pattern>
+        </layout>
+    </appender>
+
+    <!-- root -->
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="main"/>
+    </root>
+
+</configuration>
