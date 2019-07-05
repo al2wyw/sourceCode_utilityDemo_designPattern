@@ -25,5 +25,13 @@ public class Course implements Serializable {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "Course{" +
+				"cid='" + cid + '\'' +
+				", cname='" + cname + '\'' +
+				", id='" + id + '\'' +
+				'}';
+	}
 }

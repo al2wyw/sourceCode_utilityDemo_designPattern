@@ -42,7 +42,7 @@ implements TransactionSynchronization
 DataSourceTransactionManager implements PlatformTransactionManager
 ConnectionHolder implements ResourceHolder
 TransactionSynchronizationManager
-TransactionInfo{
+TransactionInfo(绑定到线程){
 		private final PlatformTransactionManager transactionManager;
 		private final TransactionAttribute transactionAttribute;
 		private final String joinpointIdentification;
@@ -248,6 +248,186 @@ invokeWithinTransaction(Method method, Class<?> targetClass, final InvocationCal
 	}
 }
 
+void commit(TransactionStatus status) throws TransactionException {
+	DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;
+	if (defStatus.isLocalRollbackOnly()) {
+		processRollback(defStatus);
+		return;
+	}
+	if (!shouldCommitOnGlobalRollbackOnly() && defStatus.isGlobalRollbackOnly()) {
+		processRollback(defStatus);
+		// Throw UnexpectedRollbackException only at outermost transaction boundary
+		// or if explicitly asked to.
+		if (status.isNewTransaction() || isFailEarlyOnGlobalRollbackOnly()) {
+			throw new UnexpectedRollbackException("Transaction rolled back because it has been marked as rollback-only");
+		}
+		return;
+	}
+	processCommit(defStatus);
+}
+processRollback(DefaultTransactionStatus status){
+	try {
+		try {
+			triggerBeforeCompletion(status);{
+				if (status.isNewSynchronization()) {
+					//beforeCompletion has a flag set to false to avoid calling the same method in afterCompletion
+					//call beforeCompletion of all the synchronization
+					//SqlSessionSynchronization -> unbindResource and cloes sqlSession
+					//ConnectionSynchronization -> unbindResource and releaseConnection
+					TransactionSynchronizationUtils.triggerBeforeCompletion();
+				}
+			}
+			if (status.hasSavepoint()) {
+				//get con to call rollback(savepoint)
+				status.rollbackToHeldSavepoint();
+			}
+			else if (status.isNewTransaction()) {
+				//get con to call rollback()
+				doRollback(status);
+			}
+			else if (status.hasTransaction()) {
+				//rollbackOnly or globally mark an existing transaction as rollback-only
+				if (status.isLocalRollbackOnly() || isGlobalRollbackOnParticipationFailure()) {
+					//this.rollbackOnly = true;
+					doSetRollbackOnly(status);
+				}
+			}
+		}
+		catch (RuntimeException ex) {
+			triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
+			throw ex;
+		}
+		catch (Error err) {
+			triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
+			throw err;
+		}
+		triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);
+	}finally {
+		cleanupAfterCompletion(status);
+	}
+}
+processCommit(DefaultTransactionStatus status){
+	try {
+		boolean beforeCompletionInvoked = false;
+		try {
+			//do nothing 
+			prepareForCommit(status);
+			//call beforeCommit of all the synchronization
+			//SqlSessionSynchronization -> get sqlSession to call commit()
+			//ConnectionSynchronization -> do nothing
+			triggerBeforeCommit(status);
+			triggerBeforeCompletion(status);
+			beforeCompletionInvoked = true;
+			boolean globalRollbackOnly = false;
+			if (status.isNewTransaction() || isFailEarlyOnGlobalRollbackOnly()) {
+				globalRollbackOnly = status.isGlobalRollbackOnly();
+			}
+			if (status.hasSavepoint()) {
+				status.releaseHeldSavepoint();
+			}
+			else if (status.isNewTransaction()) {
+				//con.commit();
+				doCommit(status);
+			}
+			// Throw UnexpectedRollbackException if we have a global rollback-only
+			// marker but still didn't get a corresponding exception from commit.
+			if (globalRollbackOnly) {
+				throw new UnexpectedRollbackException;
+			}
+		}
+		catch (UnexpectedRollbackException ex) {
+			// can only be caused by doCommit
+			triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);
+			throw ex;
+		}
+		catch (TransactionException ex) {
+			// can only be caused by doCommit
+			if (isRollbackOnCommitFailure()) {
+				//similar to processRollback
+				doRollbackOnCommitException(status, ex);
+			}
+			else {
+				triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
+			}
+			throw ex;
+		}
+		catch (RuntimeException ex) {
+			if (!beforeCompletionInvoked) {
+				triggerBeforeCompletion(status);
+			}
+			doRollbackOnCommitException(status, ex);
+			throw ex;
+		}
+		catch (Error err) {
+			if (!beforeCompletionInvoked) {
+				triggerBeforeCompletion(status);
+			}
+			doRollbackOnCommitException(status, err);
+			throw err;
+		}
+
+		// Trigger afterCommit callbacks, with an exception thrown there
+		// propagated to callers but the transaction still considered as committed.
+		try {
+			//call afterCommit of all the synchronization
+			//SqlSessionSynchronization -> do nothing
+			//ConnectionSynchronization -> do nothing
+			triggerAfterCommit(status);
+		}
+		finally {
+			triggerAfterCompletion(status, TransactionSynchronization.STATUS_COMMITTED);
+		}
+	}
+	finally {
+		cleanupAfterCompletion(status);
+	}
+}
+triggerAfterCompletion(DefaultTransactionStatus status, int completionStatus){
+	if (status.isNewSynchronization()) {
+		List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
+		if (!status.hasTransaction() || status.isNewTransaction()) {
+			// No transaction or new transaction for the current scope
+			//call afterCompletion of all the synchronization
+			//SqlSessionSynchronization -> unbindResourceIfPossible and get sqlSession to call close and reset holder
+			//ConnectionSynchronization -> unbindResourceIfPossible and releaseConnection and set the con of holder to null and reset holder
+			invokeAfterCompletion(synchronizations, completionStatus);
+		}
+		else if (!synchronizations.isEmpty()) {
+			// Existing transaction that we participate in, controlled outside
+			// of the scope of this Spring transaction manager -> try to register
+			// an afterCompletion callback with the existing (JTA) transaction.
+			registerAfterCompletionWithExistingTransaction(status.getTransaction(), synchronizations);
+		}
+	}
+}
+
+cleanupAfterCompletion(DefaultTransactionStatus status){
+	status.setCompleted();
+	if (status.isNewSynchronization()) {
+		TransactionSynchronizationManager.clear();
+	}
+	if (status.isNewTransaction()) {
+		doCleanupAfterCompletion(status.getTransaction());{
+			DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
+			if (txObject.isNewConnectionHolder()) {
+				TransactionSynchronizationManager.unbindResource(this.dataSource);
+			}
+			if (txObject.isMustRestoreAutoCommit()) {
+				con.setAutoCommit(true);
+			}
+			//Reset transaction isolation and readOnly
+			DataSourceUtils.resetConnectionAfterTransaction(con, txObject.getPreviousIsolationLevel());
+			if (txObject.isNewConnectionHolder()) {
+				DataSourceUtils.releaseConnection(con, this.dataSource);
+			}
+
+			txObject.getConnectionHolder().clear();
+		}
+	}
+	if (status.getSuspendedResources() != null) {
+		resume(status.getTransaction(), (SuspendedResourcesHolder) status.getSuspendedResources());
+	}
+}
 createTransactionIfNecessary(PlatformTransactionManager tm, TransactionAttribute txAttr, final String joinpointIdentification){
 	If no name specified, apply method identification as transaction name.
 	TransactionStatus status = tm.getTransaction(txAttr);{
@@ -278,7 +458,7 @@ createTransactionIfNecessary(PlatformTransactionManager tm, TransactionAttribute
 		else if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
 				definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
 			definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
-			SuspendedResourcesHolder suspendedResources = suspend(null);
+			SuspendedResourcesHolder suspendedResources = suspend(null);//suspendedResources里面没有suspendedResource,因为传入null
 			try {
 				boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
 				DefaultTransactionStatus status = newTransactionStatus(
@@ -375,12 +555,7 @@ suspend(Object transaction){
 		try {
 			Object suspendedResources = null;
 			if (transaction != null) {
-				suspendedResources = doSuspend(transaction);{
-					txObject.setConnectionHolder(null);
-					ConnectionHolder conHolder = (ConnectionHolder)
-							TransactionSynchronizationManager.unbindResource(this.dataSource);
-					return conHolder;
-				}
+				suspendedResources = doSuspend(transaction);
 			}
 			String name = TransactionSynchronizationManager.getCurrentTransactionName();
 			TransactionSynchronizationManager.setCurrentTransactionName(null);
@@ -418,7 +593,17 @@ suspend(Object transaction){
 		return null;
 	}
 }
-doBegin(transaction, definition){
+//移除txObject的连接和从TransactionSynchronizationManager解绑连接
+//txObject.setConnectionHolder(null); TransactionSynchronizationManager.unbindResource(this.dataSource);
+doSuspend(Object txObject){
+	txObject.setConnectionHolder(null);
+	ConnectionHolder conHolder = (ConnectionHolder)
+			TransactionSynchronizationManager.unbindResource(this.dataSource);
+	return conHolder;
+}
+//获取新的连接，设值到txObject和绑定到TransactionSynchronizationManager
+//txObject.setConnectionHolder(new ConnectionHolder(newCon), true);TransactionSynchronizationManager.bindResource(getDataSource(), txObject.getConnectionHolder());
+doBegin(Object txObject,TransactionDefinition definition){
 	try {
 		if (txObject.getConnectionHolder() == null ||
 				txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
@@ -459,7 +644,8 @@ doBegin(transaction, definition){
 		throw new CannotCreateTransactionException;
 	}
 }
-resume(null, suspendedResources){
+//把suspendedResource(连接)重新绑定到TransactionSynchronizationManager
+resume(Object transaction, SuspendedResourcesHolder resourcesHolder){
 	if (resourcesHolder != null) {
 		Object suspendedResources = resourcesHolder.suspendedResources;
 		if (suspendedResources != null) {
@@ -486,197 +672,20 @@ resume(null, suspendedResources){
 		}
 	}
 }
-
 completeTransactionAfterThrowing(TransactionInfo txInfo, Throwable ex){
 	if (txInfo.transactionAttribute.rollbackOn(ex)) {
 		try {
 			txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());{
 				DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;
-				processRollback(defStatus);{
-					try {
-						try {
-							triggerBeforeCompletion(status);{
-								if (status.isNewSynchronization()) {
-									//beforeCompletion has a flag set to false to avoid calling the same method in afterCompletion
-									//call beforeCompletion of all the synchronization
-									//SqlSessionSynchronization -> unbindResource and cloes sqlSession
-									//ConnectionSynchronization -> unbindResource and releaseConnection
-									TransactionSynchronizationUtils.triggerBeforeCompletion();
-								}
-							}
-							if (status.hasSavepoint()) {
-								//get con to call rollback(savepoint)
-								status.rollbackToHeldSavepoint();
-							}
-							else if (status.isNewTransaction()) {
-								//get con to call rollback()
-								doRollback(status);
-							}
-							else if (status.hasTransaction()) {
-								//rollbackOnly or globally mark an existing transaction as rollback-only
-								if (status.isLocalRollbackOnly() || isGlobalRollbackOnParticipationFailure()) {
-									//this.rollbackOnly = true;
-									doSetRollbackOnly(status);
-								}
-							}
-						}
-						catch (RuntimeException ex) {
-							triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
-							throw ex;
-						}
-						catch (Error err) {
-							triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
-							throw err;
-						}
-						triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);{
-							if (status.isNewSynchronization()) {
-								List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
-								if (!status.hasTransaction() || status.isNewTransaction()) {
-									// No transaction or new transaction for the current scope
-									//call afterCompletion of all the synchronization
-									//SqlSessionSynchronization -> unbindResourceIfPossible and get sqlSession to call close and reset holder
-									//ConnectionSynchronization -> unbindResourceIfPossible and releaseConnection and set the con of holder to null and reset holder
-									invokeAfterCompletion(synchronizations, completionStatus);
-								}
-								else if (!synchronizations.isEmpty()) {
-									// Existing transaction that we participate in, controlled outside
-									// of the scope of this Spring transaction manager -> try to register
-									// an afterCompletion callback with the existing (JTA) transaction.
-									registerAfterCompletionWithExistingTransaction(status.getTransaction(), synchronizations);
-								}
-							}
-						}
-					}
-					finally {
-						cleanupAfterCompletion(status);{
-							status.setCompleted();
-							if (status.isNewSynchronization()) {
-								TransactionSynchronizationManager.clear();
-							}
-							if (status.isNewTransaction()) {
-								doCleanupAfterCompletion(status.getTransaction());{
-									DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
-									if (txObject.isNewConnectionHolder()) {
-										TransactionSynchronizationManager.unbindResource(this.dataSource);
-									}
-									if (txObject.isMustRestoreAutoCommit()) {
-										con.setAutoCommit(true);
-									}
-									//Reset transaction isolation and readOnly
-									DataSourceUtils.resetConnectionAfterTransaction(con, txObject.getPreviousIsolationLevel());
-									if (txObject.isNewConnectionHolder()) {
-										DataSourceUtils.releaseConnection(con, this.dataSource);
-									}
-
-									txObject.getConnectionHolder().clear();
-								}
-							}
-							if (status.getSuspendedResources() != null) {
-								resume(status.getTransaction(), (SuspendedResourcesHolder) status.getSuspendedResources());
-							}
-						}
-					}
-				}
+				processRollback(defStatus);
 			}
 		}
-		...
+		catch exception and log and rethrow
 	}else{
 		try {
-			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());{
-				if (defStatus.isLocalRollbackOnly()) {
-					processRollback(defStatus);
-					return;
-				}
-				//global transation stuff
-				if (!shouldCommitOnGlobalRollbackOnly() && defStatus.isGlobalRollbackOnly()) {
-					processRollback(defStatus);
-					// Throw UnexpectedRollbackException only at outermost transaction boundary
-					// or if explicitly asked to.
-					if (status.isNewTransaction() || isFailEarlyOnGlobalRollbackOnly()) {
-						throw new UnexpectedRollbackException;
-					}
-					return;
-				}
-
-				processCommit(defStatus);{
-					try {
-						boolean beforeCompletionInvoked = false;
-						try {
-							//do nothing 
-							prepareForCommit(status);
-							//call beforeCommit of all the synchronization
-							//SqlSessionSynchronization -> get sqlSession to call commit()
-							//ConnectionSynchronization -> do nothing
-							triggerBeforeCommit(status);
-							triggerBeforeCompletion(status);
-							beforeCompletionInvoked = true;
-							boolean globalRollbackOnly = false;
-							if (status.isNewTransaction() || isFailEarlyOnGlobalRollbackOnly()) {
-								globalRollbackOnly = status.isGlobalRollbackOnly();
-							}
-							if (status.hasSavepoint()) {
-								status.releaseHeldSavepoint();
-							}
-							else if (status.isNewTransaction()) {
-								//con.commit();
-								doCommit(status);
-							}
-							// Throw UnexpectedRollbackException if we have a global rollback-only
-							// marker but still didn't get a corresponding exception from commit.
-							if (globalRollbackOnly) {
-								throw new UnexpectedRollbackException;
-							}
-						}
-						catch (UnexpectedRollbackException ex) {
-							// can only be caused by doCommit
-							triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);
-							throw ex;
-						}
-						catch (TransactionException ex) {
-							// can only be caused by doCommit
-							if (isRollbackOnCommitFailure()) {
-								//similar to processRollback
-								doRollbackOnCommitException(status, ex);
-							}
-							else {
-								triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
-							}
-							throw ex;
-						}
-						catch (RuntimeException ex) {
-							if (!beforeCompletionInvoked) {
-								triggerBeforeCompletion(status);
-							}
-							doRollbackOnCommitException(status, ex);
-							throw ex;
-						}
-						catch (Error err) {
-							if (!beforeCompletionInvoked) {
-								triggerBeforeCompletion(status);
-							}
-							doRollbackOnCommitException(status, err);
-							throw err;
-						}
-
-						// Trigger afterCommit callbacks, with an exception thrown there
-						// propagated to callers but the transaction still considered as committed.
-						try {
-							//call afterCommit of all the synchronization
-							//SqlSessionSynchronization -> do nothing
-							//ConnectionSynchronization -> do nothing
-							triggerAfterCommit(status);
-						}
-						finally {
-							triggerAfterCompletion(status, TransactionSynchronization.STATUS_COMMITTED);
-						}
-					}
-					finally {
-						cleanupAfterCompletion(status);
-					}
-				}
-			}
+			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 		}
-		...
+		catch exception and log and rethrow
 	}
 }
 

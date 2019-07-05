@@ -4,8 +4,6 @@ import com.aop.TestService;
 import com.aop.myMethodBeforeAdvice;
 import com.aop.testInterface;
 import com.lookup.LookupTest;
-import com.model.Information;
-import com.model.Person;
 import com.qualifier.customQ;
 import com.utils.LoggerUtils;
 import com.validation.BizModel;
@@ -25,7 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.List;
 
 @Controller
 public class testController implements BeanFactoryAware{
@@ -92,12 +89,6 @@ public class testController implements BeanFactoryAware{
 	
 	@Autowired
 	private autowiredSon son;
-	
-	@Autowired
-	private test_transactional_Person retriever;
-
-	@Autowired
-	private test_transactional_Information testLimit;
 
 	@Autowired
 	private myMethodBeforeAdvice flag;
@@ -181,31 +172,6 @@ public class testController implements BeanFactoryAware{
 		flag.setFlag(f);
 		return "OK";
 	}
-	
-	@RequestMapping(value="clear", method=RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public String clearAllTables(){
-		retriever.clearPerson();
-		return "done";
-	}
-
-	@RequestMapping(value="init", method=RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public String initAllTables(){
-		testTransaction();
-		return "done";
-	}
-
-	@RequestMapping(value="getInfo", method=RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public String getInfoByLimit(@RequestParam("offset") int offset,@RequestParam("limit") int limit){
-		List<Information> result = testLimit.getInfo(offset,limit);
-		result.stream().forEach(System.out::println);
-		return "done";
-	}
 
 	@RequestMapping(value="test/with/args", method=RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
@@ -259,27 +225,5 @@ public class testController implements BeanFactoryAware{
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		
 		b = beanFactory;
-	}
-	
-	private void testTransaction(){
-		Person p = new Person();
-		
-		p.setId("0x1201");
-		p.setName("Perter");
-		p.setSex("male");
-		p.setSalary(9345.34D);
-		retriever.insertPerson(p);
-		
-		p.setId("0x1202");
-		p.setName("Ken");
-		p.setSex("male");
-		p.setSalary(6345.53D);
-		retriever.insertPerson(p);
-		
-		p.setId("0x1203");
-		p.setName("Anne");
-		p.setSex("female");
-		p.setSalary(3245.93D);
-		retriever.insertPerson(p);
 	}
 }
