@@ -21,9 +21,10 @@
         </encoder>
     </appender>
 
+    <!-- -Dloglevel=DEBUG -->
     <!-- root -->
     <root>
-        <level value="INFO"/>
+        <level value="${loglevel}"/>
         <appender-ref ref="console"/>
     </root>
 

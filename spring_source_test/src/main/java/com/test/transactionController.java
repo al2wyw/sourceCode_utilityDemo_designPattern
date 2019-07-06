@@ -80,14 +80,14 @@ public class transactionController {
     @RequestMapping(value="test", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public String testTx(){
+    public String testTx(@RequestParam("count") int count){
         Person p = new Person();
 
         p.setId("0x2");
         p.setName("Andrew");
         p.setSex("male");
         p.setSalary(5345.34D);
-        test_tx_person.insertPerson(p, 200);
+        test_tx_person.insertPerson(p, count);
         return "done";
     }
 

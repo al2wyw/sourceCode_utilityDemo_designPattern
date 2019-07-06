@@ -148,7 +148,7 @@ class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
 		<property name="transactionManager" ref="transactionManager" />
 		<property name="propagationBehaviorName" value="PROPAGATION_REQUIRES_NEW"/>
 	</bean>
-	<tx:annotation-driven/> <!-- internalTransactionAdvisor -->
+	<tx:annotation-driven order="0"/> <!-- internalTransactionAdvisor -->
 
 	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
