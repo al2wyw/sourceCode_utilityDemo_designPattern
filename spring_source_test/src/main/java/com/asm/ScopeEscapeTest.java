@@ -91,7 +91,7 @@ public class ScopeEscapeTest {
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(I)V", false);
             mv.visitLabel(l3);
             mv.visitLineNumber(20, l3);
-            mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+            mv.visitFrame(Opcodes.F_APPEND, 1, new Object[]{"java/lang/String"}, 0, null);
             /*mv.visitTypeInsn(Opcodes.NEW, "java/lang/String");
             mv.visitInsn(Opcodes.DUP);
             mv.visitLdcInsn("111");
