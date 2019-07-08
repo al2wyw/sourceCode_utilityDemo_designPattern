@@ -95,7 +95,9 @@ public class transactionController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String testTransactionSynchronization(@RequestParam("id") String id){
-        test_tx_person.getPersonById(id);
+        test_tx_person.getPersonById(new BizTraceId(id),"test");
+        test_tx_person.getPersonById(100L, new BizTraceId(id));
+        test_tx_person.getPersonById(id,"test2");
         return "done";
     }
 }

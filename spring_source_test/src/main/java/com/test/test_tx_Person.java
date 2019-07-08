@@ -1,5 +1,6 @@
 package com.test;
 
+import com.annotation.BizTraceParam;
 import com.model.Person;
 import com.transaction.PersonDao;
 import com.utils.LoggerUtils;
@@ -40,7 +41,17 @@ public class test_tx_Person {
     }
 
     @Transactional
-    public void getPersonById(String id){
-        LoggerUtils.getLogger().info("{}", personDao.getPersonById(id));
+    public void getPersonById(BizTraceId id, String context){
+        LoggerUtils.getLogger().info("{}, context:{}", personDao.getPersonById(id.getId()), context);
+    }
+
+    @Transactional
+    public void getPersonById(long context, BizTraceId id){
+        LoggerUtils.getLogger().info("{}, context:{}", personDao.getPersonById(id.getId()) , context);
+    }
+
+    @Transactional
+    public void getPersonById(@BizTraceParam String id, String context){
+        LoggerUtils.getLogger().info("{}, context:{}", personDao.getPersonById(id), context);
     }
 }

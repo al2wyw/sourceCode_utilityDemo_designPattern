@@ -1,5 +1,7 @@
 package com.aop;
 
+import com.annotation.BizTraceParam;
+import com.test.BizTraceId;
 import com.utils.LoggerUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -8,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -29,13 +30,25 @@ public class transactionSynAspect {
     @Autowired
     private DataSource dataSource;
 
-    @Before("@annotation(transactional)")
-    public void doSync(JoinPoint joinPoint, Transactional transactional) throws Throwable{
+    @Before("@annotation(org.springframework.transaction.annotation.Transactional) && args(param,..)")//..,param,.. is not supported
+    public void test(JoinPoint joinPoint,  BizTraceId param) throws Throwable{
         Object[] args = joinPoint.getArgs();
         if(args == null || args.length == 0){
             return;
         }
-        Object arg0 = args[0];
+        //use TransactionalEventListener to do the same thing
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new MyBizTraceSynchronization(param.getId(), dataSource));
+        }
+    }
+
+    //@Before("@annotation(org.springframework.transaction.annotation.Transactional) && @args(param,..)") // failed, @args works strangely
+    public void doSync(JoinPoint joinPoint,BizTraceParam param) throws Throwable{
+        Object[] args = joinPoint.getArgs();
+        if(args == null || args.length == 0){
+            return;
+        }
+        Object arg0 = args[param.vaule()];
         if(arg0 instanceof String) {
             String id = (String) args[0];
             //use TransactionalEventListener to do the same thing
