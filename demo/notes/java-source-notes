@@ -570,11 +570,11 @@ private MethodAccessor acquireMethodAccessor() {
 	return tmp;
 }
 Parameter[] getParameters()
-Annotation[][] getParameterAnnotations
+Annotation[][] getParameterAnnotations //每个param一个annotation数组
 其他的只有以下三个形态:
 Class[] getParameterTypes
 Type[] getGenericParameterTypes
-AnnotatedType[] getAnnotatedParameterTypes
+AnnotatedType[] getAnnotatedParameterTypes //有坑点，对Class类型无效, refer to AnnotatedTypeTest
 其他的方法 ???
 
 Constructor:
