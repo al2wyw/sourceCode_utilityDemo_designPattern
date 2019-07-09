@@ -19,38 +19,46 @@ public class Repeatable {
         Class claz = father.class;
         Annotation[] annotations = claz.getAnnotations();
         for(Annotation an : annotations){
-            System.out.println(an.annotationType());
+            System.out.println(an.annotationType());//interface annotation.Roles
         }
 
         System.out.println();
         annotations = claz.getAnnotationsByType(Role.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Role
+            //interface annotation.Role
         }
         System.out.println();
         annotations = claz.getAnnotationsByType(Roles.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Roles
         }
 
         System.out.println();
         annotations = claz.getDeclaredAnnotationsByType(Role.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Role
+            //interface annotation.Role
         }
         System.out.println();
         annotations = claz.getDeclaredAnnotationsByType(Roles.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Roles
         }
 
-        System.out.println();
+        System.out.println("get by type done!!!");
         Annotation annotation = claz.getAnnotation(Roles.class);
         System.out.println("Annotation: " + annotation.annotationType());
+        //Annotation: interface annotation.Roles
 
         System.out.println();
         annotation = claz.getDeclaredAnnotation(Roles.class);
         System.out.println("DeclaredAnnotation: " + annotation.annotationType());
+        //DeclaredAnnotation: interface annotation.Roles
 
         //System.out.println();
         //annotation = claz.getAnnotation(Target.class);
@@ -62,9 +70,11 @@ public class Repeatable {
 
         if(claz.isAnnotationPresent(Role.class)){
             System.out.println("role present");
+            //not executed
         }
         if(claz.isAnnotationPresent(Roles.class)){
             System.out.println("roles present");
+            //roles present
         }
 
         Class klas = son.class;
@@ -72,11 +82,14 @@ public class Repeatable {
         annotations = klas.getAnnotationsByType(Role.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Role
+            //interface annotation.Role
         }
         System.out.println();
         annotations = klas.getAnnotationsByType(Roles.class);
         for(Annotation an : annotations){
             System.out.println(an.annotationType());
+            //interface annotation.Roles
         }
     }
 

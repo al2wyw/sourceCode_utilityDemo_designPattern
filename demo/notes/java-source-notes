@@ -569,6 +569,12 @@ private MethodAccessor acquireMethodAccessor() {
 	}
 	return tmp;
 }
+Parameter[] getParameters()
+Annotation[][] getParameterAnnotations
+其他的只有以下三个形态:
+Class[] getParameterTypes
+Type[] getGenericParameterTypes
+AnnotatedType[] getAnnotatedParameterTypes
 其他的方法 ???
 
 Constructor:
