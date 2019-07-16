@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -95,9 +96,17 @@ public class transactionController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String testTransactionSynchronization(@RequestParam("id") String id){
-        test_tx_person.getPersonById(new BizTraceId(id),"test");
+        test_tx_person.getPersonById(new BizTraceId(id), "test");
         test_tx_person.getPersonById(100L, new BizTraceId(id));
-        test_tx_person.getPersonById(id,"test2");
+        test_tx_person.getPersonById(id, "test2");
+        return "done";
+    }
+
+    @RequestMapping(value="uni", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String testUniKeyConflict(){
+        test_tx_person.insertSamePerson();
         return "done";
     }
 }

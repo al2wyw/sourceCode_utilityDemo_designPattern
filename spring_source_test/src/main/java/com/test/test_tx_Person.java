@@ -54,4 +54,21 @@ public class test_tx_Person {
     public void getPersonById(@BizTraceParam String id, String context){
         LoggerUtils.getLogger().info("{}, context:{}", personDao.getPersonById(id), context);
     }
+
+    @Transactional
+    public void insertSamePerson(){
+        Person p = new Person();
+        p.setId("0x2");
+        p.setName("Andrew");
+        p.setSex("male");
+        p.setSalary(5345.34D);
+        personDao.insertPerson(p);//wait the other uncommitted data to commit then throw duplicate error
+        try {
+            LoggerUtils.getLogger().info("same person sleep");
+            Thread.sleep(3000);
+        }catch (InterruptedException e){
+
+        }
+        LoggerUtils.getLogger().info("same person done");
+    }
 }
