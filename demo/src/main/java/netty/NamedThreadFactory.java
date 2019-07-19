@@ -1,5 +1,7 @@
 package netty;
 
+import io.netty.util.concurrent.FastThreadLocalThread;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,7 +32,7 @@ public class NamedThreadFactory implements ThreadFactory {
     }
 
     public Thread newThread(Runnable r) {
-        Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+        Thread t = new FastThreadLocalThread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
         // Default value is parent thread's
         t.setContextClassLoader(NamedThreadFactory.class.getClassLoader());
         t.setPriority(Thread.MAX_PRIORITY);
