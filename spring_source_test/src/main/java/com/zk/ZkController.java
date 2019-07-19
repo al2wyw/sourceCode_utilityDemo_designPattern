@@ -1,13 +1,18 @@
 package com.zk;
 
+import com.google.common.collect.Lists;
 import com.utils.LoggerUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -67,6 +72,40 @@ public class ZkController {
     @ResponseBody
     public String deleteNode(@RequestParam("key") String key){
         zookeeperManager.deleteNode(ROOT_PATH + key + PROVIDER_PATH);
+        return "ok";
+    }
+
+    @RequestMapping(value="seq", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String seq(@RequestParam("key") String key, @RequestParam("value") String value) throws Exception{
+        int max = 5;
+        String base = ROOT_PATH + key + PROVIDER_PATH;
+        String path = base + "/" + value;
+        List<String> pathToDel = Lists.newArrayListWithCapacity(max);
+        for(int i = 0; i < max; i++) {
+            pathToDel.add(zookeeperManager.createSeqNode(path + i, System.currentTimeMillis() + ""));
+        }
+        zookeeperManager.registerWatcherNodeChanged(base, new PathChildrenCacheListener(){
+            @Override
+            public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {
+                PathChildrenCacheEvent.Type type = pathChildrenCacheEvent.getType();
+                switch (type){
+                    case CHILD_ADDED:
+                    case CHILD_REMOVED:
+                    case CHILD_UPDATED:
+                        zookeeperManager.getChildren(base).stream()
+                                .forEach(childData -> LoggerUtils.getLogger().info(childData + " value: "
+                                        + new String(zookeeperManager.getNode(base + "/" + childData)) + " " +type));
+                        break;
+                }
+            }
+        });
+        Thread.sleep(1000);
+        for(String delPath: pathToDel){
+            zookeeperManager.deleteNode(delPath);
+            Thread.sleep(1000);
+        }
         return "ok";
     }
 

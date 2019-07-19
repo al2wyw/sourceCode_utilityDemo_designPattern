@@ -8,6 +8,8 @@ import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorListener;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryNTimes;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +39,8 @@ public class ZookeeperManager {
 
     private Map<String,NodeCache> map = Maps.newHashMap();
 
+    private Map<String,PathChildrenCache> pathMap = Maps.newHashMap();
+
     public CuratorFramework getZookeeperClient() {
         return zookeeperClient;
     }
@@ -44,6 +49,17 @@ public class ZookeeperManager {
         try {
             if(isNodeExist(path)) {
                 return zookeeperClient.getData().forPath(path);
+            }
+        }catch (Exception e){
+            LoggerUtils.getLogger().error("",e);
+        }
+        return null;
+    }
+
+    public List<String> getChildren(String path){
+        try {
+            if(isNodeExist(path)) {
+                return zookeeperClient.getChildren().forPath(path);
             }
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
@@ -75,32 +91,43 @@ public class ZookeeperManager {
         return true;
     }
 
-    public boolean createNode(String path, String value){
+    public String createNode(String path, String value){
         try {
             if(isNodeExist(path)) {
                 LoggerUtils.getLogger().info(path + " exists");
-                return false;
+                return path;
             }
-            zookeeperClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, value.getBytes());
+            return zookeeperClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, value.getBytes());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
-            return false;
+            return null;
         }
-        return true;
     }
 
-    public boolean createTempNode(String path, String value){
+    public String createSeqNode(String path, String value){
         try {
             if(isNodeExist(path)) {
                 LoggerUtils.getLogger().info(path + " exists");
-                return false;
+                return path;
             }
-            zookeeperClient.create().withTtl(3000).creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, value.getBytes());
+            return zookeeperClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, value.getBytes());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
-            return false;
+            return null;
         }
-        return true;
+    }
+
+    public String createTempNode(String path, String value){
+        try {
+            if(isNodeExist(path)) {
+                LoggerUtils.getLogger().info(path + " exists");
+                return path;
+            }
+            return zookeeperClient.create().withTtl(3000).creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, value.getBytes());
+        }catch (Exception e){
+            LoggerUtils.getLogger().error("",e);
+            return null;
+        }
     }
 
     public boolean updateNode(String path,String value){
@@ -127,8 +154,25 @@ public class ZookeeperManager {
             }
             NodeCache nodeCache = new NodeCache(zookeeperClient, path, false);
             nodeCache.getListenable().addListener(nodeCacheListener);
-            nodeCache.start(true);
+            nodeCache.start();
             map.put(path,nodeCache);
+        } catch (Exception e) {
+            LoggerUtils.getLogger().error("", e);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean registerWatcherNodeChanged(String path, PathChildrenCacheListener nodeCacheListener) {
+        try {
+            if(pathMap.containsKey(path)){
+                pathMap.get(path).getListenable().addListener(nodeCacheListener);
+                return true;
+            }
+            PathChildrenCache nodeCache = new PathChildrenCache(zookeeperClient, path, false);
+            nodeCache.getListenable().addListener(nodeCacheListener);
+            nodeCache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+            pathMap.put(path,nodeCache);
         } catch (Exception e) {
             LoggerUtils.getLogger().error("", e);
             return false;
