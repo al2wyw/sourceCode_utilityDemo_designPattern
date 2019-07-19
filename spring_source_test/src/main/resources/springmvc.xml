@@ -13,7 +13,7 @@
 		>
 	<context:component-scan base-package="com.test,com.aop,com.transaction,
 							com.bridgemethod,com.lookup,com.validation,
-							com.redis,com.instrumentation"/>
+							com.redis,com.zk, com.instrumentation"/>
 	<context:load-time-weaver/>
 
 	<bean id="prototypeBean" class="com.lookup.PrototypeBean" scope="prototype"/>

@@ -75,7 +75,7 @@ public class ClusterManager {
         return redissonClient;
     }
 
-    public void rehash(String address){
+    public void rehash(String address){//no need to rehash by hand
         RedissonClient old = redissonClient;
         Config config = buildConfig(address);
         this.redissonClient = Redisson.create(config);
