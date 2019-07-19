@@ -42,11 +42,13 @@ public class ZookeeperManager {
 
     public byte[] getNode(String path){
         try {
-            return zookeeperClient.getData().forPath(path);
+            if(isNodeExist(path)) {
+                return zookeeperClient.getData().forPath(path);
+            }
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
-            return null;
         }
+        return null;
     }
 
     public boolean isNodeExist(String path){
@@ -75,6 +77,10 @@ public class ZookeeperManager {
 
     public boolean createNode(String path, String value){
         try {
+            if(isNodeExist(path)) {
+                LoggerUtils.getLogger().info(path + " exists");
+                return false;
+            }
             zookeeperClient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, value.getBytes());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
@@ -85,6 +91,10 @@ public class ZookeeperManager {
 
     public boolean createTempNode(String path, String value){
         try {
+            if(isNodeExist(path)) {
+                LoggerUtils.getLogger().info(path + " exists");
+                return false;
+            }
             zookeeperClient.create().withTtl(3000).creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, value.getBytes());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
