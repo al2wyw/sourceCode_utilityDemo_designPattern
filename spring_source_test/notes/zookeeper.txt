@@ -9,3 +9,5 @@ org.apache.curator.framework.imps.CreateBuilderImpl.forPath
 
 watcher triggered:
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
+
+session timeout -> con lost
