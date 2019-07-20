@@ -1,0 +1,11 @@
+ExistsBuilderImpl.forPath: 有点复杂
+org.apache.curator.framework.recipes.cache.NodeCache.start
+org.apache.curator.framework.recipes.cache.NodeCache.reset
+org.apache.curator.framework.imps.ExistsBuilderImpl.performBackgroundOperation
+org.apache.curator.framework.imps.CuratorFrameworkImpl.processBackgroundOperation
+
+org.apache.curator.framework.recipes.cache.NodeCache.processBackgroundResult
+org.apache.curator.framework.imps.CreateBuilderImpl.forPath
+
+watcher triggered:
+org.apache.zookeeper.ClientCnxn.EventThread.processEvent

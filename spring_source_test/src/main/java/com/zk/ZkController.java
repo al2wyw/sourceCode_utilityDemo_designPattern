@@ -7,6 +7,8 @@ import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -37,6 +39,24 @@ public class ZkController {
 
     @Autowired
     private ThreadPoolExecutor taskPool;
+
+    @RequestMapping(value="temp", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String addTempKey(@RequestParam("key") String key, @RequestParam("value") String value) throws Exception{
+        String path = ROOT_PATH + key + PROVIDER_PATH;
+
+        zookeeperManager.createTempNode(path, value);
+        zookeeperManager.getZookeeperClient().checkExists().usingWatcher(new Watcher() {
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                String path = watchedEvent.getPath();
+                LoggerUtils.getLogger().info(path + " changed " + watchedEvent.getType());
+            }
+        }).forPath(path);//一次性watcher，触发后就不再watch
+
+        return "ok";
+    }
 
     @RequestMapping(value="add", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

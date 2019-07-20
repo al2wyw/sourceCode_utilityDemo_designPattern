@@ -123,7 +123,7 @@ public class ZookeeperManager {
                 LoggerUtils.getLogger().info(path + " exists");
                 return path;
             }
-            return zookeeperClient.create().withTtl(3000).creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, value.getBytes());
+            return zookeeperClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, value.getBytes());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
             return null;
