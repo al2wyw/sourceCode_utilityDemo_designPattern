@@ -3,6 +3,8 @@ package com.zk;
 import com.google.common.collect.Lists;
 import com.utils.LoggerUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.BackgroundCallback;
+import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
@@ -47,13 +49,20 @@ public class ZkController {
         String path = ROOT_PATH + key + PROVIDER_PATH;
 
         zookeeperManager.createTempNode(path, value);
-        zookeeperManager.getZookeeperClient().checkExists().usingWatcher(new Watcher() {
-            @Override
-            public void process(WatchedEvent watchedEvent) {
-                String path = watchedEvent.getPath();
-                LoggerUtils.getLogger().info(path + " changed " + watchedEvent.getType());
-            }
-        }).forPath(path);//一次性watcher，触发后就不再watch
+        zookeeperManager.getZookeeperClient().checkExists()
+                .usingWatcher(new Watcher() {
+                    @Override
+                    public void process(WatchedEvent watchedEvent) {
+                        String path = watchedEvent.getPath();
+                        LoggerUtils.getLogger().info(path + " changed " + watchedEvent.getType());
+                    }
+                }).inBackground(new BackgroundCallback() {
+                    @Override
+                    public void processResult(CuratorFramework curatorFramework, CuratorEvent curatorEvent) throws Exception {
+                        String path = curatorEvent.getPath();
+                        LoggerUtils.getLogger().info(path + " callback " + curatorEvent.getType());
+                    }
+                }).forPath(path);//watcher是一次性的 ，触发后就不再watch, callback是checkExists命令调用完毕后的回调
 
         return "ok";
     }

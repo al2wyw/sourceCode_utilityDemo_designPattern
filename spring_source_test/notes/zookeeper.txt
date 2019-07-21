@@ -1,3 +1,4 @@
+org.apache.curator:
 ExistsBuilderImpl.forPath: 有点复杂
 org.apache.curator.framework.recipes.cache.NodeCache.start
 org.apache.curator.framework.recipes.cache.NodeCache.reset
@@ -7,7 +8,11 @@ org.apache.curator.framework.imps.CuratorFrameworkImpl.processBackgroundOperatio
 org.apache.curator.framework.recipes.cache.NodeCache.processBackgroundResult
 org.apache.curator.framework.imps.CreateBuilderImpl.forPath
 
+org.apache.zookeeper:
 watcher triggered:
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
+callback:
+客户端命令调用完毕后的回调
+client入口: org.apache.zookeeper.ZooKeeper server入口: org.apache.zookeeper.server.quorum.QuorumPeerMain
 
 session timeout -> con lost
