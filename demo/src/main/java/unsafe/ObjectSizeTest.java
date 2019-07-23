@@ -83,16 +83,17 @@ class Test extends Togeth{
 }
 /**
  * 对象头:
- * +------------------+------------------+--------------------------+---------------+
- * |    mark word     |   klass pointer  |  array size (opt,4bytes) |    padding    |
- * +------------------+------------------+-------------------------+---------------+
+ * +------------------+------------------+--------------------------------+---------------+---------------+
+ * |    mark word     |   klass pointer  |  array size (optional,4bytes) |     data      |    padding    |
+ * +------------------+------------------+------------------------------+---------------+---------------+
  *  基本类型在32,64位jvm里占用空间是一样的,只用引用的大小不一样, 开启"-XX:+UseCompressedOops"后引用大小一样(小于32g内存默认开启)
  *  mark word : 4 bytes(32), 8 bytes(64)
  *
  *  non-static inner class has an extra pointer to outer class!
  *  对象整体8 byte对齐
- *  父类实例成员变量结束之后，按4 byte对齐; 如果子类有 long, 而父类没有 8 byte对齐会把子类的小于 8 byte的成员先排列(如果对象头是12byte,会先用成员补齐头部)
- *  rearrange order:  int 4 byte对齐，long 8 byte对齐
+ *  (https://blog.csdn.net/liu251/article/details/50190247)
+ *  父类实例成员变量结束之后，按4 byte补齐padding; 如果子类有 long, 而父类没有 8 byte对齐会把子类的小于 8 byte的成员先排列(如果对象头是12byte,也会先用成员补齐头部)
+ *  rearrange order:  int 4 byte对齐，long 8 byte对齐, 也就是说int的起始地址必须是4 byte的整数倍(前一个字段补padding)，long的起始地址必须是8 byte的整数倍
  *  doubles and longs
  *  ints and floats
  *  shorts and chars
