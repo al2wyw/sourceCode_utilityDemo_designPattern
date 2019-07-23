@@ -1,5 +1,9 @@
 AtomicReferenceFieldUpdater 只能在要update的class内部声明使用，会做很多不必要的额外校验(caller class校验等)，netty实现了一个简易版本，性能更高
 
+nio ->  Selector   -> NioEventLoop
+	->  Channel    -> AbstractNioChannel + Unsafe
+	->  ByteBuffer -> ByteBuf
+
 netty4.0.34:(nio的坑，netty的坑，tcp协议带来的稳定性问题，buffer池，eventloop\channel\unsafe底层的操作)
 数据流转:
 in: eventLoop -> javaSelector -> unsafe -> channel -> channelPipeline -> channelHandlerContext -> channelHandler
