@@ -37,11 +37,14 @@ io.netty.channel.ChannelHandler:
 3. ChannelHandlerContext作为驱动器，会判断线程是否在executor里面，然后调用ChannelHandler的方法
 4. DefaultChannelPipeline有一个HeadHandler(Outbound)和一个TailHandler(Inbound),HeadHandler拥有Unsafe会处理bind和connect等等,其他的Handler都加到Head和Tail之间
 5. OutboundHandler有个read方法，貌似只是用来初始化selectionKey的interestOps
+6. byte stream -> ByteToMessageDecoder(cumulation聚合未成frame的byteBuf) -> byte Frame -> MessageToMessageDecoder -> String
+io.netty.channel.ChannelOutboundBuffer:
+1. write会写入这个buffer，等待flush，isWritable跟WaterMark的配置有关
+io.netty.buffer.ByteBuf:
+待补充 ???
 io.netty.bootstrap.AbstractBootstrap:
 1. 只能配置一个handler和一个group和一个channel
 2. 一个bind只能把一个ServerSocketChannel注册到一个EventLoop上面，又不能重复bind相同的socket，所以accept线程只有一个!!!
-ChannelOutboundBuffer:
-1. write会写入这个buffer，等待flush，isWritable跟WaterMark的配置有关
 bind{
 	ChannelFuture regFuture = initAndRegister(){
 		final Channel channel = channelFactory().newChannel(); -> NioServerSocketChannel(初始化,NON-BLOCK,设置OP_ACCEPT;Selector在EventLoop里面)
