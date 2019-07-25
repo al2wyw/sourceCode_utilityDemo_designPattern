@@ -31,9 +31,20 @@ public class shiftTest {
         System.out.println(Byte.toUnsignedInt(i));
 
         int j = i >>> 2;
-        System.out.println(Integer.toBinaryString(j) + " " + j);
+        System.out.println(Integer.toBinaryString(j) + " " + j);//00111111111111111111111111100000 1073741792
         j = i >> 2;
-        System.out.println(Integer.toBinaryString(j) + " " + j);
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111100000 -32
+
+        j = j >> 5;
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111111111 -1
+        j = j >> 4;
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111111111 -1
+        j = j << 2;
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111111100 -4
+        j = j << 33;
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111111000 -8
+        j = j << 65;
+        System.out.println(Integer.toBinaryString(j) + " " + j);//11111111111111111111111111110000 -16
     }
 
     public static long doShiftI(int shift) {
@@ -50,5 +61,6 @@ public class shiftTest {
  *
  * 使用了8位的CL寄存器来存要位移的位数，因此最大其实就是2^8-1=255啦，
  * 所以上述demo，如果我们将shift的参数从35改成291发现结果是一样的(291=35+256*1)
+ * 而int的位移最大位数就是32，超过32会自动mod
  * */
 }
