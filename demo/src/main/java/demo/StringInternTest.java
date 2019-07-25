@@ -23,6 +23,22 @@ public class StringInternTest {
         System.out.println(s3 == s3.intern());//true, println 虽然出现在class文件的常量池里，但是运行时并不在字符串常量池里
 
         String s4 = ConstantTest.my;//compiled to: ldc "test", no ConstantTest relevance
+
+        test();
+    }
+
+    public static void test(){
+        String s1 = "Programming";
+        String s2 = new String("Programming");
+        String s3 = "Program";
+        String s4 = "ming";
+        String s5 = "Program" + "ming"; // complied to LDC "Programming" !!!
+        String s6 = s3 + s4; // complied to StringBuilder and then StringBuilder.toString
+        System.out.println(s1 == s2);
+        System.out.println(s1 == s5);
+        System.out.println(s1 == s6);
+        System.out.println(s1 == s6.intern());
+        System.out.println(s2 == s2.intern());
     }
 
     private static class ConstantTest {

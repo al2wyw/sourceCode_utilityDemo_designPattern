@@ -1,4 +1,4 @@
-package demo_test;
+package guava;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 class model{
 	private int i;

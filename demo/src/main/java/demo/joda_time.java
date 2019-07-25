@@ -1,4 +1,4 @@
-package demo_test;
+package demo;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
