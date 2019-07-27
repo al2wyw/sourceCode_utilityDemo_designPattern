@@ -1,6 +1,6 @@
 唯一key生成
 数值型
--- 依靠时间，snowflake雪花算法(时间回拨问题)
+-- 依靠时间，snowflake雪花算法(时间回拨问题，使用上一次生成的id顺推下去), UidGenerator预先分配id，弱依赖时间
 -- 依靠数据库，数据库表sequence生成(无时间顺序)
 字符型
 -- UUID
@@ -37,6 +37,10 @@
 -- Paxos协议
 -- ZooKeeper ZAB协议(Paxos协议的改进)
 -- Etcd Raft协议(Paxos协议的改进)
+   1. start -> Follower -> Candidate -> Leader
+   2. election term(election epoch), commitIndex(zxid)
+   3. 选举结束后没有同步上一轮遗留的日志数据
+   总结: ZAB和Raft本质上是一样的，实现细节不同
 柔性事务 BASE:
 -- 可靠消息
     1. 中间件使用half消息，保证发送端一致(发送端提供发送查询接口)

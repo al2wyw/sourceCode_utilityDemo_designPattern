@@ -1,16 +1,28 @@
 org.apache.curator:
-ExistsBuilderImpl.forPath: 有点复杂
+NodeCache有点复杂
 org.apache.curator.framework.recipes.cache.NodeCache.start
 org.apache.curator.framework.recipes.cache.NodeCache.reset
-org.apache.curator.framework.imps.ExistsBuilderImpl.performBackgroundOperation
+org.apache.curator.framework.imps.ExistsBuilderImpl.forPath
 org.apache.curator.framework.imps.CuratorFrameworkImpl.processBackgroundOperation
+org.apache.curator.framework.imps.ExistsBuilderImpl.performBackgroundOperation
+org.apache.zookeeper.ZooKeeper.exists
 
 org.apache.curator.framework.recipes.cache.NodeCache.processBackgroundResult
 org.apache.curator.framework.imps.CreateBuilderImpl.forPath
 
+CuratorFramework start:
+org.apache.curator.framework.imps.CuratorFrameworkImpl.start
+org.apache.curator.CuratorZookeeperClient.start
+org.apache.curator.ConnectionState.start
+org.apache.curator.ConnectionState.reset
+org.apache.curator.HandleHolder.closeAndReset
+org.apache.curator.HandleHolder.getZooKeeper
+
 org.apache.zookeeper:
 watcher triggered:
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
+send packet:
+org.apache.zookeeper.ClientCnxn.SendThread.sendPacket
 callback:
 客户端命令调用完毕后的回调
 client入口: org.apache.zookeeper.ZooKeeper server入口: org.apache.zookeeper.server.quorum.QuorumPeerMain
