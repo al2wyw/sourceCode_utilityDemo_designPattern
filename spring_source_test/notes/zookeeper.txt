@@ -1,5 +1,5 @@
 org.apache.curator:
-NodeCache有点复杂
+NodeCache(先判断是否exist,在调用getData)
 org.apache.curator.framework.recipes.cache.NodeCache.start
 org.apache.curator.framework.recipes.cache.NodeCache.reset
 org.apache.curator.framework.imps.ExistsBuilderImpl.forPath
@@ -8,7 +8,11 @@ org.apache.curator.framework.imps.ExistsBuilderImpl.performBackgroundOperation
 org.apache.zookeeper.ZooKeeper.exists
 
 org.apache.curator.framework.recipes.cache.NodeCache.processBackgroundResult
-org.apache.curator.framework.imps.CreateBuilderImpl.forPath
+org.apache.curator.framework.imps.GetDataBuilderImpl.forPath
+
+PathChildrenCache
+
+TreeCache(NodeCache + PathChildrenCache)
 
 CuratorFramework start:
 org.apache.curator.framework.imps.CuratorFrameworkImpl.start
@@ -19,7 +23,7 @@ org.apache.curator.HandleHolder.closeAndReset
 org.apache.curator.HandleHolder.getZooKeeper
 
 org.apache.zookeeper:
-watcher triggered:
+watcher triggered:(watcher注册只是往server设置node上watch的boolean值)
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
 send packet:
 org.apache.zookeeper.ClientCnxn.SendThread.sendPacket
