@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
  * Date: 2019/7/19
  * Time: 17:35
  * Desc:
+ *      ThreadLocal使用 hash和array 在hash冲突时采用线性探测(通常是链址)来存储变量 (代码复杂,不像想象中简单)
+ *      FastThreadLocal 使用 index和array 来存储变量
  */
 public class FastThreadLocalTest {
 
