@@ -18,7 +18,7 @@ import java.lang.reflect.Modifier;
  * User: win10
  * Date: 2019/8/3
  * Time: 22:33
- * Desc:
+ * Desc: -Dsun.reflect.inflationThreshold=0
  */
 public class NoArgsContTest {
 
@@ -33,13 +33,13 @@ public class NoArgsContTest {
         //GeneratedConstructorAccessor
         Constructor constructor = ReflectionFactory.getReflectionFactory().newConstructor(NoArgsContTest.class,
                 new Class[]{Integer.TYPE},
-                null,
+                new Class[]{},
                 Modifier.PUBLIC,
                 0,
                 "<init>(I)V",//<init>()V will occur hs_err, noSuchMethodError will come up
                 null,
                 null);
-        NoArgsContTest o = (NoArgsContTest)constructor.newInstance(10);
+        NoArgsContTest o = (NoArgsContTest)constructor.newInstance(1);
         o.show();
 
         //GeneratedSerializationConstructorAccessor
