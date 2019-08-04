@@ -32,6 +32,7 @@ public class Main {
     private static void readObject() throws Exception{
         FileInputStream fin = new FileInputStream("test.txt");
         ObjectInputStream oin = new ObjectInputStream(fin);
+        //will not call const of ExtData or BaseData, in stead, ReflectionFactory.newConstructorForSerialization will be called
         BaseData baseData = (BaseData)oin.readObject();
         System.out.println(baseData.getName());
         oin.close();

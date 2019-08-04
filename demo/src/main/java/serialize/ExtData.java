@@ -10,6 +10,15 @@ package serialize;
 public class ExtData extends BaseData {
     private String ext;
 
+    public ExtData(String ext) {
+        System.out.println("ext args const");
+        this.ext = ext;
+    }
+
+    public ExtData() {
+        System.out.println("ext no-args const");
+    }
+
     public String getExt() {
         return ext;
     }

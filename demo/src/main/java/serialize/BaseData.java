@@ -41,4 +41,15 @@ public class BaseData implements Serializable{
     public void setD(double d) {
         this.d = d;
     }
+
+    public BaseData() {
+        System.out.println("base no-args const");
+    }
+
+    public BaseData(int i, String name, double d) {
+        System.out.println("base args const");
+        this.i = i;
+        this.name = name;
+        this.d = d;
+    }
 }
