@@ -8,6 +8,10 @@ import net.sf.cglib.transform.ClassEmitterTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
+import sun.reflect.ReflectionFactory;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,6 +30,28 @@ public class NoArgsContTest {
     }
 
     public static void main(String[] args) throws Exception{
+        //GeneratedConstructorAccessor
+        Constructor constructor = ReflectionFactory.getReflectionFactory().newConstructor(NoArgsContTest.class,
+                new Class[]{Integer.TYPE},
+                null,
+                Modifier.PUBLIC,
+                0,
+                "<init>(I)V",//<init>()V will occur hs_err, noSuchMethodError will come up
+                null,
+                null);
+        NoArgsContTest o = (NoArgsContTest)constructor.newInstance(10);
+        o.show();
+
+        //GeneratedSerializationConstructorAccessor
+        constructor = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(NoArgsContTest.class,
+                Object.class.getDeclaredConstructor());
+        o = (NoArgsContTest)constructor.newInstance();
+        o.show();
+
+        //testNoArgsConst();
+    }
+
+    public static void testNoArgsConst() throws Exception{
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         ClassReader classReader = new ClassReader(cl.getResourceAsStream("com/cglib/NoArgsConstructor.class"));
 
