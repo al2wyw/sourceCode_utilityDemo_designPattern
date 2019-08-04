@@ -13,7 +13,7 @@ import org.objenesis.ObjenesisStd;
 public class ObjenesisTest {
 
     public static void main( String args[] ) throws Exception{
-        //sun hotspot vm运行时会使用ReflectionFactory.newConstructorForSerialization
+        //sun hotspot vm运行时会使用ReflectionFactory.newConstructorForSerialization, 这是java在反序列化时绕开原类的构造函数时调用的接口
         //强依赖运行时的vm: StdInstantiatorStrategy.newInstantiatorOf
         Objenesis objenesis = new ObjenesisStd(true);
         Test test = (Test)objenesis.newInstance(Test.class);

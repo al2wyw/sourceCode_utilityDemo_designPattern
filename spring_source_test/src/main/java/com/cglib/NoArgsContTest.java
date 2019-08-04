@@ -2,26 +2,19 @@ package com.cglib;
 
 import com.utils.ClassLoaderUtils;
 import com.utils.LoggerUtils;
-import net.sf.cglib.core.ClassGenerator;
 import net.sf.cglib.core.CodeEmitter;
-import net.sf.cglib.core.DefaultGeneratorStrategy;
 import net.sf.cglib.core.Signature;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.NoOp;
 import net.sf.cglib.transform.ClassEmitterTransformer;
-import net.sf.cglib.transform.TransformingClassGenerator;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
-
-import java.io.FileOutputStream;
 
 /**
  * Created by IntelliJ IDEA.
  * User: win10
  * Date: 2019/8/3
  * Time: 22:33
- * Desc: failed !!!
+ * Desc:
  */
 public class NoArgsContTest {
 
@@ -41,10 +34,11 @@ public class NoArgsContTest {
             public CodeEmitter begin_method(int access, Signature sig, Type[] exceptions) {
                 CodeEmitter codeEmitter = super.begin_method(access, sig, exceptions);
                 if(sig.getName().contains("getNewObject")) {
+                    //failed !!! 虽然按照GeneratedSerializationConstructorAccessor的实现操作，但是依然报错
+                    //只是new操作，不dup和调用<init>方法，最终是会报错的
                     codeEmitter.new_instance(Type.getType(NoArgsContTest.class));
                     codeEmitter.dup();
-                    codeEmitter.push(10);
-                    codeEmitter.invoke_constructor(Type.getType(NoArgsContTest.class), new Signature("<init>","(I)V"));
+                    codeEmitter.invoke_constructor(Type.getType(Object.class), new Signature("<init>","()V"));
                     codeEmitter.return_value();
                     codeEmitter.end_method();
                 }
@@ -57,9 +51,7 @@ public class NoArgsContTest {
         classReader.accept(transformer, ClassReader.EXPAND_FRAMES);
         byte[] newContent = classWriter.toByteArray();
 
-        FileOutputStream fileOutputStream = new FileOutputStream("NoArgsConstructor.class");
-        fileOutputStream.write(newContent);
-        fileOutputStream.close();
+        ClassLoaderUtils.saveClassFile("NoArgsConstructor.class", newContent);
 
         Class klass =  ClassLoaderUtils.defineClass(cl, "com.cglib.NoArgsConstructor", newContent);
         NoArgsConstructor constuctor = (NoArgsConstructor)klass.newInstance();

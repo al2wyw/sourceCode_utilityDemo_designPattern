@@ -1,5 +1,7 @@
 package com.utils;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 
@@ -34,5 +36,11 @@ public class ClassLoaderUtils {
         }catch (Exception e){
             return null;
         }
+    }
+
+    public static void saveClassFile(String fileName, byte[] newContent) throws IOException{
+        FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+        fileOutputStream.write(newContent);
+        fileOutputStream.close();
     }
 }
