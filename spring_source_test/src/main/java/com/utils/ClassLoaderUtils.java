@@ -25,7 +25,18 @@ public class ClassLoaderUtils {
             field.setAccessible(true);
             defineClass0 = field;
         } catch (Exception e){
-            e.printStackTrace();
+            LoggerUtils.getLogger().error("",e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T defineInstance(ClassLoader cl, String name, byte[] newContent){
+        Class klass = defineClass(cl,name,newContent);
+        try {
+            return (T) klass.newInstance();
+        }catch (Exception e){
+            LoggerUtils.getLogger().error("",e);
+            return null;
         }
     }
 
@@ -34,6 +45,7 @@ public class ClassLoaderUtils {
             return (Class) defineClass0.invoke(cl, name, newContent, 0, newContent.length,
                     ClassLoaderUtils.class.getProtectionDomain());
         }catch (Exception e){
+            LoggerUtils.getLogger().error("",e);
             return null;
         }
     }

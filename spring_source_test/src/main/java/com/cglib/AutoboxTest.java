@@ -5,7 +5,7 @@ package com.cglib;
  * User: johnny.ly
  * Date: 2019/6/3
  * Time: 21:04
- * Desc: const pool: integer long double float utf8 ги5 basic type)
+ * Desc: const pool: integer long double float utf8 (5 basic type)
  */
 public class AutoboxTest {
 
