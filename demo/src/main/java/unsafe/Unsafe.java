@@ -19,6 +19,7 @@ public class Unsafe {
     private static CyclicBarrier cb = new CyclicBarrier(THREAD_NUM);
 
     public static void main(String[] args) throws Exception{
+        testFieldOffset();
         testMemoryAllocate();
     }
 
@@ -82,13 +83,19 @@ public class Unsafe {
         UnsafeTest testO = new UnsafeTest();
         Field test = UnsafeTest.class.getDeclaredField("test");
         Field count = UnsafeTest.class.getDeclaredField("count");
+        //System.out.println(unsafe.staticFieldBase(test));//test is not static field, error!!!
+        System.out.println(unsafe.staticFieldBase(count));//UnsafeTest.class
         long testOff = unsafe.objectFieldOffset(test);
         long countOff = unsafe.staticFieldOffset(count);
         System.out.println(testOff);
         System.out.println(countOff);
         unsafe.putInt(testO, testOff, 10);
-        unsafe.putInt(UnsafeTest.class,countOff,20);
+        unsafe.putInt(UnsafeTest.class, countOff, 20);
         System.out.println(testO);
+
+        UnsafeTestSon son = new UnsafeTestSon();
+        test.setAccessible(true);
+        System.out.println(test.getInt(son));//子类可以访问父类的Field对象
     }
 
     private static void testMemoryAllocate(){
@@ -152,8 +159,11 @@ public class Unsafe {
         }
     }
 }
-
-class UnsafeTest{
+class UnsafeTestSon extends UnsafeTest{
+    private int t = 0;
+    private static long c = 0L;
+}
+class UnsafeTest {
     private int test = 0;
     private static long count = 0L;
 
