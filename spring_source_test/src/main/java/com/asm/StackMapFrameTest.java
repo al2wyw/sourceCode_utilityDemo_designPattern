@@ -1,6 +1,7 @@
 package com.asm;
 
-import javax.annotation.Resource;
+import com.annotation.TargetMethod;
+
 import java.util.List;
 
 /**
@@ -16,9 +17,9 @@ import java.util.List;
  *       failed !!!
  */
 public class StackMapFrameTest {
-    @Resource
-    private <T> T test(List<? extends String> args){
-        return null;
+    @TargetMethod
+    private <T> void test(List<T> args){
+        return;
     }
 
     public static void main( String args[] ) {

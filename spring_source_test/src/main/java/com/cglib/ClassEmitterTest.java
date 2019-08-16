@@ -1,15 +1,19 @@
 package com.cglib;
 
+import com.annotation.TargetMethod;
 import com.utils.ClassLoaderUtils;
 import net.sf.cglib.core.*;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.signature.SignatureWriter;
 
-import javax.annotation.Resource;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -56,10 +60,36 @@ public class ClassEmitterTest {
         constructor.return_value();
         constructor.end_method();
 
+        //增加generic
+        //<T> void test(List<T> args)
+        Signature s = TypeUtils.parseSignature("void test(java.util.List)");
+        //<T:Ljava/lang/Object;>(Ljava/util/List<TT;>;)V
+        SignatureWriter signatureWriter = new SignatureWriter();
+        signatureWriter.visitFormalTypeParameter("T");
+        signatureWriter.visitClassType(Type.getType(Object.class).getInternalName());
+        signatureWriter.visitEnd();//visitEnd -> end the class or interface type -> append '>' or ';'
+
+        SignatureVisitor v = signatureWriter.visitParameterType();
+        v.visitClassType(Type.getType(List.class).getInternalName());
+        SignatureVisitor vv = v.visitTypeArgument('=');
+        vv.visitTypeVariable("T");
+        v.visitEnd();
+
+        signatureWriter.visitReturnType().visitBaseType('V');
+        System.out.println(signatureWriter.toString());
+
+        MethodVisitor mv = classEmitter.visitMethod(Constants.ACC_PUBLIC, s.getName(), s.getDescriptor(), signatureWriter.toString(),null);
+        mv.visitInsn(Constants.RETURN);
+        mv.visitMaxs(0,0);
+        mv.visitEnd();
+
+
         CodeEmitter codeEmitter = classEmitter.begin_method(Constants.ACC_PUBLIC,TypeUtils.parseSignature("void test()"),null);
-        //增加Resource注解
-        AnnotationVisitor annotationVisitor = codeEmitter.visitAnnotation("Ljavax/annotation/Resource;", true);
+        //增加注解
+        AnnotationVisitor annotationVisitor = codeEmitter.visitAnnotation("Lcom/annotation/TargetMethod;", true);
+        annotationVisitor.visit("name","test");
         annotationVisitor.visitEnd();
+
         //桥接到com.cglib.son.protectedMethodSon
         Type target = Type.getType(son.class);
         codeEmitter.new_instance(target);
@@ -87,7 +117,9 @@ public class ClassEmitterTest {
         test.test();
 
         Method m = klass.getMethod("test");
-        System.out.println(m.isAnnotationPresent(Resource.class));
+        System.out.println(m.isAnnotationPresent(TargetMethod.class));
+        TargetMethod targetMethod = m.getAnnotation(TargetMethod.class);
+        System.out.println(targetMethod.name());
     }
 
     public static void test1() throws Exception{

@@ -7,6 +7,7 @@ import javassist.bytecode.annotation.Annotation;
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,9 +44,12 @@ public class testAnnotationAndGeneric {
         //对反射来说，动态生成generic signature没有什么意义，反射调用根本用不到generic
         SignatureAttribute.TypeParameter typeParameter = new SignatureAttribute.TypeParameter("E");
         SignatureAttribute.TypeVariable typeVariable = new SignatureAttribute.TypeVariable("E");
+        SignatureAttribute.TypeArgument typeArgument = new SignatureAttribute.TypeArgument(typeVariable);
+        SignatureAttribute.ClassType classType = new SignatureAttribute.ClassType(List.class.getName(), new SignatureAttribute.TypeArgument[]{typeArgument});
         SignatureAttribute.MethodSignature methodSignature =
                 new SignatureAttribute.MethodSignature(new SignatureAttribute.TypeParameter[]{typeParameter},
-                        new SignatureAttribute.Type[]{typeVariable},new SignatureAttribute.BaseType("int"),null);
+                        new SignatureAttribute.Type[]{typeVariable, classType},new SignatureAttribute.BaseType("int"),null);
+        System.out.println(methodSignature.encode());
         method.getMethodInfo().addAttribute(new SignatureAttribute(constpool, methodSignature.encode()));//method.setGenericSignature(methodSignature.encode());
         method.getMethodInfo().addAttribute(attr);
         //插入方法代码
