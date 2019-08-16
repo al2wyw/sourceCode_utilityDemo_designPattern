@@ -12,11 +12,8 @@ import java.lang.reflect.Method;
  * Date: 2019/7/7
  * Time: 18:00
  * Desc: failed !!!
- *      visitFrame -> the first arg ??? compute_frame -> getCommonSuperClass ???
- *      stackMap Frame: 执行某一特定字节码前，每个局部变量槽和每个操作数槽包含的值的类型(分为compressed和expanded)
- *      初始帧由参数构成，每个跳转指令后才要重新计算帧，此时和前一帧(比如初始帧)作比较 （实际例子好像不是这样子的 ???）
  */
-public class ScopeEscapeTest {
+public class FrameEscapeTest {
 
     public static void main( String args[] ) {
         int t = 100;
@@ -31,7 +28,7 @@ public class ScopeEscapeTest {
         }
         try {
             byte[] code = dump();
-            Class klass = ClassLoaderUtils.defineClass(ScopeEscapeTest.class.getClassLoader(),"com.asm.Main",code);
+            Class klass = ClassLoaderUtils.defineClass(FrameEscapeTest.class.getClassLoader(),"com.asm.Main",code);
             Method method = klass.getDeclaredMethod("main", String[].class);
             method.invoke(null, (Object) null);
         }catch (Exception e){
