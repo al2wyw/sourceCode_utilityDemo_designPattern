@@ -36,6 +36,8 @@ import java.util.stream.Stream;
          visitInvokeDynamicInsn
          visitJumpInsn
          visitLdcInsn
+
+        MAXSTACK -> 操作栈大小 MAXLOCALS -> 本地变量大小,不是数量, Type的getSize(long,double是2,void是0,其他是1)
  */
 public class ModifyOriginalClassFileTest {
 

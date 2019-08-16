@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * User: johnny.ly
  * Date: 2019/3/16
  * Time: 16:44
- * Desc:
+ * Desc: hash tags to force {user001}.xxxx and {user001}.fff to store in the same slot
  */
 @Controller
 @RequestMapping("/cluster")
