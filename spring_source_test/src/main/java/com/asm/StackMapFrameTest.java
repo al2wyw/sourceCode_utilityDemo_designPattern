@@ -1,5 +1,8 @@
 package com.asm;
 
+import javax.annotation.Resource;
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * User: win10
@@ -8,11 +11,16 @@ package com.asm;
  * Desc: check bytecode outline to see frame
  *       visitFrame -> the first arg ???
  *       compute_frame -> getCommonSuperClass ???
- *       stackMap Frame: Ö´ĞĞÄ³Ò»ÌØ¶¨×Ö½ÚÂëÇ°£¬Ã¿¸ö¾Ö²¿±äÁ¿²ÛºÍÃ¿¸ö²Ù×÷Êı²Û°üº¬µÄÖµµÄÀàĞÍ(·ÖÎªcompressedºÍexpanded)
- *       ³õÊ¼Ö¡ÓÉ²ÎÊı¹¹³É£¬Ã¿¸öÌø×ªÖ¸Áîºó²ÅÒªÖØĞÂ¼ÆËãÖ¡£¬´ËÊ±ºÍÇ°Ò»Ö¡(±ÈÈç³õÊ¼Ö¡)×÷±È½Ï £¨Êµ¼ÊÀı×ÓºÃÏñ²»ÊÇÕâÑù×ÓµÄ ???£©
+ *       stackMap Frame: æ‰§è¡ŒæŸä¸€ç‰¹å®šå­—èŠ‚ç å‰ï¼Œæ¯ä¸ªå±€éƒ¨å˜é‡æ§½å’Œæ¯ä¸ªæ“ä½œæ•°æ§½åŒ…å«çš„å€¼çš„ç±»å‹(åˆ†ä¸ºcompressedå’Œexpanded)
+ *       åˆå§‹å¸§ç”±å‚æ•°æ„æˆï¼Œæ¯ä¸ªè·³è½¬æŒ‡ä»¤åæ‰è¦é‡æ–°è®¡ç®—å¸§ï¼Œæ­¤æ—¶å’Œå‰ä¸€å¸§(æ¯”å¦‚åˆå§‹å¸§)ä½œæ¯”è¾ƒ ï¼ˆå®é™…ä¾‹å­å¥½åƒä¸æ˜¯è¿™æ ·å­çš„ ???ï¼‰
  *       failed !!!
  */
 public class StackMapFrameTest {
+    @Resource
+    private <T> T test(List<? extends String> args){
+        return null;
+    }
+
     public static void main( String args[] ) {
 
         String i = "test";

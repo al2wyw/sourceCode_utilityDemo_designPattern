@@ -2,9 +2,11 @@ package com.cglib;
 
 import com.utils.ClassLoaderUtils;
 import net.sf.cglib.core.*;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Resource;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -55,6 +57,9 @@ public class ClassEmitterTest {
         constructor.end_method();
 
         CodeEmitter codeEmitter = classEmitter.begin_method(Constants.ACC_PUBLIC,TypeUtils.parseSignature("void test()"),null);
+        //增加Resource注解
+        AnnotationVisitor annotationVisitor = codeEmitter.visitAnnotation("Ljavax/annotation/Resource;", true);
+        annotationVisitor.visitEnd();
         //桥接到com.cglib.son.protectedMethodSon
         Type target = Type.getType(son.class);
         codeEmitter.new_instance(target);
@@ -74,12 +79,15 @@ public class ClassEmitterTest {
         ClassLoaderUtils.saveClassFile("GeneratedSubTest.class", content);
 
         //Test test = ClassLoaderUtils.defineInstance(Thread.currentThread().getContextClassLoader(),"com.cglib.GeneratedSubTest",content);
-        Class klass = ClassLoaderUtils.defineClass(Thread.currentThread().getContextClassLoader(),"com.cglib.GeneratedSubTest",content);
+        Class klass = ClassLoaderUtils.defineClass(Thread.currentThread().getContextClassLoader(), "com.cglib.GeneratedSubTest", content);
         Constructor method = klass.getDeclaredConstructor(String.class);
         Test test = (Test)method.newInstance("value passed to test");
 
 
         test.test();
+
+        Method m = klass.getMethod("test");
+        System.out.println(m.isAnnotationPresent(Resource.class));
     }
 
     public static void test1() throws Exception{
