@@ -30,7 +30,7 @@ public class ClassEmitterTest {
     }
 
     public interface Test{
-        void test();
+        Object test(Object[] args);
     }
 
     public static void test2() throws Exception{
@@ -79,16 +79,18 @@ public class ClassEmitterTest {
         System.out.println(signatureWriter.toString());
 
         MethodVisitor mv = classEmitter.visitMethod(Constants.ACC_PUBLIC, s.getName(), s.getDescriptor(), signatureWriter.toString(),null);
+
+        //增加注解
+        AnnotationVisitor annotationVisitor = mv.visitAnnotation("Lcom/annotation/TargetMethod;", true);
+        annotationVisitor.visit("name","test");
+        annotationVisitor.visitEnd();
+
         mv.visitInsn(Constants.RETURN);
         mv.visitMaxs(0,0);
         mv.visitEnd();
 
 
-        CodeEmitter codeEmitter = classEmitter.begin_method(Constants.ACC_PUBLIC,TypeUtils.parseSignature("void test()"),null);
-        //增加注解
-        AnnotationVisitor annotationVisitor = codeEmitter.visitAnnotation("Lcom/annotation/TargetMethod;", true);
-        annotationVisitor.visit("name","test");
-        annotationVisitor.visitEnd();
+        CodeEmitter codeEmitter = classEmitter.begin_method(Constants.ACC_PUBLIC, TypeUtils.parseSignature("Object test(Object[])"),null);
 
         //桥接到com.cglib.son.protectedMethodSon
         Type target = Type.getType(son.class);
@@ -100,6 +102,7 @@ public class ClassEmitterTest {
         codeEmitter.load_this();
         codeEmitter.getfield("test");
         codeEmitter.invoke_virtual(Type.getType(PrintStream.class),new Signature("println",Type.VOID_TYPE,new Type[]{Constants.TYPE_STRING}));
+        codeEmitter.aconst_null();
         codeEmitter.return_value();
         codeEmitter.end_method();
 
@@ -114,9 +117,9 @@ public class ClassEmitterTest {
         Test test = (Test)method.newInstance("value passed to test");
 
 
-        test.test();
+        test.test(null);
 
-        Method m = klass.getMethod("test");
+        Method m = klass.getMethod("test", List.class);
         System.out.println(m.isAnnotationPresent(TargetMethod.class));
         TargetMethod targetMethod = m.getAnnotation(TargetMethod.class);
         System.out.println(targetMethod.name());
