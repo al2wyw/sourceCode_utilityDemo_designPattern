@@ -54,6 +54,7 @@ public class Client {
             }
         }
         System.out.println("client open channels: " + channels.size());
+        channels.stream().map(Channel::eventLoop).forEach(System.out::println);
 
         for (int i = 0; i < 10; i++) {
             Message mes = new Message();
