@@ -82,6 +82,13 @@ test $1 = all || ps -ef | grep redis | awk -v port=$1 '$0~port{print $2}'| xargs
 #test string equal is tricky! do not use test "$1" = all, no matter what $1 is, always true (not true!!!)
 
 #!/bin/sh
+sleep 3 &
+sleep 4 &
+sleep 5 &
+wait #wait all the background task to finish
+echo 'done'
+
+#!/bin/sh
 # (()),$(()) > $[], let > expr
 a=9;b=13;c=-1;d=+4;e=7.2
 echo "a=9;b=13;c=-1;d=+4;e=7.2"

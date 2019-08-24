@@ -23,12 +23,19 @@ org.apache.curator.HandleHolder.closeAndReset
 org.apache.curator.HandleHolder.getZooKeeper
 
 org.apache.zookeeper:
-watcher triggered:(watcher注册只是往server设置node上watch的boolean值)
+watcher triggered:(watcher注册只是往server设置node上watch的boolean值)(单线程)
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
-send packet:
+send packet:(单线程,单连接)
 org.apache.zookeeper.ClientCnxn.SendThread.sendPacket
+应用层多线程写入outgoingQueue，SendThread取出outgoingQueue后写入到pendingQueue和发送到server(server按接收顺序处理请求)，SendThread接收到响应取出pendingQueue并返回给应用层
 callback:
 客户端命令调用完毕后的回调
 client入口: org.apache.zookeeper.ZooKeeper server入口: org.apache.zookeeper.server.quorum.QuorumPeerMain
 
 session timeout -> con lost
+
+
+连接:
+zookeeper: 长连接 集群里的单机
+dia: http 随机长轮询 集群里的单机
+config: 长连接 集群里的单机
