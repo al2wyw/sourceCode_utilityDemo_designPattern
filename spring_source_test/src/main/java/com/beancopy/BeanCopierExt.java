@@ -13,7 +13,6 @@ import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  * Time: 13:42
  * Desc:
  */
-public abstract class BeanCopierExt {
+public abstract class BeanCopierExt<S,T> {
 
     private static final BeanCopierExt.BeanCopierKey KEY_FACTORY =
             (BeanCopierExt.BeanCopierKey)KeyFactory.create(BeanCopierExt.BeanCopierKey.class);
@@ -39,19 +38,19 @@ public abstract class BeanCopierExt {
         Object newInstance(String source, String target);
     }
 
-    private CopyCallback copyCallback = new CopyCallback() {
+    private CopyCallback<S,T> copyCallback = new CopyCallback<S,T>() {
         @Override
-        public void OnSuccess(Object s, Object t) {
+        public void OnSuccess(S s, T t) {
 
         }
 
         @Override
-        public void onFailure(Object s, Object t, Exception e) {
+        public void onFailure(S s, T t, Exception e) {
             LoggerUtils.getLogger().error("", e);
         }
     };
 
-    public void transform(Object from, Object to) {
+    public void transform(S from, T to) {
         try{
             Preconditions.checkNotNull(from,"from Object is null");
             Preconditions.checkNotNull(to,"to Object is null");
@@ -88,14 +87,14 @@ public abstract class BeanCopierExt {
         return map;
     }
 
-    public static BeanCopierExt create(Class source, Class target){
+    public static <S,T> BeanCopierExt<S,T> create(Class<S> source, Class<T> target){
         BeanCopierExt.Generator gen = new BeanCopierExt.Generator();
         gen.setSource(source);
         gen.setTarget(target);
         return gen.create();
     }
 
-    public static BeanCopierExt create(Class source, Class target, CopyCallback copyCallback, Map<String,String> propertyNameMapping){
+    public static <S,T> BeanCopierExt<S,T> create(Class<S> source, Class<T> target, CopyCallback<S,T> copyCallback, Map<String,String> propertyNameMapping){
         BeanCopierExt.Generator gen = new BeanCopierExt.Generator();
         gen.setSource(source);
         gen.setTarget(target);

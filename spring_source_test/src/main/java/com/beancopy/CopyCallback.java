@@ -1,8 +1,8 @@
 package com.beancopy;
 
-public interface CopyCallback {
+public interface CopyCallback<S, T> {
 
-    void OnSuccess(Object s, Object t);
+    void OnSuccess(S s, T t);
 
-    void onFailure(Object s, Object t, Exception e);
+    void onFailure(S s, T t, Exception e);
 }

@@ -63,15 +63,16 @@ public class BeanCopierTest {
     public static void test2(){
         Map<String,String> nameMap = Maps.newHashMap();
         nameMap.put("otherName","name");//setter -> getter
-        BeanCopierExt beanCopierExt = BeanCopierExt.create(Test.class, TestTarget.class, new CopyCallback() {
+        BeanCopierExt<Test,TestTarget> beanCopierExt = BeanCopierExt.create(Test.class, TestTarget.class, new CopyCallback<Test,TestTarget>() {
             @Override
-            public void OnSuccess(Object s, Object t) {
+            public void OnSuccess(Test test, TestTarget testTarget) {
                 LoggerUtils.getLogger().info("success");
+                testTarget.setCallBackName(test.getName());
             }
 
             @Override
-            public void onFailure(Object s, Object t, Exception e) {
-                LoggerUtils.getLogger().error("",e);
+            public void onFailure(Test test, TestTarget testTarget, Exception e) {
+                LoggerUtils.getLogger().error("", e);
             }
         }, nameMap);
         //test
@@ -86,7 +87,7 @@ public class BeanCopierTest {
         TestTarget testTarget = new TestTarget();
         beanCopierExt.transform(test,testTarget);
 
-        LoggerUtils.getLogger().info("{}", testTarget);
+        LoggerUtils.getLogger().info("{}", testTarget.getCallBackName());
 
         LoggerUtils.getLogger().info("{}", testTarget.getObjectList().get(0).getName());
 
@@ -147,6 +148,7 @@ class TestTarget{
     private Map<String,TestInnerTarget> objectMap;
     private String name;
     private String otherName;
+    private String callBackName;
 
     public List<TestInnerTarget> getObjectList() {
         return objectList;
@@ -178,6 +180,14 @@ class TestTarget{
 
     public void setOtherName(String otherName) {
         this.otherName = otherName;
+    }
+
+    public String getCallBackName() {
+        return callBackName;
+    }
+
+    public void setCallBackName(String callBackName) {
+        this.callBackName = callBackName;
     }
 }
 
