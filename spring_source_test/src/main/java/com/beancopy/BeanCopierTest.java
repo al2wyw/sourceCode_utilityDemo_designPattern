@@ -1,5 +1,6 @@
-package com.cglib;
+package com.beancopy;
 
+import com.cglib.CglibUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.utils.LoggerUtils;
@@ -19,13 +20,19 @@ import java.util.Set;
  */
 public class BeanCopierTest {
     public static void main(String args[]){
+        CglibUtils.setupOutPutDir();
+        test2();
+    }
+
+    public static void test1(){
         BeanCopier beanCopier = BeanCopier.create(Test.class, TestTarget.class, true);
         BeanCopier beanCopierTarget = BeanCopier.create(TestInner.class, TestInnerTarget.class, true);
 
         //test
         Test test = new Test();
-        TestInner testInner = new TestInner();
         test.setName("test123");
+        TestInner testInner = new TestInner();
+        testInner.setName("test inner 123");
         test.setObjectList(Lists.newArrayList(testInner));
         test.setObjectMap(Maps.newHashMap());
         test.getObjectMap().put("test", testInner);
@@ -51,6 +58,39 @@ public class BeanCopierTest {
         LoggerUtils.getLogger().info("{}", testTarget);
 
         LoggerUtils.getLogger().info("{}", testTarget.getObjectList().get(0).getName());//class cast error
+    }
+
+    public static void test2(){
+        Map<String,String> nameMap = Maps.newHashMap();
+        nameMap.put("otherName","name");//setter -> getter
+        BeanCopierExt beanCopierExt = BeanCopierExt.create(Test.class, TestTarget.class, new CopyCallback() {
+            @Override
+            public void OnSuccess(Object s, Object t) {
+                LoggerUtils.getLogger().info("success");
+            }
+
+            @Override
+            public void onFailure(Object s, Object t, Exception e) {
+                LoggerUtils.getLogger().error("",e);
+            }
+        }, nameMap);
+        //test
+        Test test = new Test();
+        test.setName("test name");
+        TestInner testInner = new TestInner();
+        testInner.setName("inner test name");
+        test.setObjectList(Lists.newArrayList(testInner));
+        test.setObjectMap(Maps.newHashMap());
+        test.getObjectMap().put("test", testInner);
+
+        TestTarget testTarget = new TestTarget();
+        beanCopierExt.transform(test,testTarget);
+
+        LoggerUtils.getLogger().info("{}", testTarget);
+
+        LoggerUtils.getLogger().info("{}", testTarget.getObjectList().get(0).getName());
+
+        LoggerUtils.getLogger().info("{}", testTarget.getObjectMap().get("test"));
     }
 }
 
@@ -106,6 +146,7 @@ class TestTarget{
     private List<TestInnerTarget> objectList;
     private Map<String,TestInnerTarget> objectMap;
     private String name;
+    private String otherName;
 
     public List<TestInnerTarget> getObjectList() {
         return objectList;
@@ -129,6 +170,14 @@ class TestTarget{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getOtherName() {
+        return otherName;
+    }
+
+    public void setOtherName(String otherName) {
+        this.otherName = otherName;
     }
 }
 
