@@ -34,6 +34,13 @@ client入口: org.apache.zookeeper.ZooKeeper server入口: org.apache.zookeeper.
 
 session timeout -> con lost
 
+Paxos到Zookeeper: 2 4 6 7
+4. zab协议和paxos协议
+6. zookeeper的应用场景
+7. zookeeper技术内幕
+-- 会话创建,管理,清理
+-- 选举算法细节
+-- 请求处理
 
 连接:
 zookeeper: 长连接 集群里的单机

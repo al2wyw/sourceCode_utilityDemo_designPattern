@@ -96,7 +96,8 @@ SERVER实现: 命令执行过程 (前置处理 -> 执行命令(写入client缓�
 partition的问题:
 - 多key操作不支持，就算 slot 在同一个node也不支持
 - 事务包含的key在不同node上不支持
-只要有一个节点down掉，整个集群状态会变成fail，无法服务(挂掉的节点有slave的话集群可以恢复服务，非挂掉的节点停服的时间短，挂掉的节点停服的时间长)
+只要有一个主节点down掉，整个集群状态会变成fail，无法服务(挂掉的主节点有从节点的话集群可以恢复服务，
+非挂掉的主节点停服的时间短，挂掉的主节点停服的时间长)
 nodeTime可以控制slave 接管master的时间
 slave端的 expire 实现: master发送del到slave
 
