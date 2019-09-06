@@ -23,6 +23,7 @@ org.apache.curator.HandleHolder.closeAndReset
 org.apache.curator.HandleHolder.getZooKeeper
 
 org.apache.zookeeper:
+Leader Election -> Recovery -> Broadcast
 watcher triggered:(watcher注册只是往server设置node上watch的boolean值)(单线程)
 org.apache.zookeeper.ClientCnxn.EventThread.processEvent
 send packet:(单线程,单连接)
@@ -31,6 +32,7 @@ org.apache.zookeeper.ClientCnxn.SendThread.sendPacket
 callback:
 客户端命令调用完毕后的回调
 client入口: org.apache.zookeeper.ZooKeeper server入口: org.apache.zookeeper.server.quorum.QuorumPeerMain
+io：ClientCnxn ServerCnxn QuorumCnxManager(election)
 
 session timeout -> con lost
 
@@ -38,6 +40,7 @@ Paxos到Zookeeper: 2 4 6 7
 4. zab协议和paxos协议
 6. zookeeper的应用场景
 7. zookeeper技术内幕
+-- watch通知实现
 -- 会话创建,管理,清理
 -- 选举算法细节
 -- 请求处理

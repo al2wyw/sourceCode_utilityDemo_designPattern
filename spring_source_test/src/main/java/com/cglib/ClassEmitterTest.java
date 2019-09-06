@@ -3,10 +3,7 @@ package com.cglib;
 import com.annotation.TargetMethod;
 import com.utils.ClassLoaderUtils;
 import net.sf.cglib.core.*;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.objectweb.asm.signature.SignatureWriter;
 
@@ -25,12 +22,55 @@ import java.util.List;
 public class ClassEmitterTest {
 
     public static void main(String[] args) throws Exception{
-        test1();
-        test2();
+        testIncompatibleArgsType();
     }
 
     public interface Test{
         Object test(Object[] args);
+    }
+
+    public static void invoke(String str){
+        System.out.println(str);
+    }
+
+    public static void testIncompatibleArgsType() throws Exception{
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+
+        ClassEmitter classEmitter = new ClassEmitter(classWriter);
+
+        String className = "com.cglib.GeneratedIncompatibleArgsTypeTest";
+        classEmitter.begin_class(Constants.V1_8, Constants.ACC_PUBLIC, className,
+                Type.getType(Object.class), null, Constants.SOURCE_FILE);
+
+        CodeEmitter staticEmitter = classEmitter.begin_static();
+        staticEmitter.getstatic(Type.getType(System.class),"out",Type.getType(PrintStream.class));
+        staticEmitter.visitLdcInsn(className + " init");
+        staticEmitter.invoke_virtual(Type.getType(PrintStream.class),new Signature("println",Type.VOID_TYPE,new Type[]{Constants.TYPE_STRING}));
+        staticEmitter.return_value();
+        staticEmitter.end_method();
+
+        CodeEmitter constructor = classEmitter.begin_method(Constants.ACC_PUBLIC,new Signature(Constants.CONSTRUCTOR_NAME,"()V"),null);
+        constructor.load_this();
+        constructor.super_invoke_constructor();
+        constructor.return_value();
+        constructor.end_method();
+
+        CodeEmitter codeEmitter = classEmitter.begin_method(Constants.ACC_PUBLIC,new Signature("test","()V"),null);
+        codeEmitter.push(10);
+        //codeEmitter.visitLdcInsn("test");
+        codeEmitter.invoke_static(Type.getType(ClassEmitterTest.class), new Signature("invoke", Type.VOID_TYPE, new Type[]{Constants.TYPE_STRING}));
+        codeEmitter.return_value();
+        codeEmitter.end_method();
+
+        classEmitter.end_class();
+
+        byte[] content = classWriter.toByteArray();
+        ClassLoaderUtils.saveClassFile(className.substring(className.lastIndexOf('.') + 1) + ".class", content);
+
+        Class klass = ClassLoaderUtils.defineClass(Thread.currentThread().getContextClassLoader(),className,content);
+        Object tar = klass.newInstance(); //Exception in thread "main" java.lang.VerifyError: Bad type on operand stack
+        Method method = klass.getDeclaredMethod("test");
+        method.invoke(tar);
     }
 
     public static void test2() throws Exception{
