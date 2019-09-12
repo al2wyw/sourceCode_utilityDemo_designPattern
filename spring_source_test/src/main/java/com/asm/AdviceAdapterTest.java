@@ -117,7 +117,7 @@ public class AdviceAdapterTest {
         public final void onMethodEnter() {
             start = System.currentTimeMillis();
             stacks.get().push(this);
-            System.out.println("on method enter " + name + desc);
+            LoggerUtils.getLogger().info("on method enter " + name + desc);
         }
 
 
@@ -126,8 +126,8 @@ public class AdviceAdapterTest {
             if(start != null){
                 String name = start.name;
                 String desc = start.desc;
-                System.out.println(name + desc +  " " + (System.currentTimeMillis() - start.start) + " ms");
-                System.out.println("on method exit " + name + desc);
+                LoggerUtils.getLogger().info(name + desc +  " " + (System.currentTimeMillis() - start.start) + " ms");
+                LoggerUtils.getLogger().info("on method exit " + name + desc);
             }
         }
     }
