@@ -10,13 +10,17 @@ package com.asm;
 public class Test {
 
     public void test() throws Exception{
-        Thread.sleep(1000);
-        System.out.println("test");
+        long time = 1000;
+        Thread.sleep(time);
+        String print = "test";
+        System.out.println(print);
         test1();
     }
 
     public void test1() throws Exception{
-        Thread.sleep(1000);
+        long time = 1000;
+        Thread.sleep(time);
+        //int h = 1/0;
         System.out.println("test1");
     }
 }

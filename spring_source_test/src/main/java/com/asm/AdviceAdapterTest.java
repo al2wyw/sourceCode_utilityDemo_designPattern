@@ -2,6 +2,7 @@ package com.asm;
 
 import com.google.common.collect.Sets;
 import com.utils.ClassLoaderUtils;
+import com.utils.LoggerUtils;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AdviceAdapter;
 
@@ -30,8 +31,12 @@ public class AdviceAdapterTest {
         byte[] newContent = classWriter.toByteArray();
         ClassLoaderUtils.saveClassFile("Test.class",newContent);
         Class klass =  ClassLoaderUtils.defineClass(cl, "com.asm.Test", newContent);
-        Method method = klass.getDeclaredMethod("test");
-        method.invoke(klass.newInstance());
+        Test test = (Test)klass.newInstance();
+        try {
+            test.test();
+        }catch (Exception e){
+            LoggerUtils.getLogger().error("", e);
+        }
     }
 
     public static class MyClassWriter extends ClassVisitor{
@@ -51,78 +56,79 @@ public class AdviceAdapterTest {
 
         private String name;
         private String desc;
-        private static Set<String> names = Sets.newHashSet("test","test1");
+        private int localIndex;
+        private static final Type MY_CALL_BACK_TYPE = Type.getType(MyCallBack.class);
+        private static final Type STRING_TYPE = Type.getType(String.class);
+        private static final Set<String> NAMES = Sets.newHashSet("test","test1");
 
         public MyAdvice(int api, MethodVisitor mv, int access, String name, String desc) {
             super(api, mv, access, name, desc);
             this.name = name;
             this.desc = desc;
         }
-
+        //对原方法体需要使用try catch包裹起来，不然异常抛出时会跳过onMethodExit
         //这里应该还是编写jvm执行代码，而不是java代码
         @Override
         protected void onMethodEnter() {
-            if(!names.contains(name)){
+            if(!NAMES.contains(name)){
                 return;
             }
-            this.newInstance(Type.getType(MyAdvisor.class));
+            this.newInstance(MY_CALL_BACK_TYPE);
             this.dup();
             this.push(name);
             this.push(desc);
-            this.invokeConstructor(Type.getType(MyAdvisor.class), new org.objectweb.asm.commons.Method("<init>",
-                    Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(String.class))));
-            this.invokeVirtual(Type.getType(MyAdvisor.class), org.objectweb.asm.commons.Method.getMethod("void onMethodEnter ()"));
+            this.invokeConstructor(MY_CALL_BACK_TYPE, new org.objectweb.asm.commons.Method("<init>",
+                    Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE)));
+            localIndex = this.newLocal(MY_CALL_BACK_TYPE);
+            this.dup();
+            this.storeLocal(localIndex);
+            this.invokeVirtual(MY_CALL_BACK_TYPE, org.objectweb.asm.commons.Method.getMethod("void onMethodEnter ()"));
 
         }
 
         @Override
         protected void onMethodExit(int opcode) {
-            if(!names.contains(name)){
+            if(!NAMES.contains(name)){
                 return;
             }
-            this.newInstance(Type.getType(MyAdvisor.class));
-            this.dup();
-            this.push(name);
-            this.push(desc);
-            this.invokeConstructor(Type.getType(MyAdvisor.class), new org.objectweb.asm.commons.Method("<init>",
-                    Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(String.class))));
-            this.invokeVirtual(Type.getType(MyAdvisor.class), org.objectweb.asm.commons.Method.getMethod("void onMethodExit ()"));
+            this.loadLocal(localIndex);
+            this.invokeVirtual(MY_CALL_BACK_TYPE, org.objectweb.asm.commons.Method.getMethod("void onMethodExit ()"));
         }
     }
 
-    public static class MyAdvisor {
+    public static class MyCallBack {
 
         private String name;
         private String desc;
         private long start;
-        private static Stack<MyAdvisor> stacks = new Stack<>();
-        private static Set<String> names = Sets.newHashSet("test","test1");
 
-        public MyAdvisor(String name, String desc) {
+        public static ThreadLocal<Stack<MyCallBack>> stacks = new ThreadLocal<Stack<MyCallBack>>(){
+            @Override
+            protected Stack<MyCallBack> initialValue() {
+                return new Stack<>();
+            }
+        };
+
+        public MyCallBack(String name, String desc) {
             this.desc = desc;
             this.name = name;
         }
 
         public final void onMethodEnter() {
-            if(!names.contains(name)){
-                return;
-            }
             start = System.currentTimeMillis();
-            stacks.push(this);
+            stacks.get().push(this);
             System.out.println("on method enter " + name + desc);
-
         }
 
 
         public final void onMethodExit() {
-            if(!names.contains(name)){
-                return;
-            }
-            MyAdvisor start = stacks.pop();
+            MyCallBack start = stacks.get().pop();
             if(start != null){
+                String name = start.name;
+                String desc = start.desc;
                 System.out.println(name + desc +  " " + (System.currentTimeMillis() - start.start) + " ms");
+                System.out.println("on method exit " + name + desc);
             }
-            System.out.println("on method exit " + name + desc);
         }
     }
 }
