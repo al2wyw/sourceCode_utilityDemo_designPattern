@@ -29,20 +29,20 @@ public class ClassLoaderUtils {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> T defineInstance(ClassLoader cl, String name, byte[] newContent){
-        Class klass = defineClass(cl,name,newContent);
+        Class<T> klass = defineClass(cl,name,newContent);
         try {
-            return (T) klass.newInstance();
+            return klass == null ? null : klass.newInstance();
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);
             return null;
         }
     }
 
-    public static Class defineClass(ClassLoader cl, String name, byte[] newContent){
+    @SuppressWarnings("unchecked")
+    public static <T> Class<T> defineClass(ClassLoader cl, String name, byte[] newContent){
         try {
-            return (Class) defineClass0.invoke(cl, name, newContent, 0, newContent.length,
+            return (Class<T>) defineClass0.invoke(cl, name, newContent, 0, newContent.length,
                     ClassLoaderUtils.class.getProtectionDomain());
         }catch (Exception e){
             LoggerUtils.getLogger().error("",e);

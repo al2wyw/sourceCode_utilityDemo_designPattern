@@ -1,12 +1,13 @@
 package com.asm;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.utils.ClassLoaderUtils;
 import com.utils.LoggerUtils;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AdviceAdapter;
 
-import java.lang.reflect.Method;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
@@ -29,9 +30,9 @@ public class AdviceAdapterTest {
         classReader.accept(cw, ClassReader.EXPAND_FRAMES);
 
         byte[] newContent = classWriter.toByteArray();
-        ClassLoaderUtils.saveClassFile("Test.class",newContent);
-        Class klass =  ClassLoaderUtils.defineClass(cl, "com.asm.Test", newContent);
-        Test test = (Test)klass.newInstance();
+        ClassLoaderUtils.saveClassFile("Test.class", newContent);
+        Test test =  ClassLoaderUtils.defineInstance(cl, "com.asm.Test", newContent);
+        Preconditions.checkNotNull(test);
         try {
             test.test();
         }catch (Exception e){
