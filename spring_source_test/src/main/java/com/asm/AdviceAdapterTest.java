@@ -7,7 +7,6 @@ import com.utils.LoggerUtils;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AdviceAdapter;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
@@ -38,6 +37,18 @@ public class AdviceAdapterTest {
         }catch (Exception e){
             LoggerUtils.getLogger().error("", e);
         }
+        test.testGen().test();
+    }
+
+    public static boolean isPrimitive(Type type) {
+        switch (type.getSort()) {
+            case Type.ARRAY:
+            case Type.OBJECT:
+            case Type.METHOD:
+                return false;
+            default:
+                return true;
+        }
     }
 
     public static class MyClassWriter extends ClassVisitor{
@@ -58,9 +69,16 @@ public class AdviceAdapterTest {
         private String name;
         private String desc;
         private int localIndex;
+        private Label start;
+        private Label end;
         private static final Type MY_CALL_BACK_TYPE = Type.getType(MyCallBack.class);
         private static final Type STRING_TYPE = Type.getType(String.class);
-        private static final Set<String> NAMES = Sets.newHashSet("test","test1");
+        private static final Type EXP_TYPE = Type.getType(Exception.class);
+        private static final Set<String> NAMES = Sets.newHashSet("test", "test1", "testGen");
+        private static final org.objectweb.asm.commons.Method ENTER_CB = org.objectweb.asm.commons.Method.getMethod("void onMethodEnter ()");
+        private static final org.objectweb.asm.commons.Method EXIT_CB = org.objectweb.asm.commons.Method.getMethod("void onMethodExit (java.lang.Object)");
+        private static final org.objectweb.asm.commons.Method EXIT_RE_CB = org.objectweb.asm.commons.Method.getMethod("java.lang.Object onMethodReExit (java.lang.Object)");
+
 
         public MyAdvice(int api, MethodVisitor mv, int access, String name, String desc) {
             super(api, mv, access, name, desc);
@@ -83,8 +101,33 @@ public class AdviceAdapterTest {
             localIndex = this.newLocal(MY_CALL_BACK_TYPE);
             this.dup();
             this.storeLocal(localIndex);
-            this.invokeVirtual(MY_CALL_BACK_TYPE, org.objectweb.asm.commons.Method.getMethod("void onMethodEnter ()"));
+            this.invokeVirtual(MY_CALL_BACK_TYPE, ENTER_CB);
+            start = mark();
+        }
 
+        @Override
+        public void visitMaxs(int maxStack, int maxLocals) {
+            if(!NAMES.contains(name)){
+                super.visitMaxs(maxStack, maxLocals);
+                return;
+            }
+            end = mark();
+            catchException(start, end, EXP_TYPE);
+            dup();
+            this.loadLocal(localIndex);
+            swap();
+            this.invokeVirtual(MY_CALL_BACK_TYPE, EXIT_RE_CB);
+            Type type = EXIT_RE_CB.getReturnType();
+            if(type != Type.VOID_TYPE){
+                if (type.getSize() == 2) {
+                    pop2();
+                } else {
+                    pop();
+                }
+            }
+            throwException();
+
+            super.visitMaxs(maxStack, maxLocals);
         }
 
         @Override
@@ -92,8 +135,31 @@ public class AdviceAdapterTest {
             if(!NAMES.contains(name)){
                 return;
             }
+            Type returnType = Type.getReturnType(this.methodDesc);
+            if(opcode==ATHROW){
+                return;
+            }
+            if(opcode==RETURN) {
+                visitInsn(ACONST_NULL);
+            } else if(opcode==ARETURN ) {
+                dup();
+            } else {
+                if(opcode==LRETURN || opcode==DRETURN) {
+                    dup2();
+                }else {
+                    dup();
+                }
+                box(returnType);
+            }
             this.loadLocal(localIndex);
-            this.invokeVirtual(MY_CALL_BACK_TYPE, org.objectweb.asm.commons.Method.getMethod("void onMethodExit ()"));
+            swap();//ok with long
+            this.invokeVirtual(MY_CALL_BACK_TYPE, EXIT_RE_CB);
+            if(!isPrimitive(returnType)) {
+                //Type 'java/lang/Object' (current frame, stack[1]) is not assignable to 'com/asm/Test' (from method signature)
+                checkCast(Type.getReturnType(this.methodDesc));
+            }else{
+                pop();
+            }
         }
     }
 
@@ -122,7 +188,11 @@ public class AdviceAdapterTest {
         }
 
 
-        public final void onMethodExit() {
+        public final void onMethodExit(Object value) {
+            LoggerUtils.getLogger().info("return value " + value);
+            if(stacks.get().size() == 0){
+                return;
+            }
             MyCallBack start = stacks.get().pop();
             if(start != null){
                 String name = start.name;
@@ -130,6 +200,11 @@ public class AdviceAdapterTest {
                 LoggerUtils.getLogger().info(name + desc +  " " + (System.currentTimeMillis() - start.start) + " ms");
                 LoggerUtils.getLogger().info("on method exit " + name + desc);
             }
+        }
+
+        public final Object onMethodReExit(Object value) {
+            this.onMethodExit(value);
+            return new TestExt();
         }
     }
 }

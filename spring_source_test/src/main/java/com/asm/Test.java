@@ -17,10 +17,25 @@ public class Test {
         test1();
     }
 
-    public void test1() throws Exception{
+    public long test1() throws Exception{
         long time = 1000;
-        Thread.sleep(time);
-        //int h = 1/0;
+        try {
+            Thread.sleep(time);
+            int h = 1/0;
+        }catch (Exception e){
+            System.out.println("test1 error:" + e);
+            throw e;
+        }
         System.out.println("test1");
+        return Long.MAX_VALUE;
+    }
+
+    public Test testGen() throws Exception{
+        System.out.println("testGen");
+        return new Test();
+    }
+
+    public synchronized void testSyn() throws Exception{
+        System.out.println("testSyn");
     }
 }

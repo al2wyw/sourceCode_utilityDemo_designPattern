@@ -40,6 +40,8 @@ import java.util.stream.Stream;
         MAXSTACK -> 操作栈大小 MAXLOCALS -> 本地变量大小,不是数量, Type的getSize(long,double是2,void是0,其他是1)
         AnalyzerAdapter 负责重新计算stackmap frame，需要ClassReader#EXPAND_FRAMES支持
         LocalVariablesSorter 负责新增本地变量并重新计算MAXSTACK和MAXLOCALS，从而重新计算stackmap frame，需要ClassReader#EXPAND_FRAMES支持
+
+        finally block 的代码会被重复生成在try block和catch block的后面
  */
 public class ModifyOriginalClassFileTest {
 
