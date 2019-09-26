@@ -26,8 +26,10 @@ import java.util.List;
  *       即使transform成新的方法，也不影响已经被缓存下来的Method的调用
  *
  *       redefineClass 先用redefineByteCode替换运行时的字节码，会触发transformer(false)然后触发transformer(true)
- *       retransformClass 只会触发transformer(true), 类似于回滚操作，
- *       ??? 回滚到当前agent第一次retransformClass前的byteCode或者第一次redefineClass(如果有的话,包含transformer(false)的transform效果))后的byteCode，然后再触发transformer(true)
+ *       retransformClass 只会触发transformer(true), 类似于回滚操作:
+ *       从未transform: 回滚到当前agent第一次retransformClass前的byteCode
+ *       已经transform: 回滚到第一次包含transformer(false)的redefineClass后的byteCode
+ *       然后再触发transformer(true)
  *       redefineClass 和 retransformClass 搭配使用比较复杂，参考寒泉子的文章
  */
 @Controller
@@ -95,15 +97,18 @@ public class InstrumentController {
     @RequestMapping(value="inst/red", method= RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public String red() {
+    public String red(@RequestParam("loop") int loop) {
         try {
             InputStream inputStream = TargetClass.class.getResourceAsStream("TargetClass.class");
             ClassFileTransformer classFileTransformer = new MyClassTransformer("test");
-            byte[] transformedCode = classFileTransformer.transform(Thread.currentThread().getContextClassLoader(),
-                    TargetClass.class.getName().replaceAll("\\.","/"),
-                    TargetClass.class,
-                    TargetClass.class.getProtectionDomain(),
-                    IOUtils.toByteArray(inputStream));
+            byte[] transformedCode = IOUtils.toByteArray(inputStream);
+            for(int i = 0; i < loop; i++) {
+                transformedCode = classFileTransformer.transform(Thread.currentThread().getContextClassLoader(),
+                        TargetClass.class.getName().replaceAll("\\.", "/"),
+                        TargetClass.class,
+                        TargetClass.class.getProtectionDomain(),
+                        transformedCode);
+            }
             ClassDefinition classDefinition = new ClassDefinition(TargetClass.class,transformedCode);
             instrumentation.redefineClasses(classDefinition);
         }catch (Exception e){
