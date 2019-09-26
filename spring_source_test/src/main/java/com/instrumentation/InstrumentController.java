@@ -27,7 +27,7 @@ import java.util.List;
  *
  *       redefineClass 先用redefineByteCode替换运行时的字节码，会触发transformer(false)然后触发transformer(true)
  *       retransformClass 只会触发transformer(true), 类似于回滚操作，
- *       回滚到当前agent第一次redefineClass或者loadClass的结果(包含transformer(false)的transform效果)，然后再触发transformer(true)
+ *       ??? 回滚到当前agent第一次retransformClass前的byteCode或者第一次redefineClass(如果有的话,包含transformer(false)的transform效果))后的byteCode，然后再触发transformer(true)
  *       redefineClass 和 retransformClass 搭配使用比较复杂，参考寒泉子的文章
  */
 @Controller
