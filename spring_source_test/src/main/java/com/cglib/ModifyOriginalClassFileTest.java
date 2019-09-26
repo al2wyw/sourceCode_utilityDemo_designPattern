@@ -41,7 +41,9 @@ import java.util.stream.Stream;
         AnalyzerAdapter 负责重新计算stackmap frame，需要ClassReader#EXPAND_FRAMES支持
         LocalVariablesSorter 负责新增本地变量并重新计算MAXSTACK和MAXLOCALS，从而重新计算stackmap frame，需要ClassReader#EXPAND_FRAMES支持
 
-        finally block 的代码会被重复生成在try block和catch block的后面
+        try-catch block 的 try block最后会有一个goto跳转(如果最后不是return的话)
+        try-catch-finally block 的finally block代码会被重复生成在try block和catch block的后面
+        try-finally block
  */
 public class ModifyOriginalClassFileTest {
 

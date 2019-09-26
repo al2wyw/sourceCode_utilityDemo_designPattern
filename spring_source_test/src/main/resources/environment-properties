@@ -1,2 +1,5 @@
 # init environment of bean factory
 autowire=true
+redis=false
+zk=false
+instrument=true

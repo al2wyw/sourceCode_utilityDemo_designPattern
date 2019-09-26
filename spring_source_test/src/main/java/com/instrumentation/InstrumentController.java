@@ -1,5 +1,7 @@
 package com.instrumentation;
 
+import com.componentScan.MyConditional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -20,7 +22,8 @@ import java.util.List;
  *       -Dsun.reflect.inflationThreshold=0
  *       即使transform成新的方法，也不影响已经被缓存下来的Method的调用
  */
-//@Controller
+@Controller
+@MyConditional(trigger="instrument")
 public class InstrumentController {
 
     private static Instrumentation instrumentation;
@@ -28,6 +31,8 @@ public class InstrumentController {
     private static List<Class> classes = Lists.newArrayList();
 
     private static List<Method> methods = Lists.newArrayList();
+
+    private static List<ClassFileTransformer> transformers = Lists.newLinkedList();
 
     static {
         try {
@@ -38,6 +43,45 @@ public class InstrumentController {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @RequestMapping(value="inst/add", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String add(@RequestParam("flag") boolean flag) {
+        ClassFileTransformer classFileTransformer = new MyClassTransformer();
+        try {
+            instrumentation.addTransformer(classFileTransformer, flag);
+            transformers.add(classFileTransformer);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "ok";
+    }
+
+    @RequestMapping(value="inst/remove", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String remove() {
+        try {
+            Preconditions.checkArgument(transformers.size() > 0);
+            instrumentation.removeTransformer(transformers.get(0));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "ok";
+    }
+
+    @RequestMapping(value="inst/retran", method= RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String retran() {
+        try {
+            instrumentation.retransformClasses(TargetClass.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "ok";
     }
 
     @RequestMapping(value="inst/rein", method= RequestMethod.GET)

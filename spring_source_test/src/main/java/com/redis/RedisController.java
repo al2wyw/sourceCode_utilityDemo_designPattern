@@ -1,5 +1,6 @@
 package com.redis;
 
+import com.componentScan.MyConditional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
  * Desc:
  */
 @Controller
+@MyConditional(trigger="redis")
 public class RedisController {
 
     @Autowired

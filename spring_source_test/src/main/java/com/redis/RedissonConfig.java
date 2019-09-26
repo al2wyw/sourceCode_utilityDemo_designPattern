@@ -1,5 +1,6 @@
 package com.redis;
 
+import com.componentScan.MyConditional;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -34,6 +35,7 @@ public class RedissonConfig {
     private int threadPoolSize;
 
     @Bean
+    @MyConditional(trigger="redis")
     public RedissonClient redissonClient(){
         Config config = new Config();
         config.setTransportMode(TransportMode.NIO);
@@ -44,7 +46,7 @@ public class RedissonConfig {
         //config.useClusterServers()
                 // use "rediss://" for SSL connection
                 //.addNodeAddress(address);
-        RedissonClient redisson = null;//Redisson.create(config);
+        RedissonClient redisson = Redisson.create(config);
         return redisson;
     }
 

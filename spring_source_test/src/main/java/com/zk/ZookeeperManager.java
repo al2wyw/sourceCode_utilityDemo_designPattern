@@ -1,5 +1,6 @@
 package com.zk;
 
+import com.componentScan.MyConditional;
 import com.google.common.collect.Maps;
 import com.utils.LoggerUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -30,6 +31,7 @@ import java.util.Map;
  * Desc:
  */
 @Component
+@MyConditional(trigger="zk")
 public class ZookeeperManager {
 
     @Value("${zk.address}")

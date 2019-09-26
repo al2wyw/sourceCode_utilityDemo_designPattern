@@ -1,5 +1,6 @@
 package com.zk;
 
+import com.componentScan.MyConditional;
 import com.google.common.collect.Lists;
 import com.utils.LoggerUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -28,6 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @RequestMapping("zk")
 @Controller
+@MyConditional(trigger="zk")
 public class ZkController {
 
     private static final String ROOT_PATH = "/root/";
