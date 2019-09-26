@@ -27,10 +27,10 @@ import java.util.List;
  *
  *       redefineClass 先用redefineByteCode替换运行时的字节码，会触发transformer(false)然后触发transformer(true)
  *       retransformClass 只会触发transformer(true), 类似于回滚操作:
- *       从未transform: 回滚到当前agent第一次retransformClass前的byteCode
- *       已经transform: 回滚到第一次包含transformer(false)的redefineClass后的byteCode
+ *       从未transform: 回滚到当前agent第一次retransformClass前的byteCode ???
+ *       已经transform: 回滚到第一次包含transformer(false)的redefineClass后的byteCode ???
  *       然后再触发transformer(true)
- *       redefineClass 和 retransformClass 搭配使用比较复杂，参考寒泉子的文章
+ *       redefineClass 和 retransformClass 搭配使用比较复杂
  */
 @Controller
 @MyConditional(trigger="instrument")

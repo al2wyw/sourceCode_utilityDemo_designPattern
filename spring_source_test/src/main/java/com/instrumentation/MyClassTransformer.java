@@ -36,7 +36,7 @@ public class MyClassTransformer implements ClassFileTransformer {
                 ByteArrayInputStream bin = new ByteArrayInputStream(classfileBuffer);
                 CtClass ctClass = cp.makeClass(bin);
                 CtMethod ctMethod = ctClass.getMethod("printHelloWorld", Descriptor.ofMethod(CtClass.voidType,null));
-                ctMethod.insertBefore("System.out.println(\"agent invoke\");");
+                ctMethod.insertBefore("System.out.println(\"" + name + " agent invoke\");");
                 byte[] bytes = ctClass.toBytecode();
                 ctClass.defrost();
                 return bytes;
