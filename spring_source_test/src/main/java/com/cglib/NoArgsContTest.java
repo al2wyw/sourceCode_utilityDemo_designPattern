@@ -48,7 +48,7 @@ public class NoArgsContTest {
         o = (NoArgsContTest)constructor.newInstance();
         o.show();
 
-        //testNoArgsConst();
+        testNoArgsConst();
     }
 
     public static void testNoArgsConst() throws Exception{
@@ -56,6 +56,19 @@ public class NoArgsContTest {
         ClassReader classReader = new ClassReader(cl.getResourceAsStream("com/cglib/NoArgsConstructor.class"));
 
         ClassEmitterTransformer transformer = new ClassEmitterTransformer() {
+
+            @Override
+            public void begin_class(int version, int access, String className, Type superType, Type[] interfaces, String source) {
+                //remove this method will get verification exception
+                try {
+                    Class c = Class.forName("sun.reflect.SerializationConstructorAccessorImpl");
+
+                    super.begin_class(version, access, className, Type.getType(c), interfaces, source);
+                }catch (Exception e){
+                    LoggerUtils.getLogger().error("",e);
+                }
+            }
+
             @Override
             public CodeEmitter begin_method(int access, Signature sig, Type[] exceptions) {
                 CodeEmitter codeEmitter = super.begin_method(access, sig, exceptions);
