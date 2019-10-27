@@ -85,8 +85,8 @@ public class AdviceAdapterTest {
             this.name = name;
             this.desc = desc;
         }
-        //对原方法体需要使用try catch包裹起来，不然异常抛出时会跳过onMethodExit
-        //这里应该还是编写jvm执行代码，而不是java代码
+        //瀵瑰師鏂规硶浣撻渶瑕佷娇鐢╰ry catch鍖呰９璧锋潵锛屼笉鐒跺紓甯告姏鍑烘椂浼氳烦杩噊nMethodExit
+        //杩欓噷搴旇杩樻槸缂栧啓jvm鎵ц浠ｇ爜锛岃�屼笉鏄痡ava浠ｇ爜
         @Override
         protected void onMethodEnter() {
             if(!NAMES.contains(name)){
