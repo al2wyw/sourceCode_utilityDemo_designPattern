@@ -63,7 +63,6 @@ class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
 
 	<!-- cache annotation enable: @EnableCaching -->
 	<cache:annotation-driven/>
-	<bean id = "cacheManager" class="org.springframework.cache.guava.GuavaCacheManager"/>
 	
 	<!-- aop test start  -->
 	<aop:aspectj-autoproxy/>
