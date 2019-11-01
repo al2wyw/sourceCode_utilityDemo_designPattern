@@ -54,14 +54,19 @@ public class PersonCacheService {
     }
 
     @CachePut()
-    public Person updatePerson(@CacheKey(path = "id") Long id, String name){
+    public Person updatePerson(@CacheKey Long id, String name){
         Person old = STORE.get(id);
         old.setName(name);
         return old;
     }
 
     @CacheEvict()
-    public void clearPerson(@CacheKey(path = "id") Long id){
+    public void replacePerson(@CacheKey(path = "id") Person person){
+        STORE.put(person.getId(),person);
+    }
+
+    @CacheEvict()
+    public void clearPerson(@CacheKey Long id){
         STORE.remove(id);
     }
 

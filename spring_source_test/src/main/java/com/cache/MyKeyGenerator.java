@@ -1,6 +1,7 @@
 package com.cache;
 
 import com.utils.LoggerUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,15 @@ public class MyKeyGenerator implements KeyGenerator {
         CacheKey anno = param.getAnnotation(CacheKey.class);
         String path = anno.path();
         LoggerUtils.getLogger().info("path find {}", path);
-        return params[num];
+        if("".equals(path)){
+            return params[num];
+        }else {
+            try {
+                return PropertyUtils.getNestedProperty(params[num], path);
+            }catch (Exception e){
+                LoggerUtils.getLogger().error("", e);
+            }
+            return null;
+        }
     }
 }

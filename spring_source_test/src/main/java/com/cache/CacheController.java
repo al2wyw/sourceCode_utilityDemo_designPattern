@@ -33,6 +33,17 @@ public class CacheController {
         return personCacheService.updatePerson(id, name);
     }
 
+    @RequestMapping(value="replace", method= RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String replacePerson(@RequestParam("id") Long id, @RequestParam("name") String name){
+        Person person = new Person();
+        person.setId(id);
+        person.setName(name);
+        personCacheService.replacePerson(person);
+        return "ok";
+    }
+
     @RequestMapping(value="delete", method= RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
