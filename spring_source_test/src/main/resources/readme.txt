@@ -1,0 +1,1 @@
+-Dloglevel=TRACE -javaagent:D:\agent.jar -Dsun.reflect.inflationThreshold=0
