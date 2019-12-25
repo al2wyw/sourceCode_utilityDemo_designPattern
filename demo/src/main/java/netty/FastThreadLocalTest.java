@@ -12,8 +12,14 @@ import java.util.concurrent.TimeUnit;
  * Date: 2019/7/19
  * Time: 17:35
  * Desc:
- *      ThreadLocal使用 hash和array 在hash冲突时采用线性探测(通常是链址)来存储变量 (代码复杂,不像想象中简单)
- *      FastThreadLocal 使用 index和array 来存储变量
+ *      ThreadLocal使用 hash取模作为下标和array来存储Entry(key是ThreadLocal) 在hash冲突时采用线性探测(通常是链址)来找到对应下标 (代码复杂,不像想象中简单)
+ *      ThreadLocalMap的Entry: Key是弱引用(如果key是强引用，当ThreadLocal是局部变量又没有remove时会造成内存泄露，weekRef可以在gc时回收内存，
+ *      此时key是null，并且在get和set出现hash冲突时回收value强引用)，Value是强引用
+ *      最佳实践: ThreadLocal 设置为静态变量， 使用完后调用remove
+ *
+ *      FastThreadLocal 使用 自增index作为下标和array来存储value，利用了数组连续性，InternalThreadLocalMap使用缓存填充???
+ *      注意需要手动remove
+ *      内存扩容导致空洞产生，必须设置为静态变量
  */
 public class FastThreadLocalTest {
 
