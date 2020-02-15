@@ -13,6 +13,8 @@ mysql, redis(memcache), rocketmq(kafka)
 
 java & jvm
 
+网络tcp
+
 架构设计 微服务 领域驱动
 
 项目经验 方法论(可复用) 重做可提高点
