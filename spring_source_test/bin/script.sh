@@ -172,6 +172,7 @@ echo $a
 a="hello"
 
 # take care of white space!!!
+# == equals to =
 if expr $a = "hello"
 then echo "true"
 fi
