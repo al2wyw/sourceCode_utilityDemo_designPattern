@@ -1,3 +1,8 @@
+RequestMappingHandlerAdapter(@Controller注解相关)
+-> HandlerMethodArgumentResolverComposite
+-> RequestResponseBodyMethodProcessor -> HttpMessageConverter
+   RequestParamMethodArgumentResolver -> @RequestParam
+
 RootBeanDefinition -> ConfigurationClassBeanDefinition(AnnotatedBeanDefinition)
 GenericBeanDefinition -> ScannedGenericBeanDefinition(AnnotatedBeanDefinition)/AnnotatedGenericBeanDefinition(AnnotatedBeanDefinition)
 ConfigurationClassBeanDefinition 来自@Configuration的Class中的bean method创建

@@ -206,3 +206,18 @@ for i in `echo "10 11"`
 do
   echo "$i"
 done
+
+str="ONE,TWO,THREE,FOUR"
+#arr[0]="ONE" arr[1]="TWO" ... arr[@]="ONE TWO THREE FOUR"
+arr=(${str//,/ })#take care of white space
+echo ${arr[@]}
+
+arr=(`echo $str | tr ',' ' '`)
+echo ${arr[@]}
+
+IFS=","
+arr=($str)
+echo ${arr[@]}
+
+arr=($(echo $str | awk 'BEGIN{FS=",";OFS=" "} {print $1,$2,$3,$4}'))
+echo ${arr[@]}

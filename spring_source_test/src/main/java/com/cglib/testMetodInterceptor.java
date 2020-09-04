@@ -29,6 +29,7 @@ public class testMetodInterceptor {
                 } else {
                     try {
                         //methodProxy.invoke(proxy,args);//do call this, cause stack overflow
+                        //method.invoke(proxy,args);//do call this, cause stack overflow
                         return methodProxy.invokeSuper(proxy, args);
                     } catch (Throwable throwable) {
                         throwable.printStackTrace();
