@@ -181,11 +181,11 @@ if test $a = "hello"
 then echo "true again"
 fi
 
-if test $a = "hello"; then
+if test $a = "hello" || test $a = "world"; then
     echo "good"
 fi
 
-if [ $a = "hello" ] 
+if [ $a = "hello" ] || [ $a = "world" ]
 then 
      echo "true again!"
 elif [ $a = "test" ]
