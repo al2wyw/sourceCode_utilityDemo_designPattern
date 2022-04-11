@@ -1,0 +1,86 @@
+1NF: 列原子，列不可拆分
+2NF: 唯一id识别
+3NF: 数据不冗余
+
+MySQL的日志有很多种，如二进制日志、错误日志、查询日志、慢查询日志等，此外InnoDB存储引擎还提供了两种事务日志: redo log(重做日志)和undo log(回滚日志)
+
+mvvc & lock -> isolation
+redo log(WAL, 从Buffer Pool里进行数据读写, 然后按时刷盘，redo log在commit时刷盘，redo log是顺序写) -> duration
+undo log(rollback) -> atomic
+atomic, duration, isolation, integrity constraint -> consistency
+
+隔离级别:
+RU
+Read Committed(解决脏读)
+Repeatable Read(解决不可重复读和幻读，幻读是两次读取出现额外的记录)
+Serializable(RR的基础上读操作加锁)
+(一个事务)写操作对(另一个事务)写操作的影响：锁机制保证隔离性
+(一个事务)写操作对(另一个事务)读操作的影响：MVCC保证隔离性(解决脏读，不可重复读和幻读)
+RR隔离级别:
+当前读，读取最新的数据(select意向锁): 使用锁保证了隔离性: unique key不加间隙锁(必须使用uk命中记录行，不命中也直接加间隙锁，比较复杂)，非unique key加间隙锁
+版本读，也称快照读、一致性读(纯select): 使用MVVC保证了隔离性
+
+MVVC多版本控制: (RC, RR隔离级别)
+事务第一次一致性读就保存一份snapshot(RR), 事务每次一致性读都新建一份snapshot(RC)，所以RC无法避免不可重复读和幻读
+通过 MVCC 可以让读写互相不阻塞，即读不阻塞写，写不阻塞读，提升事务并发处理能力。提高并发的演进思路:
+普通锁，只能串行执行；
+读写锁，可以实现读读并发；
+数据多版本并发控制，可以实现读写并发。
+MVVC实现原理:
+隐藏列: InnoDB中每行数据的隐藏列中包含了事务id、指向undo log的指针等。
+undo log的版本链: 指向undo log的指针，也会指向更早版本的undo log，形成版本链。
+ReadView: 事务在某一时刻给整个事务系统(trx_sys)打快照。
+
+锁:
+意向锁: 1. select lock in share mode(共享意向锁) 2. select for update(排他意向锁)
+插入意向锁(排他锁): 也是间隙锁
+行锁
+间隙锁 (RR隔离级别以上才有)
+next-key锁(行锁+间隙锁,解决幻读) (RR隔离级别以上才有)
+
+2PL 两阶段锁:
+事务被拆分成两个阶段: 第一阶段为加锁阶段只能去申请锁，第二阶段为解锁阶段只能去解锁；
+在对任何数据进行读写操作之前，首先要申请并获得对该数据的封锁，在释放一个封锁后，事务不再申请和获得任何其他锁
+
+索引:
+B+树存储数据量:
+B+树的高度一般在2到3层(只有根节点和叶子节点为2层)。也就是说查找某一键值的记录，最多只需要2到3次IO开销，每次IO大概是10ms
+B+树存储的最小页大小为16kb, 如果单行数据在1kb大小，则3层可以存储2kw左右的数据
+B+树，B树，Hash表，红黑树，LSM树(Log-Structured-Merge)作为索引的优缺点
+聚集索引(叶子节点是数据) 和  非聚集索引(叶子节点是主键值)
+
+sql优化:
+1.永远用小结果集驱动大的结果集 (EXPLAIN结果中，第一行出现的表就是驱动表; left/right join间接指定了驱动表)
+2.尽可能在索引中完成排序
+3.只取出自己需要的Columns
+4.仅仅使用最有效的过滤条件，不是过滤条件越多越好
+5.尽可能避免复杂的Join和子查询，避免多个数据表资源被锁，降低吞吐
+
+索引优化:
+对于单键索引，尽量选择针对当前Query过滤性更好的索引
+在选择组合索引的时候，当前Query 中过滤性最好的字段在索引字段顺序中排列越靠前越好；
+在选择组合索引的时候，尽量选择可以能够包含当前Query 的WHERE 子句中更多字段的索引；
+索引缺点:
+影响新增和更新操作，需要同时变更索引；影响查询的性能，太多索引会影响执行计划；占用一定的存储空间；
+索引限制:
+过滤字段使用了函数运算后（如abs(column)），MySQL 无法使用索引
+Join 语句中Join 条件字段类型不一致的时候MySQL 无法使用索引
+使用LIKE 操作的时候如果条件以通配符开始（ '%abc...'）MySQL 无法使用索引
+使用非等值查询的时候MySQL 无法使用索引
+
+join优化:
+NestedLoopJoin:(没有HashJoin和SortMergeJoin)
+1). 尽可能减少Join语句中的NestedLoop的循环总次数，让驱动表的结果集尽可能的小
+2). 被驱动表上Join条件字段已经被索引
+3). 增大JoinBuffer(Join必须是All，Index，range或者是index_merge类型的时候)
+
+ORDER BY，GROUP BY，DISTINCT 优化:
+尽可能让MySQL 可以利用索引来完成GROUP BY 操作
+当无法使用索引完成GROUP BY 的时候，由于要使用到临时表且需要filesort，所以我们必须要有足够的sort_buffer_size
+
+explain的type: all、index、range、 ref、eq_ref、const、system、NULL（从左到右，性能从差到好）
+all: Full Table Scan， MySQL将遍历全表以找到匹配的行
+index: Full Index Scan，index与all区别为index类型只遍历索引树
+
+分库分表:
+一致性hash: 1. 避免数据倾斜 2. 数据迁移时减少需要迁移的机器节点 ???

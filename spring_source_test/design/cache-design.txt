@@ -6,7 +6,7 @@ REMOTE CACHE失效时间进行随机离散
 穿透:
 REMOTE CACHE没有命中时返回NULL(必须全量加载到缓存)
 数据量大时使用bloom filter过滤
-热点(击穿):
+热点(击穿，big key，hot key):
 大key拆分(适用于写大于读的场景):
 热点A，那么可以将A拆分为A1，A2...A100
 读副本冗余(适用于读大于写的场景):

@@ -1,0 +1,4 @@
+倒排索引:
+term index(字典树(前缀树,Trie树))(只有部分term的前缀，值对应dictionary的key的offset) -> term dictionary(哈希表)(全量的term) -> posting list(数组)(id列表)
+term index全部加载到内存，term dictionary存储在磁盘，从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数
+term index和posting list会进行压缩
