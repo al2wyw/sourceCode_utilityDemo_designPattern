@@ -46,7 +46,7 @@ next-key锁(行锁+间隙锁,解决幻读) (RR隔离级别以上才有)
 B+树存储数据量:
 B+树的高度一般在2到3层(只有根节点和叶子节点为2层)。也就是说查找某一键值的记录，最多只需要2到3次IO开销，每次IO大概是10ms
 B+树存储的最小页大小为16kb, 如果单行数据在1kb大小，则3层可以存储2kw左右的数据
-B+树，B树，Hash表，红黑树，LSM树(Log-Structured-Merge)作为索引的优缺点
+B+树，B树，Hash表，红黑树，跳表，LSM树(Log-Structured-Merge)作为索引的优缺点
 聚集索引(叶子节点是数据) 和  非聚集索引(叶子节点是主键值)
 
 sql优化:
@@ -81,6 +81,3 @@ ORDER BY，GROUP BY，DISTINCT 优化:
 explain的type: all、index、range、 ref、eq_ref、const、system、NULL（从左到右，性能从差到好）
 all: Full Table Scan， MySQL将遍历全表以找到匹配的行
 index: Full Index Scan，index与all区别为index类型只遍历索引树
-
-分库分表:
-一致性hash: 1. 避免数据倾斜 2. 数据迁移时减少需要迁移的机器节点 ???

@@ -9,7 +9,7 @@ typedef struct redisObject {
          int refcount;
          void *ptr;
      } robj;
-数据类型: string, list, hash, set, zset, stream
+数据类型(主要5种,每种对应2~3数据结构): string(raw, int, sds), list(zlist, qlist, llist), hash(zlist, ht), set(intset, ht), zset(sorted set)(zlist, slist), bitmaps and hyperLog(底层就是string)
 数据结构:
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
 #define OBJ_ENCODING_INT 1     /* Encoded as integer */
@@ -22,13 +22,24 @@ typedef struct redisObject {
 #define OBJ_ENCODING_EMBSTR 8  /* Embedded sds string encoding */
 #define OBJ_ENCODING_QUICKLIST 9 /* Encoded as linked list of ziplists */
 #define OBJ_ENCODING_STREAM 10 /* Encoded as a radix tree of listpacks */
-OBJ_ENCODING_HT: 渐进式扩容，扩容时两个数组同时存在
+OBJ_ENCODING_EMBSTR: 二进制安全(写入什么就读出什么,支持存储各种数据类型, 只读取len长度内容, 不像c一样不能存储\0字符), 长度获取O(1)(直接读取len字段), append防止内存溢出(free字段检查), 空间预分配&惰性回收
+OBJ_ENCODING_HT: 渐进式扩容(不是一次性全部迁移)，扩容时两个数组同时存在
 OBJ_ENCODING_QUICKLIST: ZIPLIST+双向链表，避免ZIPLIST扩容时大量复制操作和list过度消耗内存
-OBJ_ENCODING_SKIPLIST: zset的底层实现
-压缩数据结构:
+OBJ_ENCODING_SKIPLIST: zset的底层实现, 按分值排序，增删查效率和红黑树一致，但范围查询比红黑树高
+压缩数据结构:(连续的内存空间)
 OBJ_ENCODING_ZIPLIST: 连续的内存空间，有固定的数据大小格式，通过pre-node-length可以从尾部倒序地直接定位数据内容
 OBJ_ENCODING_INTSET: 数据类型升级
-bitset使用的是string类型raw编码
+bitmap使用的是string类型raw编码
+struct sdshdr{
+    //buf已使用的字节数
+    int len;
+    //buf未使用的字节数
+    int free;
+    //字节数组，用于保存字符串
+    char buf[];
+}
+
+数据库:
 typedef struct redisDb {
     dict *dict;                 /* The keyspace for this DB */
     dict *expires;              /* Timeout of keys with a timeout set */
@@ -117,9 +128,20 @@ partition的问题:
 nodeTime可以控制slave 接管master的时间
 slave端的 expire 实现: master发送del到slave
 
+一致性hash(hash cycle): 1. 使用虚拟节点避免数据倾斜 2. 数据迁移时减少需要迁移的机器节点
+redis hash(hash slot): 每个节点分配对应的slot，使用去中心化的p2p设计，每个节点都保存完整的slot表，可以转发客户端的请求到对应的节点
+节点A  0－5460
+节点B  5461－10922
+节点C  10923－16383
+
+节点A  1365-5460
+节点B  6827-10922
+节点C  12288-16383
+节点D  0-1364,5461-6826,10923-1228
+
 集群重定向
-MOVED重定向
-ASK重定向(重新分片数据迁移)
+MOVED重定向(客户端连接重定向的节点并重新发送请求)
+ASK重定向(重新分片数据迁移时的重定向)
 
 故障检测:
 集群中的节点会定期向其他的节点发送ping消息，如果接收方在规定时间内没有返回pong消息，则会被标记为pfail，集群中的节点通过ping/pong来交换节点状态
