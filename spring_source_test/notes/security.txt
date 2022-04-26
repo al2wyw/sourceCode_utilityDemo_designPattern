@@ -1,0 +1,76 @@
+什么是同源策略
+同源指的是我们访问站点的：协议、域名、端口号必须一至，才叫同源。
+浏览器默认同源之间的站点是可以相互访问资源和操作DOM的，而不同源之间想要互相访问资源或者操作DOM，那就需要加一些安全策略的限制，俗称同源策略
+link、img、script标签都没有同源限制
+
+应对xss攻击:
+输入校验和过滤
+输出转义
+
+xss(cross site script跨站脚本攻击):
+通过前端代码注入的方式让用户执行恶意代码
+DOM xss: 根据用户输入(含有恶意脚本)显示对应的输出时触发脚本(纯前端js漏洞，需要在前端防范)
+反射型 xss: 点击含有恶意脚本的url链接时触发脚本(要对html输出转义，避免植入恶意url)
+存储型 xss: 提交脚本数据到服务器，其他用户浏览含脚本数据的页面时触发脚本(对输入进行校验和过滤)
+
+
+csrf(跨站请求伪造):
+主要就是利用用户的登录状态(cookie)发起跨站请求，挟持用户在当前已登录的Web应用程序上执行非本意的操作:
+校验refer头，请求源校验
+请求中带token进行防范
+
+中间人攻击: 在http传输过程中被中间人窃取、伪造、篡改
+重放攻击: 重新播放流量，获取对应的返回
+https协议可以解决以上问题(4次握手):
+客户hello: 客户端给服务器发一个随机数 Client Random, 并且发可用的密码套件列表.
+
+服务器hello: 服务器给客户端发一个随机数 Server Random, 选择一个密码套件.
+服务器证书: 服务器给客户端发送自己的证书, 表明自己是谁, 上面还有自己的公钥
+Server Key Exchange: 加密参数(某些加密算法才需要 ECDHE)
+Server Hello done: 通知客户端， 最初阶段的 SSL握手协商部分结束
+
+客户证书：客户端给服务器发送自己的证书, 表明自己是谁, 上面还有自己的公钥(双向校验时才有)
+Client Key Exchange: 报文中包含通信加密中使用的一种被称为 Pre-master secret 的随机密码串
+ChangeCipherSpec: 客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信(密钥是用Client Random，Server Random，Pre-master secret三个随机数来生成的)
+Finished: 该报文包含连接至今全部报文的整体校验值，主要是用来测试密钥的有效性和一致性
+
+ChangeCipherSpec: 同上
+Finished: 同上
+
+使用 RSA 密钥协商算法的最大问题是不支持前向保密，私钥一旦泄露，以前的所有通信密文都会被破解
+使用 DH 密钥协商算法(服务器和客户端分别生成一对公私钥，并把公钥发给对方，保证每一次的协商都使用新的密钥对)，但因为 DH 算法的计算效率问题，后面出现了 ECDHE 密钥协商算法
+
+TCP+TLS解决的问题包括:
+消息的可靠传输
+消息一定送达（送不到我应该会知道）
+消息一定完整（到了一定是完整的）
+消息一定有序（一定以我预期的顺序到达）
+消息的安全传输
+避免窃听（知道你们在聊什么）
+避免篡改（就算我不知道你们在聊什么，我也要改动某些信息，让你们沟通产生歧义）
+避免中间人攻击（不知道你们在聊什么，但是我当传话筒，却传递着假的消息）
+避免重放攻击（不知道你们在聊什么，但是我一遍一遍重复某方的话）
+
+Oauth2和jwt认证机制
+auth2就是经常使用的
+jwt使用特定格式的token，认证过程与Oauth2不同
+
+StatusMovedPermanently  = 301
+StatusMovedTemparily    = 302
+StatusNotModified       = 304
+
+StatusBadRequest              = 400
+StatusUnauthorized            = 401
+StatusPaymentRequired         = 402
+StatusForbidden               = 403
+StatusNotFound                = 404
+StatusMethodNotAllowed        = 405
+
+StatusInternalServerError     = 500
+StatusNotImplemented          = 501
+StatusBadGateway              = 502
+StatusServiceUnavailable      = 503
+StatusGatewayTimeout          = 504
+StatusHTTPVersionNotSupported = 505
+
+
