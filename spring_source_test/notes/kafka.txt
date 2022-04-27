@@ -1,23 +1,61 @@
+第5， 6， 7， 8 章节
+
+AR：  Assigned Replicas的缩写，是每个partition下所有副本（replicas）的统称；
+ISR： In-Sync Replicas的缩写，是指副本同步队列，ISR是AR中的一个子集；
+LEO：LogEndOffset的缩写，表示每个partition的log最后一条Message的位置。
+HW： HighWatermark的缩写，是指consumer能够看到的此partition的位置。 取一个partition对应的ISR中最小的LEO作为HW
+
 存储结构:
 topic -> *partition -> *segment -> .index .log (文件命名规则，上一个segment在partition中的最大offset数值)
 先二分查找对应的index文件，再在index文件里二分查找对应的log文件的物理offset
 index文件的key是消息offset，value是log文件的物理offset，index文件只保存少量消息的key，是稀疏索引，只是方便消息进行快速定位
+顺序写，随机读
+磁盘调度算法，保证随机读的性能
+页缓存
+磁盘IO流程(同步刷新vs异步刷新)
+零拷贝
 
 rocketmq:
 topic -> commit log(所有topic共享唯一) -> * comsumerqueue -> consumerQueueLog(只有commit log offset，没有消息实体)
 consumerQueueLog的元素是定长的，可以快速定位
 
+
+定时任务：时间轮TimingWheel+延迟队列DelayQueue。时间轮复杂任务的增删，延迟队列负责时间推进，相辅相成。
+副本滞后Leader一定时间后会被移出ISR，默认是10秒，(或者滞后消息大小超过一定值，默认4000，由于很难界定大小，从0.9.x版本开始移除了)，有参数可设置
+
+事务消息
+2PC消息发送机制:
+消息投递保证:
+at least once: 发送方/broker 会重试
+at most once: 发送方/broker 不会重试
+exactly once(由幂等和事务消息共同实现，非常影响性能): Kafka的幂等性是指单个生产者对于单分区单会话的幂等(无法做到全区幂等)，事务可以保证原子性地写入多个分区，即写入多个分区的消息要么全部成功，要么全部回滚
+
+不支持读写分离:
+由于多副本设计，主读写已经具备负载均衡功能了，这样代码实现更简单，不容易出错，就没必要做主读从写了，而且主从还有数据一致性和延迟等问题
+再均衡的原理: topic名字改变，topic新增分区，消费者新增或删除
+
 消息可靠性:
-消息发送:
-
-消息消费:
-
-消息投递语义:
-at least once
-at most once
-exactly once
+消息发送方:
+发送方式: 发后即忘(one way), 同步, 异步
+消息发送重试设置
+ISR副本数设置，min.insync.replicas，少于这个数则无法发送消息
+消息broker:
+broker消息ack:
+ack=-1或者all，让所有ISR里的副本都拉取成功到消息才返回生产者成功通知
+ack=1代表主要leader写入成功就返回，如果此时leader宕机就有可能丢失消息
+acks=0，不会等待服务器的响应
+是否可以从非ISR集合中选择leader：unclean.leader.election.enable，默认是false，不能从非ISR集合选择leader
+刷盘策略异步刷盘，由多副本保证高可用
+消息消费方:
+消费端参数enable.auto.commit设为false，避免自动提交
 
 集群高可用/故障转移:
+每个 partition 都有一个 leader replica，和若干的 follower replica,
+如果使用 zookeeper 进行选举，效率太低，而且 zk 会不堪重负，
+所以通用做法是只用 zk 选一个 master 节点作为整个集群的controller，然后由这个controller来做其他的所有选举仲裁等工作。
+
 故障检测:
-ISR是可靠性和高效性的权衡
+broker在zookeeper上注册节点，失效后会通知controller
 故障转移:
+由controller根据partition的ISR选举出新的leader partition，如果ISR是空的或者只有当前故障的partition则查看unclean.leader.election.enable设置，从非ISR集合中选择一个replica作为新leader
+ISR是可靠性和高效性的权衡
