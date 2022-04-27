@@ -171,3 +171,5 @@ fail实现: gossip消息太慢，直接向所有节点广播fail消息，fail消
 发布与订阅:
 - 频道的订阅 subscribe channelName
 - 模式的订阅 subscribe channelName*
+
+redis事务multi 不是常规的事务实现，就是多个命令一起发送到服务端执行，不保证原子性
