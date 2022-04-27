@@ -1,0 +1,23 @@
+存储结构:
+topic -> *partition -> *segment -> .index .log (文件命名规则，上一个segment在partition中的最大offset数值)
+先二分查找对应的index文件，再在index文件里二分查找对应的log文件的物理offset
+index文件的key是消息offset，value是log文件的物理offset，index文件只保存少量消息的key，是稀疏索引，只是方便消息进行快速定位
+
+rocketmq:
+topic -> commit log(所有topic共享唯一) -> * comsumerqueue -> consumerQueueLog(只有commit log offset，没有消息实体)
+consumerQueueLog的元素是定长的，可以快速定位
+
+消息可靠性:
+消息发送:
+
+消息消费:
+
+消息投递语义:
+at least once
+at most once
+exactly once
+
+集群高可用/故障转移:
+故障检测:
+ISR是可靠性和高效性的权衡
+故障转移:
