@@ -13,7 +13,10 @@ index文件的key是消息offset，value是log文件的物理offset，index文�
 磁盘调度算法，保证随机读的性能
 页缓存
 磁盘IO流程(同步刷新vs异步刷新)
-零拷贝
+零拷贝:
+传统IO：hard drive -> DMA copy -> kernel buffer(页缓存) -> CPU copy -> user buffer -> CPU copy -> kernel buffer(socket缓存区) -> DMA copy -> socket 4 copy 4 cs(读写各两次sys call)
+mmap： hard drive -> DMA copy -> kernel buffer(页缓存) -> CPU copy -> kernel buffer(socket缓存区) -> DMA copy -> socket 3 copy 4 cs(读写各两次sys call)
+sendfile: hard drive -> DMA copy -> kernel buffer -> DMA copy -> socket 2 copy 2 cs(读写均只有一次sys call)
 
 rocketmq:
 topic -> commit log(所有topic共享唯一) -> * comsumerqueue -> consumerQueueLog(只有commit log offset，没有消息实体)
