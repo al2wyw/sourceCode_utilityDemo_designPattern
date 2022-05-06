@@ -29,6 +29,7 @@ consumerQueueLog的元素是定长的，可以快速定位
 at least once: 发送方/broker 会重试
 at most once: 发送方/broker 不会重试
 exactly once(由幂等和事务消息共同实现，非常影响性能): Kafka的幂等性是指单个生产者对于单分区单会话的幂等(无法做到全区幂等)，事务可以保证原子性地写入多个分区，即写入多个分区的消息要么全部成功，要么全部回滚
+Kafka和RMQ的事务消息完全是两个概念，Kafka事务是针对经典的ACID本地事务(跟Mysql事务类似)，而RMQ事务消息是对经典的2PC分布式事务的实现
 
 不支持读写分离:
 由于多副本设计，主读写已经具备负载均衡功能了，这样代码实现更简单，不容易出错，就没必要做主读从写了，而且主从还有数据一致性和延迟等问题
@@ -55,7 +56,15 @@ acks=0，不会等待服务器的响应
 所以通用做法是只用 zk 选一个 master 节点作为整个集群的controller，然后由这个controller来做其他的所有选举仲裁等工作。
 
 故障检测:
-broker在zookeeper上注册节点，失效后会通知controller
+leader partition在zookeeper上注册节点，失效后会通知controller，如果所有replica(成千上万的副本)直接去监听leader，会造成大量的监听消息被触发
 故障转移:
-由controller根据partition的ISR选举出新的leader partition，如果ISR是空的或者只有当前故障的partition则查看unclean.leader.election.enable设置，从非ISR集合中选择一个replica作为新leader
+由controller根据partition的ISR选举出新的leader partition(一般都是AR的第一个replica为preferred replica)，如果ISR是空的或者只有当前故障的partition则查看unclean.leader.election.enable设置，从非ISR集合中选择一个replica作为新leader
 ISR是可靠性和高效性的权衡
+
+controller的功能被写的很重很复杂:
+增加删除topic
+更新分区副本数量
+选举分区leader
+集群broker增加和宕机后的调整
+当然还有自身的选举controller leader功能
+这些功能都是controller通过监听Zookeeper节点出发，然后controller再跟其他的broker具体的去交互实现的
