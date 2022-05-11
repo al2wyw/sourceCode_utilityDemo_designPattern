@@ -1,0 +1,79 @@
+位运算:
+>>>运算符的操作数高位补0，而>>运算符的操作数高位补原来高位的位数(1 or 0)
+<<运算符的操作数低位补0，,高位会溢出变成负数
+0异或任何数 ＝ 任何数, 1异或任何数 = 任何数取反
+a = a^b^b, 可以用来交换两个变量的值
+
+字符常量池:
+https://www.jianshu.com/p/c14364f72b7e
+1. 字符串常量池已经挪到heap里面
+2. ldc相当于对字符串进行intern操作
+3. StringTableSize可以控制字符串常量池的table大小，避免哈希冲突
+
+String s1 = new StringBuilder().append("jav").append("va").toString();
+//1.6 返回false是由于常量池在perm区，s1(堆区)的地址和intern(perm区)的地址永远不可能相同
+System.out.println(s1 == s1.intern()); //true，"javva"字符串不在常量池，intern把"javva"存储到常量池里面并返回地址，并且常量池在堆里面，所有地址相同
+
+String s2 = new StringBuilder().append("ja").append("va").toString();
+System.out.println(s2 == s2.intern()); //false，"java"字符串已经在常量池了，intern返回"java"在常量池里面的地址
+
+String s3 = new StringBuilder().append("print").append("ln").toString();
+System.out.println(s3 == s3.intern());//true, println 虽然出现在class文件的常量池里，但是运行时并不在字符串常量池里
+
+String s5 = "Program" + "ming"; // complied to LDC "Programming" !!!
+String s6 = s3 + s4; // complied to StringBuilder and then StringBuilder.toString
+
+
+浮点精度:
+计算机表示浮点数(float或double类型)都有一个精度限制，
+对于超出了精度限制的浮点数，计算机会把它们的精度之外的小数部分截断。
+因此，本来不相等的两个浮点数在计算机中可能就变成相等的了
+float a = 10.222222225f;
+float b = 10.222222229f; // a==b true
+
+引用类型:
+只有full gc才会回收weak reference，full gc后还没有空间则会回收soft reference(由jvm决定是否没有空间，明明有空间也回收, -XX:SoftRefLRUPolicyMSPerMB=0可以立马回收)
+1. Weak和Soft会自动清除引用,在gc时会被enqueue，在enqueue之前清除引用，所以poll之后get()返回null
+2. pham不会自动清除引用,当确定会被垃圾回收时就会被enqueue，而不是等到真正回收时才去enqueue，类似于"垃圾回收通知", 所以引用对象需要二次gc才能回收
+3. ReferenceHandler thread 负责把reference从 pending 取出(如果是Cleaner,则调用 Cleaner.clean 并返回)然后进行enqueue, GC负责把reference放到pending 和 discovered，它们通过lock进行交互
+4. 4个reference除了soft(timestamp)外都没有额外的字段了, reference留意字段 pending(static) discovered 和 lock(static)
+5. refs are all ready to be cleared: pending -> fisrt ref -> discovered -> second ref -> discovered -> third ref -> discovered -> null
+
+finalize方法:
+1. 如果实现了finalize方法(方法体非空!!!)，在对象初始化时会生成一个Finalizer(调用Finalizer.register)对象，
+在gc时会被gc线程放到Finalizer的queue(此时Finalizer强引用待回收的对象，只有执行完对象的finialize方法才能被回收)，最后导致不能被一次gc回收，
+FinalizerThread 负责从queue中remove，并调用对象finialize方法，FinalizerThread优先级比较低，可能经过多次gc还没有执行finialize方法，容易引发fullGC
+2. class对象和classLoader对象互相引用，必须同时被回收。Class unload的条件确实是三个，已验证
+
+ThreadLocal:
+ThreadLocal使用 hash取模作为下标和array来存储Entry(key是ThreadLocal) 在hash冲突时采用线性探测(通常是链址)来找到对应下标 (代码复杂,不像想象中简单)
+ThreadLocalMap的Entry: Key是弱引用(如果key是强引用，当ThreadLocal是局部变量又没有remove时会造成内存泄露，weekRef可以在gc时回收内存，
+此时key是null，并且在get和set出现hash冲突时回收value强引用)，Value是强引用
+最佳实践: ThreadLocal 设置为静态变量， 使用完后调用remove
+
+FastThreadLocal 使用 自增index作为下标和array来存储value，利用了数组连续性，InternalThreadLocalMap使用缓存填充???
+注意需要手动remove
+内存扩容导致空洞产生，必须设置为静态变量
+
+socket:
+Java NIO selector由 selectorProvider提供，根据不同的系统有Epoll实现， Netty的epoll实现是edgeTrigger(更高效)而不是NIO2的epoll的levelTrigger???
+Socket的input,output stream在调用close时会调用Socket的close方法
+Socket的shutdownInput,output(即使都调用了)都不会调用Socket的close方法
+shutdownOutput后socket处于半关闭(fin_wait2,可以读不可写)，另一端进行read会返回-1，但可以正常写，ALLOW_HALF_CLOSURE支持半关闭，在read到-1时不马上调用close(与TCP半关闭一致)
+Socket的close会关闭input,output stream和channel(不是所有的Socket都有channel，必须是来自channel的socket)
+服务器连接异常，一般就是两种情况: time_wait是主动发起关闭的一端(对方是closed)，通过更改tcp参数可以优化(减少fin_wait时间，reuse address等等)，close_wait是被动关闭的一端(对方是fin_wait2)，是代码逻辑出错导致没有关闭
+三次握手的必要性: 防止长时间滞留网路的sync报文(已超过sync_timeout)再次建立连接。 深层次原因: 需要三次握手来使得双方可以确认双向链路的可达性(实质就是双方交换确认对方的seq，并初始化窗口)
+四次挥手的必要性: 双工链路，可以支持一方先关闭，另一方传输完毕后再关闭
+time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发起fin包； 等待长时间滞留网路的数据包失效(与三次握手相似)
+流量控制: 滑动接收窗口控制流量(动态实时调整窗口大小): seq 是发送的字节流的开始index， ack 是接收到的字节流的结尾index + 1
+网络拥塞控制: 拥塞窗口控制网络拥塞: 慢开始和拥塞避免； 快重传和快恢复
+
+方法调用:
+方法重载(静态派发): 根据入参的静态类型(外观类型)和个数来进行派发，编译期可知，运行期不变
+派发的逻辑主要是找到最"接近"入参的静态类型的方法，重载过多的话会比较复杂
+方法重写(动态派发): 根据调用对象的实际类型来进行派发，编译期不可知，运行期可变
+
+线程中断:
+总的来讲interrupt时会抛异常的同时也会把interrupted标志清除, 不抛异常的不会清除interrupted标志
+best practice: 1. 不要提交不可中断的任务到线程池
+               2. 线程持有锁时不做阻塞操作 (拆分逻辑，把阻塞操作移到临界区间外)
