@@ -1,0 +1,8 @@
+spel: token -> ast -> 解释执行(遍历ast树节点执行节点对应的java代码)/编译执行(遍历ast树节点通过ACM生成类，执行生成类的方法)
+aviator: token (只是生成token列表，没有生成ast树???) -> 解释执行(token生成对应的指令，执行指令对应的java代码)/编译执行(token通过ACM生成类，执行生成类的方法)
+
+ql expression：token -> ast -> 解释执行(遍历ast树节点生成对应的指令，执行指令对应的java代码)
+
+fast el: token -> ast(antlr) -> 使用template生成java类源码 -> javac -> 执行生成类的方法
+生成类执行速度快
+不支持动态类型，编译期就需要决定变量的类型(这个是由java语言决定的，其他的表达式可以支持动态类型)
