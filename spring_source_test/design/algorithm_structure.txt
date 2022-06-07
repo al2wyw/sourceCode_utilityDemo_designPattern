@@ -100,7 +100,7 @@ for(int i  = 1; i <= n ; i++)
     for(int j = 1; j <= m ;j++)
     {
         if(j >= w[i-1])
-        f[i][j] = max(f[i-1][j], f[i -1][j - w[i-1]] + v[i-1]);
+        f[i][j] = max(f[i-1][j], f[i -1][j - w[i-1]] + v[i-1]); 数据表格(i，j)项只跟正下方左边和正下方的数据有关!!!
         else
         f[i][j] = f[i - 1][j];
     }
@@ -114,19 +114,26 @@ return f[m];
 01背包的变形: 三维(Q474) 一维(不是优化空间)(Q198)
 
 完全背包:
-//*******************(未证实其正确性???)****************//
 int v[N],w[N];
 int f[N+1][M+1];
 for(int i  = 1; i <= n ; i++)
     for(int j = 1; j <= m ;j++)
-          for(int k = 0; k*v[i] <= j;k++)
-                f[i][j] = max(f[i][j],f[i - 1][j - k*v[i]] + k*w[i]);
+          for(int k = 0; k*v[i-1] <= j;k++) //k从0开始，f[i][j]初始为极小值
+                f[i][j] = max(f[i][j],f[i - 1][j - k*v[i-1]] + k*w[i-1]);
+把与k相关的多项式移除(f[i][j-v[i-1]]正好可以替代):
+int v[N],w[N];
+int f[N+1][M+1];
+for(int i  = 1; i <= n ; i++)
+    for(int j = 1; j <= m ;j++)
+        if(j >=v[i-1])
+            f[i][j] = max(f[i-1][j],f[i][j - v[i-1]] + w[i-1]); 数据表格(i，j)项只跟本行左边和正下方的数据有关!!!
+        else
+            f[i][j] = f[i-1][j];
 以下减少一维的公式由以上的二维公式推导得到:
 int v[N],w[N],f[M+1];
 for(int i  = 1; i <= n ; i++)
-    for(int j = v[i]; j <= m ;j++)
-        f[j] = max(f[j],f[j - v[i]] + w[i]);
-//*******************(未证实其正确性???)****************//
+    for(int j = v[i-1]; j <= m ;j++)
+        f[j] = max(f[j],f[j - v[i-1]] + w[i-1]);
 
 完全背包的一种简单理解方式: F(j)=max{F(j−v[i])+w[i]} i=0…n−1 -> F(j) 为j状态下的最优解，即为F(j-v[i])的最优解 + w[i]的最优解，这里需要枚举所有的v，因为最终的解即为上一个状态的最优解+最后一个决策(v任意选择一个) (Q322 Q279)
 int[] dp = new int[amount + 1]; Arrays.fill(dp, max); dp[0] = 0;
