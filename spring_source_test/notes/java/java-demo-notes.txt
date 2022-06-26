@@ -67,6 +67,7 @@ Socket的close会关闭input,output stream和channel(不是所有的Socket都有
 time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发起fin包； 等待长时间滞留网路的数据包失效(与三次握手相似)
 流量控制: 滑动接收窗口控制流量(动态实时调整窗口大小): seq 是发送的字节流的开始index， ack 是接收到的字节流的结尾index + 1
 网络拥塞控制: 拥塞窗口控制网络拥塞: 慢开始和拥塞避免； 快重传和快恢复
+syn_sent -> established syn_rcvd -> established fin_wait1 -> fin_wait2 -> time_wait -> closed close_wait -> last_ack -> closed
 
 方法调用:
 方法重载(静态派发): 根据入参的静态类型(外观类型)和个数来进行派发，编译期可知，运行期不变
