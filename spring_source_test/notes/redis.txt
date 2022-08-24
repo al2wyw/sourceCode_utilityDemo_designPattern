@@ -69,6 +69,8 @@ typedef struct redisDb {
 数据淘汰机制
 volatile-lru：使用LRU算法进行数据淘汰，只淘汰设定了有效期的key
 allkeys-lru：使用LRU算法进行数据淘汰，所有的key都可以被淘汰
+volatile-lfu：
+allkeys-lfu：
 volatile-random：随机淘汰数据，只淘汰设定了有效期的key
 allkeys-random：随机淘汰数据，所有的key都可以被淘汰
 volatile-ttl：淘汰剩余有效期最短的key
