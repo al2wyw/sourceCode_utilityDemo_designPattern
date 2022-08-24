@@ -78,3 +78,6 @@ syn_sent -> established syn_rcvd -> established fin_wait1 -> fin_wait2 -> time_w
 总的来讲interrupt时会抛异常的同时也会把interrupted标志清除, 不抛异常的不会清除interrupted标志
 best practice: 1. 不要提交不可中断的任务到线程池
                2. 线程持有锁时不做阻塞操作 (拆分逻辑，把阻塞操作移到临界区间外)
+
+局部性分为(涉及缓存的重复利用)：时间局部性和空间局部性。如果一个内存位置被重复的引用，那就是有了时间局部性，如果一个内存位置被引用了，很快这个位置的附近位置也被引用了，这就有了空间局部性。
+cpu cache的一致性协议 & 伪共享
