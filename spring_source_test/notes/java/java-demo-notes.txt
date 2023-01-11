@@ -69,7 +69,7 @@ time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发�
 网络拥塞控制: 拥塞窗口控制网络拥塞: 慢开始和拥塞避免； 快重传和快恢复
 syn_sent -> established syn_rcvd -> established fin_wait1 -> fin_wait2 -> time_wait -> closed close_wait -> last_ack -> closed
 
-方法调用:
+方法调用
 方法重载(静态派发): 根据入参的静态类型(外观类型)和个数来进行派发，编译期可知，运行期不变
 派发的逻辑主要是找到最"接近"入参的静态类型的方法，重载过多的话会比较复杂
 方法重写(动态派发): 根据调用对象的实际类型来进行派发，编译期不可知，运行期可变
@@ -78,3 +78,6 @@ syn_sent -> established syn_rcvd -> established fin_wait1 -> fin_wait2 -> time_w
 总的来讲interrupt时会抛异常的同时也会把interrupted标志清除, 不抛异常的不会清除interrupted标志
 best practice: 1. 不要提交不可中断的任务到线程池
                2. 线程持有锁时不做阻塞操作 (拆分逻辑，把阻塞操作移到临界区间外)
+
+局部性分为(涉及缓存的重复利用)：时间局部性和空间局部性。如果一个内存位置被重复的引用，那就是有了时间局部性，如果一个内存位置被引用了，很快这个位置的附近位置也被引用了，这就有了空间局部性。
+cpu cache的一致性协议 & 伪共享

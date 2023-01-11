@@ -2,3 +2,11 @@
 term index(字典树(前缀树,Trie树))(只有部分term的前缀，值对应dictionary的key的offset) -> term dictionary(哈希表)(全量的term) -> posting list(数组)(id列表)
 term index全部加载到内存，term dictionary存储在磁盘，从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数
 term index和posting list会进行压缩
+
+查询过程:
+1. query phase 查询阶段:
+  1.客户端发送请求，接受到的节点变成coordinate node协调节点；
+  2.协调节点将搜索请求广播给：该索引中每个节点的副本分片or主分片；
+  3.每个分片将自己的搜索结果(一些doc id)返回给协调节点，由协调节点做数据的合并、排序、分页等操作，产出最终的查询结果；
+2. fetch phase 取回阶段:
+  4.协调节点根据查询阶段得到的结果集(doc id)，向含有改文档的分片发送get请求拉取实际的doc数据，返回给客户端。
