@@ -1,3 +1,13 @@
+三种依赖循环:
+单例模式下的构造器循环依赖：无法处理，直接抛出BeanCurrentlylnCreationException异常。
+单例模式下的setter循环依赖：通过earlySingletonObjects处理循环依赖，能处理。
+非单例循环依赖：无法处理，直接抛出BeanCurrentlylnCreationException异常。
+
+Bean 生命周期:
+Bean实例化 -> 依赖注入 -> aware接口设值 -> BeanPostProcessor.BeforeInitialization
+-> InitializingBean -> init-method -> BeanPostProcessor.AfterInitialization
+-> DisposableBean -> destroy-method
+
 IoC can be decomposed into two subtypes: Dependency Injection and Dependency Lookup.
 
 Dependency Lookup comes in two types: Dependency Pull and Contextualized Dependency
