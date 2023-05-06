@@ -9,7 +9,11 @@ package jvm;
  */
 public class Adder {
 
-    public int add(int i, int j){
+    public int addOut(int i, int j) {
+        return add(i, j);
+    }
+
+    private int add(int i, int j){
         return i + j;
     }
 }

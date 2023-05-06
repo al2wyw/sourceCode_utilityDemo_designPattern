@@ -10,16 +10,14 @@ package jvm;
  -XX:+PrintCompilation
  -XX:+UnlockDiagnosticVMOptions
  -XX:+PrintInlining
- failed !!!
  */
 public class InlineCompileOptTest {
 
     public static void main(String[] args)throws Exception{
         Adder adder = new Adder();
-        for(int i = 0; i < 1000; i++){
-            int j = adder.add(i, i + 1);
-            System.out.println(j);
+        int j = 0;
+        for(int i = 0; i < 100000; i++){
+            j = adder.addOut(i, j);
         }
-        Thread.sleep(1000);
     }
 }
