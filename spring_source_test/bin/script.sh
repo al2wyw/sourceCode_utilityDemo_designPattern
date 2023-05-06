@@ -201,6 +201,7 @@ do
    echo "$x"
    ((x++))
 done
+#for i in `cat $FILE` # 逐行读取(注意每行中间不能有空格，默认IFS按照空格分割)
 #for ((i=1; i<=100; i++)) 
 #for i in {1..100}
 for i in `echo "10 11"`
