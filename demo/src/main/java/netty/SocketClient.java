@@ -2,6 +2,8 @@ package netty;
 
 import org.apache.poi.util.IOUtils;
 import sun.misc.SharedSecrets;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 import sun.nio.ch.Interruptible;
 
 import java.io.*;
@@ -19,6 +21,13 @@ import java.util.Calendar;
 public class SocketClient {
 
     public static void main(String[] args) {
+
+        Signal.handle(new Signal("INT"), new SignalHandler() {
+            @Override public void handle(Signal signal) {
+                System.out.println(signal.getName());
+            }
+        });
+
         Socket s;
         try {
             s = new Socket(InetAddress.getByName("localhost"), 3455);
