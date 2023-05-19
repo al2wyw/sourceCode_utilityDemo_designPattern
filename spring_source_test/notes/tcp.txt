@@ -1,0 +1,39 @@
+网络OSI的七层模型
+TCP在第四层——Transport层，IP在第三层——Network层，ARP在第二层——Data Link层
+第四层的数据叫Segment，在第三层上的数据叫Packet，在第二层上的数据，我们叫Frame
+以太网接口的MTU(最大传输单元)大小默认为1500字节，不包括以太网帧头和帧尾，20 字节的 IP 头 + 20 字节的 TCP 头，剩下 1460 字节的有效载荷称为TCP MSS(最大段大小)， 超过1460字节会出现拆包粘包现象
+
+tcp头部：
+Sequence Number是包的序号，用来解决网络包乱序（reordering）问题。
+Acknowledgement Number就是ACK——用于确认收到，用来解决不丢包的问题。
+Window又叫Advertised-Window，也就是著名的滑动窗口（Sliding Window），用于解决流控的。
+TCP Flag ，也就是包的类型，主要是用于操控TCP的状态机的。
+
+状态:
+syn_sent -> established syn_rcvd -> established
+fin_wait1 -> fin_wait2 -> time_wait -> closed
+close_wait -> last_ack -> closed
+
+全连接队列backlog 半连接队列syn_backlog  syn超时重试
+三次握手的必要性: 防止长时间滞留网路的sync报文(已超过sync_timeout)再次建立连接。 深层次原因: 需要三次握手来使得双方可以确认双向链路的可达性(实质就是双方交换确认对方的seq，并初始化窗口)
+
+服务器连接关闭异常，一般就是两种情况: time_wait是主动发起关闭的一端(对方是closed)，通过更改tcp参数可以优化(减少fin_wait时间，reuse address等等)，close_wait是被动关闭的一端(对方是fin_wait2)，是代码逻辑出错导致没有关闭
+四次挥手的必要性: 双工链路，可以支持一方先关闭，另一方传输完毕后再关闭
+time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发起fin包； 等待长时间滞留网路的数据包失效(与三次握手相似)
+
+乱序和重传：(网络延迟导致先发的包后到的情况称为乱序；乱序重传会导致接收到重复的数据包)
+超时重传 - 超过timeout时间未收到ack，发送端立刻重传
+快速重传 - 包丢失时，接收端就ack那个被丢了的包，如果发送方连续收到3次相同的ack，就重传
+SACK机制 - 汇报收到的数据缺失片段以达到快速重传指定packet(建立在快速重传基础上)
+Duplicate SACK机制 – 解决重复收到数据packet的问题(建立在快速重传基础上)
+
+RTT(Round Trip Time)算法计算重传超时时间
+
+流量控制: 接收端告诉发送端自己还有多少缓冲区可以接收数据，避免接收端无法处理数据
+滑动接收窗口控制流量(动态实时调整窗口大小): seq 是发送的字节流的开始index， ack 是接收到的字节流的结尾index + 1
+zero window - 接收端滑动窗口降为0，发送端停止发送数据转而进行间歇性窗口大小嗅探，嗅探失败可能会RST连接
+Nagle’s algorithm - 小包延迟发送算法：当待发送数据小于MSS时，收到之前发送数据的ack回包时才会继续发数据，否则一直在buffer数据
+Delay Ack - 接收端接收到数据包后不立刻发送ack回包，而是等待一段时间再发送回包，此时如果有数据发送或继续接收数据可以和ack回包合并发送
+
+网络拥塞控制: 控制网络上的流量，避免网络堵塞，延迟丢包
+拥塞窗口控制网络拥塞: 慢开始和拥塞避免； 快速重传和快速恢复 (四个算法)
