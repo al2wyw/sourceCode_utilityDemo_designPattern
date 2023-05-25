@@ -3,16 +3,26 @@ TCP在第四层——Transport层，IP在第三层——Network层，ARP在第�
 第四层的数据叫Segment，在第三层上的数据叫Packet，在第二层上的数据，我们叫Frame
 以太网接口的MTU(最大传输单元)大小默认为1500字节，不包括以太网帧头和帧尾，20 字节的 IP 头 + 20 字节的 TCP 头，剩下 1460 字节的有效载荷称为TCP MSS(最大段大小)， 超过1460字节会出现拆包粘包现象
 
+ip头部：
+目标ip (32bit)
+源ip (32bit)
+Total Length，包含数据payload和包头的总长度（分片时指分片包的大小）（16bit）
+Identifier，标识符（分片的标识符相同，方便组装） Flags，分片标识 Fragment Offset，分片在源包中的位置偏移 （32bit）
+
 tcp头部：
-Sequence Number是包的序号，用来解决网络包乱序（reordering）问题。
-Acknowledgement Number就是ACK——用于确认收到，用来解决不丢包的问题。
+目标端口和源端口 (32bit)
+Sequence Number是包的序号，用来解决网络包乱序（reordering）问题。(32bit)
+Acknowledgement Number就是ACK——用于确认收到，用来解决不丢包的问题。(32bit)
 Window又叫Advertised-Window，也就是著名的滑动窗口（Sliding Window），用于解决流控的。
 TCP Flag ，也就是包的类型，主要是用于操控TCP的状态机的。
 
 状态:
 syn_sent -> established syn_rcvd -> established
-fin_wait1 -> fin_wait2 -> time_wait -> closed
-close_wait -> last_ack -> closed
+fin_wait1(close) -> fin_wait2 -> time_wait -> closed (client)
+close_wait -> last_ack(close) -> closed (server)
+同时发起close:
+fin_wait1(close) -> closing -> time_wait -> closed (client)
+fin_wait1(close) -> closing -> time_wait -> closed (server)
 
 全连接队列backlog 半连接队列syn_backlog  syn超时重试
 三次握手的必要性: 防止长时间滞留网路的sync报文(已超过sync_timeout)再次建立连接。 深层次原因: 需要三次握手来使得双方可以确认双向链路的可达性(实质就是双方交换确认对方的seq，并初始化窗口)

@@ -9,25 +9,32 @@ redo log(WAL, 从Buffer Pool里进行数据读写, 然后按时刷盘，redo log
 undo log(rollback) -> atomic
 atomic, duration, isolation, integrity constraint -> consistency
 
+select @@tx_isolation;
+select @@autocommit;
+set @@autocommit=0;
+set session transaction isolation level READ COMMITTED; #REPEATABLE READ
+
 隔离级别:
 RU
 Read Committed(解决脏读)
 Repeatable Read(解决不可重复读和部分幻读，幻读是两次读取出现额外的记录)
 Serializable(RR的基础上读操作加锁)
 (一个事务)写操作对(另一个事务)写操作的影响：锁机制保证隔离性
-(一个事务)写操作对(另一个事务)读操作的影响：MVCC保证隔离性(解决脏读，不可重复读和幻读)
-RR隔离级别:
-当前读，读取最新的数据(select意向锁&DML): 使用锁保证了隔离性: unique key不加间隙锁(必须使用uk命中记录行，不命中也直接加间隙锁，比较复杂)，非unique key加间隙锁
+(一个事务)写操作对(另一个事务)读操作的影响：MVCC保证隔离性(解决脏读，不可重复读和部分幻读)
+
+RC, RR隔离级别:
+当前读，读取最新版本的数据同时获得锁(select意向锁&DML): 使用锁保证了隔离性 RR隔离级别: unique key不加间隙锁(必须使用uk命中记录行，不命中也直接加间隙锁，比较复杂)，非unique key加间隙锁
 版本读，也称快照读、一致性读(纯select): 使用MVVC保证了隔离性
 
 MVVC多版本控制: (RC, RR隔离级别)
-事务第一次一致性读就保存一份snapshot(RR), 事务每次一致性读都新建一份snapshot(RC)，所以RC无法避免不可重复读和幻读
+事务在每次版本读都新建一份snapshot(RC)，所以RC无法避免不可重复读和幻读，同时也没有间歇锁保护
+事务在第一次版本读就保存一份snapshot(RR)，但是如果中途使用当前读则会产生幻读(版本读还是保持原样)，可以使用间歇锁避免幻读(但是要抢先上好锁)
 通过 MVCC 可以让读写互相不阻塞，即读不阻塞写，写不阻塞读，提升事务并发处理能力。提高并发的演进思路:
 普通锁，只能串行执行；
 读写锁，可以实现读读并发；
 数据多版本并发控制，可以实现读写并发。
 MVVC实现原理:
-隐藏列: InnoDB中每行数据的隐藏列中包含了事务id、指向undo log的指针等。
+隐藏列: InnoDB中每行数据的隐藏列中包含了事务id、指向当前记录上一个版本的undo log的指针等。
 undo log的版本链: 指向undo log的指针，也会指向更早版本的undo log，形成版本链。
 ReadView: 事务在某一时刻给整个事务系统(trx_sys)打快照。
 
@@ -41,6 +48,13 @@ next-key锁(行锁+间隙锁,解决幻读) (RR隔离级别以上才有)
 2PL 两阶段锁:
 事务被拆分成两个阶段: 第一阶段为加锁阶段只能去申请锁，第二阶段为解锁阶段只能去解锁；
 在对任何数据进行读写操作之前，首先要申请并获得对该数据的封锁，在释放一个封锁后，事务不再申请和获得任何其他锁
+
+tablespace:
+表空间文件 -》 segment -》 extent -》 page(block) -》 row
+索引的叶子节点就是page，索引可以划分索引层(索引字段)和数据层(页层)
+row格式: compact, redundant, dynamic, compressed; 每个row的隐藏字段: 事务id, undo log指针，没有主键时生成row id作为主键
+行溢出: 当列的类型为VARCHAR、 VARBINARY、 BLOB、TEXT时，该列超过768byte的数据放到其他数据页中
+表空间在DML时会产生碎片
 
 索引:
 B+树存储数据量:
