@@ -11,8 +11,11 @@ public class Adder {
 
     private int val;
 
+    private static int count = 90000;
+
     public Adder(int val) {
-        this.val = val;
+        this.val = val / count;
+        count--;
     }
 
     public int add(int i, int j){
