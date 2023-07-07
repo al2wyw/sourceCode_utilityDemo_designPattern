@@ -1,6 +1,6 @@
 spel: token -> ast -> 解释执行(遍历ast树节点执行节点对应的java代码)/编译执行(遍历ast树节点通过ACM生成类，执行生成类的方法) 不支持多语句和代码块和控制语句等
 aviator: token list(只是生成token列表，没有生成ast树，控制语句变成方法调用callcc/reducer) -> 解释执行(token生成对应的指令，执行指令对应的java代码)/编译执行(token通过ACM生成类，执行生成类的方法)
-mvel: token -> ast list -> 解释执行(遍历ast list执行节点对应的java代码, 每个ast节点对应一个statement或block(ast list))(ASMAccessorOptimizer/ReflectAccessorOptimizer属性取值优化)
+mvel: token -> ast list -> 解释执行(遍历ast list执行节点对应的java代码, 每个ast节点对应一个statement或block(ast list))(ASMAccessorOptimizer/ReflectAccessorOptimizer属性取值优化,其他地方没有用到ASM)
 
 ql expression：token -> ast -> 解释执行(遍历ast树节点生成对应的指令，执行指令对应的java代码)
 
