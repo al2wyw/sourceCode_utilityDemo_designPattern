@@ -38,3 +38,8 @@ WS: [\t\n\r]+ -> channel(1); COMMENT: '//' .*? '\n' -> channel(2); 只有通道0
 对主表达式以外的规则表达式进行规则转换成复杂的带语义判定的主表达式，使得运算符得到优先级上升(这不是带运算符优先级的语法分析器!!!)
 属性和动作 10章 314页，探究运行时API 13章 15章 445页 (未读章节)
 使用语义判定修改语法分析过程 11章 338页， 掌握词法分析的“黑魔法” 12章 361页
+
+es的analyzer就是分词器，analyzer由tokenizer + token filter + character filter组成
+lexical analyzer(lexer) lexem(词素) token(词法符号) lookahead token(前瞻词法符号)
+syntax analyzer(parser)
+semantic analyzer(语义分析器)
