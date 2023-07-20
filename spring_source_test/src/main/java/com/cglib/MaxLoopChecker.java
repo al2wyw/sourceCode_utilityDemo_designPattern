@@ -11,14 +11,15 @@ import java.util.Stack;
  */
 public class MaxLoopChecker {
 
-    private static int maxLoop = 10;
+    private static final int MAX_LOOP = 100;
 
     private static ThreadLocal<Stack<LabelLoop>> loopCount = ThreadLocal.withInitial(Stack::new);
 
     public static void checkLoop(int loop) {
-        if (loop > maxLoop) {
-            throw new RuntimeException("loop exceeds max " + maxLoop);
+        if (loop > MAX_LOOP) {
+            throw new RuntimeException("loop exceeds max " + MAX_LOOP);
         }
+        //待解决问题: 直接抛异常导致资源泄露
     }
 
     public static void checkLoop(String label) {
@@ -43,12 +44,13 @@ public class MaxLoopChecker {
             labelLoop.label = label;
             label2loop.push(labelLoop);
         }
-        if (labelLoop.loop > maxLoop) {
+        if (labelLoop.loop > MAX_LOOP) {
             label2loop.clear();
-            throw new RuntimeException("loop exceeds max " + maxLoop);
+            throw new RuntimeException("loop exceeds max " + MAX_LOOP);
         }
-        //没有嵌套的loop没有清理
-        //异常退出时没有清理
+        //待解决问题:
+        //没有嵌套的loop没有清理stack
+        //异常退出时没有清理stack
     }
 
     public static class LabelLoop {

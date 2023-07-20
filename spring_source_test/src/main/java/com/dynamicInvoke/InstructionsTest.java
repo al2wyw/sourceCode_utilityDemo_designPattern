@@ -33,7 +33,7 @@ public class InstructionsTest {
                 System.out.println(flag);
             }
         }
-        System.out.println(flag);
+        //System.out.println(flag);
         while(i<10 && j > 10){
             System.out.println(i++);
             if (j > 11) {
