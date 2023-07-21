@@ -46,7 +46,7 @@ public class InstrumentController {
 
     static {
         try {
-            //webAppClassLoader 打破了双亲委派，优先从自己的jar包里加载类, 而InstrumentationSteal是由AppClassLoader加载的
+            //webAppClassLoader 打破了双亲委派，优先从自己的jar包里加载类, 而InstrumentationSteal是由AppClassLoader加载的，所以无法使用插桩的形式直接引用unsafe.InstrumentationSteal类
             Class klass = Thread.currentThread().getContextClassLoader().loadClass("unsafe.InstrumentationSteal");
             Field field = klass.getField("instrumentation");
             instrumentation = (Instrumentation) field.get(null);
