@@ -14,44 +14,48 @@ public class InstructionsTest {
         boolean flag = Boolean.valueOf(args[1]);
         int j = Integer.valueOf(args[2]);
         if(i==1){
-            System.out.println(i);
+            print(i);
             if(flag){
-                System.out.println(flag);
+                print(flag);
                 if(j == 10){
-                    System.out.println(j);
+                    print(j);
                 }
             }else{
-                System.out.println(flag);
+                print(flag);
             }
         }else{
             if(flag){
-                System.out.println(flag);
+                print(flag);
                 if(j == 10){
-                    System.out.println(j);
+                    print(j);
                 }
             }else{
-                System.out.println(flag);
+                print(flag);
             }
         }
-        //System.out.println(flag);
+        //print(flag);
         while(i<10 && j > 10){
-            System.out.println(i++);
+            print(i++);
             if (j > 11) {
                 continue;
             }
             if (i > 11) {
                 continue;
             }
-            System.out.println(j++);
+            print(j++);
         }
         for (int h = 0; h < 11; h++) {
-            System.out.println(h);
+            print(h);
             for (int g = 0; g < 10; g++) {
-                System.out.println(g);
+                print(g);
             }
         }
         long l = Long.valueOf(args[3]);
         i = l != 10L ? 2 : 1;
-        System.out.println(i);
+        print(i);
+    }
+    
+    public static void print(Object o) {
+        //System.out.println(o);
     }
 }

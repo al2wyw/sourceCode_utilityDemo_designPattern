@@ -1,3 +1,5 @@
+package com.test;
+
 import com.cglib.ByteCodeMaxLoopAnalysis;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
@@ -9,7 +11,7 @@ import java.net.URLClassLoader;
  * Time: 19:48
  * Description:
  */
-public class PerfBenchmarkMain {
+public class PerfBenchmarkClassReplaced {
 
     public static void main(final String[] args) throws Exception {
         Class<?> klass = new MyDefineClassLoader((URLClassLoader)Thread.currentThread().getContextClassLoader()).loadClass("com.test.PerfBenchmark");
