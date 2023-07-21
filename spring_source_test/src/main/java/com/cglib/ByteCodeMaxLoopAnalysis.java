@@ -65,9 +65,6 @@ public class ByteCodeMaxLoopAnalysis {
         Set<String> forwardRef = new HashSet<>();//jump forward label reference
         Set<String> backwardRef = new HashSet<>();//jump backward label reference, continue and loop-end-blacket will all backward
         for (MethodNode method : cn.methods) {
-            if (!method.name.equals("main")) {
-                continue;
-            }
             InsnList list = method.instructions;
             AbstractInsnNode node = list.getFirst();
             while (node != null) {
@@ -94,9 +91,6 @@ public class ByteCodeMaxLoopAnalysis {
 
         //修改树形结构, 增加nop指令
         for (MethodNode method : cn.methods) {
-            if (!method.name.equals("main")) {
-                continue;
-            }
             //多个跳转指令具有相同的目标label(既有往前跳，也有往回跳)，需要新增一个label进行区分
             Map<String, LabelNode> label2Rep = new HashMap<>();
             InsnList list = method.instructions;
@@ -143,10 +137,6 @@ public class ByteCodeMaxLoopAnalysis {
             @Override
             public CodeEmitter begin_method(int access, Signature sig, Type[] exceptions) {
                 CodeEmitter codeEmitter = super.begin_method(access, sig, exceptions);
-                String name = sig.getName();
-                if(!name.contains("main")){
-                    return codeEmitter;
-                }
 
                 return new ByteCodeMaxLoopEmitter(codeEmitter);
             }
