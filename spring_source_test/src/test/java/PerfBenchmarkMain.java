@@ -1,8 +1,6 @@
 import com.cglib.ByteCodeMaxLoopAnalysis;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLClassLoader;
-import org.apache.tools.ant.taskdefs.Classloader;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,8 +14,12 @@ public class PerfBenchmarkMain {
     public static void main(final String[] args) throws Exception {
         Class<?> klass = new MyDefineClassLoader((URLClassLoader)Thread.currentThread().getContextClassLoader()).loadClass("com.test.PerfBenchmark");
         System.out.println(klass.getClassLoader());
-        Method method = klass.getDeclaredMethod("main", String[].class);
-        method.invoke(null, (Object) new String[] {});
+        Method testTransform = klass.getDeclaredMethod("testTransform");
+        testTransform.invoke(klass.newInstance());
+
+        //jmh的Benchmark注释的方法会被额外的AppClassLoader加载
+        ////Method method = klass.getDeclaredMethod("main", String[].class);
+        //method.invoke(null, (Object) new String[] {});
     }
 
     public static class MyDefineClassLoader extends URLClassLoader {
@@ -26,9 +28,9 @@ public class PerfBenchmarkMain {
             super(parent.getURLs(), parent.getParent());//屏蔽掉AppClassLoader，由MyDefineClassLoader代替它
         }
 
+        //改变findClass的逻辑比改变loadClass的逻辑更合适，可以充分利用classloader的cache
         @Override
-        public Class<?> loadClass(String name) throws ClassNotFoundException {
-            //jmh的Benchmark方法被额外的AppClassLoader来加载
+        public Class<?> findClass(String name) throws ClassNotFoundException {
             if (name.contains("InstructionsTestG")) {
                 try {
                     byte[] newContent = ByteCodeMaxLoopAnalysis.transform("com/dynamicInvoke/InstructionsTest.class",
@@ -38,7 +40,7 @@ public class PerfBenchmarkMain {
                     throw new ClassNotFoundException();
                 }
             }
-            return super.loadClass(name);
+            return super.findClass(name);
         }
     }
 }
