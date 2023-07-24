@@ -3,9 +3,7 @@ package com.cglib;
 import com.utils.ClassLoaderUtils;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import net.sf.cglib.core.CodeEmitter;
 import net.sf.cglib.core.Signature;
@@ -61,64 +59,49 @@ public class ByteCodeMaxLoopAnalysis {
         classReader.accept(cn, ClassReader.EXPAND_FRAMES);
 
         //分析树形结构, 找到对应的label节点
-        Set<String> visited = new HashSet<>(); //visited labels
-        Set<String> forwardRef = new HashSet<>();//jump forward label reference
-        Set<String> backwardRef = new HashSet<>();//jump backward label reference, continue and loop-end-blacket will all backward
+        Map<String, LabelNode> visited = new HashMap<>(); //visited labels
+        Map<String, LabelNode> forwardRef = new HashMap<>();//jump forward label reference
+        Map<String, LabelNode> backwardRef = new HashMap<>();//jump backward label reference, continue and loop-end-bracket will all backward
+        //多个跳转指令具有相同的目标label(既有往前跳，也有往回跳)，需要新增一个label进行区分
+        Map<String, LabelNode> label2Rep = new HashMap<>();
         for (MethodNode method : cn.methods) {
             InsnList list = method.instructions;
             AbstractInsnNode node = list.getFirst();
             while (node != null) {
                 if (node instanceof LabelNode) {
                     LabelNode label = (LabelNode) node;
-                    visited.add(label.getLabel().toString());
+                    visited.put(label.getLabel().toString(), label);
                 }
                 if (node instanceof JumpInsnNode) {
                     JumpInsnNode jump =  (JumpInsnNode) node;
                     LabelNode tar = jump.label;
-                    if (visited.contains(tar.getLabel().toString()) && !backwardRef.contains(tar.getLabel().toString())) {
-                        backwardRef.add(tar.getLabel().toString());
-                        System.out.printf("find the backwardRef %s, %s \n", jump.toString(), tar.getLabel().toString());
-                    }
-                    if (!visited.contains(tar.getLabel().toString()) && !forwardRef.contains(tar.getLabel().toString())) {
-                        forwardRef.add(tar.getLabel().toString());
+                    String labelStr = tar.getLabel().toString();
+                    if (visited.containsKey(labelStr) && !backwardRef.containsKey(labelStr)) {
+                        backwardRef.put(labelStr, tar);
+                        System.out.printf("find the backwardRef %s, %s \n", jump.toString(), labelStr);
+                        //修改树形结构, 增加nop指令
 
-                        System.out.printf("find the forwardRef %s, %s \n", jump.toString(), tar.getLabel().toString());
-                    }
-                }
-                node = node.getNext();
-            }
-        }
-
-        //修改树形结构, 增加nop指令
-        for (MethodNode method : cn.methods) {
-            //多个跳转指令具有相同的目标label(既有往前跳，也有往回跳)，需要新增一个label进行区分
-            Map<String, LabelNode> label2Rep = new HashMap<>();
-            InsnList list = method.instructions;
-            AbstractInsnNode node = list.getFirst();
-            while (node != null) {
-                if (node instanceof LabelNode) {
-                    LabelNode label = (LabelNode) node;
-                    if (backwardRef.contains(label.getLabel().toString())) {
-                        System.out.printf("find the loop label %s \n", label.getLabel().toString());
                         //NOP指令用作标识符
-                        if (forwardRef.contains(label.getLabel().toString())) {//同时具有前跳和后跳
+                        if (forwardRef.containsKey(labelStr)) {//同时具有前跳和后跳
                             LabelNode rep = new LabelNode();
-                            method.instructions.insert(node, new InsnNode(Opcodes.NOP));
-                            method.instructions.insert(node, rep);
-                            method.instructions.insert(node, new InsnNode(Opcodes.NOP));
-
-                            label2Rep.put(label.getLabel().toString(), rep);
+                            method.instructions.insert(tar, new InsnNode(Opcodes.NOP));
+                            method.instructions.insert(tar, rep);
+                            method.instructions.insert(tar, new InsnNode(Opcodes.NOP));
+                            //把目标label替换成新的label
+                            jump.label = rep;
+                            label2Rep.put(labelStr, rep);//其他的后跳节点的目标label也是此label，后续一一替换
                         } else { //只有后跳
-                            method.instructions.insertBefore(node, new InsnNode(Opcodes.NOP));
-                            method.instructions.insert(node, new InsnNode(Opcodes.NOP));
+                            method.instructions.insertBefore(tar, new InsnNode(Opcodes.NOP));
+                            method.instructions.insert(tar, new InsnNode(Opcodes.NOP));
                         }
                     }
-                }
-                if (node instanceof JumpInsnNode) {
-                    JumpInsnNode jump =  (JumpInsnNode) node;
-                    LabelNode tar = jump.label;
-                    if (label2Rep.containsKey(tar.getLabel().toString())) {
-                        jump.label = label2Rep.get(tar.getLabel().toString());
+                    if (!visited.containsKey(labelStr) && !forwardRef.containsKey(labelStr)) {
+                        forwardRef.put(labelStr, tar);
+                        System.out.printf("find the forwardRef %s, %s \n", jump.toString(), labelStr);
+                    }
+                    //替换所有后跳节点的label成新的label，此时跳跃节点的目标label是待替换label的话都是后跳节点，所以不用再判断当前跳跃节点是否后跳节点
+                    if (label2Rep.containsKey(labelStr)) {
+                        jump.label = label2Rep.get(labelStr);
                     }
                 }
                 node = node.getNext();
@@ -151,12 +134,12 @@ public class ByteCodeMaxLoopAnalysis {
     }
 
     public static void main(String[] args) throws Exception{
-        byte[] newContent = transform("com/dynamicInvoke/InstructionsTest.class", "com.dynamicInvoke.InstructionsTestG");
+        byte[] newContent = transform("com/dynamicInvoke/InstructionsTest.class", "com.dynamicInvoke.InstructionsTest");
 
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        ClassLoaderUtils.saveClassFile("InstructionsTestG.class", newContent);
-        Class klass =  ClassLoaderUtils.defineClass(cl, "com.dynamicInvoke.InstructionsTestG", newContent);
+        ClassLoaderUtils.saveClassFile("InstructionsTest.class", newContent);
+        Class klass =  ClassLoaderUtils.defineClass(cl, "com.dynamicInvoke.InstructionsTest", newContent);
         Method method = klass.getDeclaredMethod("main", String[].class);
-        method.invoke(null, (Object) new String[] {"1", "1", "3", "4"});
+        method.invoke(null, (Object) new String[] {"1", "1", "11", "4"});
     }
 }

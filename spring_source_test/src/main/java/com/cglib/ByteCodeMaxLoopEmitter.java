@@ -29,13 +29,12 @@ public class ByteCodeMaxLoopEmitter extends CodeEmitter {
                 invoke_static(Type.getType(MaxLoopChecker.class),
                         new Signature("checkLoop", Type.VOID_TYPE, new Type[]{Type.INT_TYPE}));
                 iinc(local, 1);
-                closed = false;
             } else {
                 local = make_local(Type.INT_TYPE);
                 push(0);
                 store_local(local);
-                closed = true;
             }
+            closed = !closed;
             return;
         }
         super.visitInsn(opcode);
