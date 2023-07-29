@@ -48,6 +48,8 @@ import org.objectweb.asm.tree.MethodNode;
  *      有状态转换RemoveAddZeroAdapter,RemoveGetFieldPutFieldAdapter的实现很巧妙
  *      标记和帧对转换方法的影响
  *      AdviceAdapter LocalVariablesSorter 等适配器的介绍
+ *
+ *      generate ast from bytecode ???
  */
 public class ByteCodeMaxLoopAnalysis {
 
@@ -65,7 +67,7 @@ public class ByteCodeMaxLoopAnalysis {
         //多个跳转指令具有相同的目标label(既有往前跳，也有往回跳)，需要新增一个label进行区分
         Map<String, LabelNode> label2Rep = new HashMap<>();
         for (MethodNode method : cn.methods) {
-            InsnList list = method.instructions;
+            InsnList list = method.instructions;//soot的AsmMethodSource也是从instructions转换为CFG ???
             AbstractInsnNode node = list.getFirst();
             while (node != null) {
                 if (node instanceof LabelNode) {
