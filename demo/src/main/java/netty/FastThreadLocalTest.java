@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class FastThreadLocalTest {
 
+    //InternalThreadLocalMap会扩容，不存在index冲突，FastThreadLocal创建后又不使用会造成数组空洞
     private static FastThreadLocal<String> ID = new FastThreadLocal<>();
 
     public static void main(String args[]) throws Exception{

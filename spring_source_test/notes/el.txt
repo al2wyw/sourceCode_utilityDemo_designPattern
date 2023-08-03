@@ -7,3 +7,14 @@ ql expression：token -> ast -> 解释执行(遍历ast树节点生成对应的�
 fast el: token -> ast(antlr) -> 使用template生成java类源码 -> javac -> 执行生成类的方法
 生成类执行速度快
 不支持动态类型，编译期就需要决定变量的类型(这个是由java语言决定的，其他的表达式可以支持动态类型)
+
+mvel:
+MVEL.compileExpression 和 MVEL.eval 使用同样的ast解析逻辑，eval包含解析和运行，为一次性解释运行，executeExpression可以多次运行，避免重复解析
+MVEL.executeExpression 会使用DynamicOptimizer优化Accessor(默认使用反射优化，执行多次后使用asm优化)
+Accessor主要分为 DynamicAccessor(优化accessor) AccessorNode(各种基础的取值设值) ExecutableStatement(包含一组ASTNode) 等
+ASTNode + Accessor 组成整体的解释运行逻辑
+
+优化技术:
+spel: 解释执行无优化 编译执行动态脚本静态化(通过识别出SpelNodeImpl的exitTypeDescriptor)
+aviator: 常量折叠
+mvel: 常量折叠 动态脚本静态化(通过识别出ASTNode的egressType或者解析时打开StrongTyping开关)
