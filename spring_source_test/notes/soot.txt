@@ -1,0 +1,9 @@
+mvn clean compile assembly:single
+
+java -cp ./sootclasses-trunk-jar-with-dependencies.jar soot.tools.CFGViewer -pp -cp /Users/liyang/IdeaProjects/sourceCode_utilityDemo_designPattern/spring_source_test/target/classes com.dynamicInvoke.InstructionsTest
+
+java -cp ./sootclasses-trunk-jar-with-dependencies.jar soot.Main -pp -cp /Users/liyang/IdeaProjects/sourceCode_utilityDemo_designPattern/spring_source_test/target/classes -f J com.dynamicInvoke.InstructionsTest
+
+java -cp ./sootclasses-trunk-jar-with-dependencies.jar soot.Main -pp -cp /Users/liyang/IdeaProjects/sourceCode_utilityDemo_designPattern/spring_source_test/target/classes -O com.soot.Optimization
+
+java -cp ./sootclasses-trunk-jar-with-dependencies.jar soot.Main -pp -cp /Users/liyang/IdeaProjects/sourceCode_utilityDemo_designPattern/spring_source_test/target/classes -f J -O com.soot.Optimization
