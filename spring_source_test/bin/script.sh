@@ -17,7 +17,6 @@ python3 UnicodeEncodeError: ‘ascii‘ codec:
 locale
 export LC_ALL="en_US.utf8"
 
-logstash host: 169.254.0.53:8084
 nohup ./bin/logstash -f filebeat_input.conf 2>&1 >> logstash.log &
 nohup ./filebeat -c poa.yml 2>&1 >> /dev/null &
 ./bin/kibana &
