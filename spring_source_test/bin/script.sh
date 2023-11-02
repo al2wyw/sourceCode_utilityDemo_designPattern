@@ -12,6 +12,60 @@
 #!/bin/sh
 #awk {} : BEGIN{action} or END{action}, /REG/{action}, 布尔表达式($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
 
+##########common cmd#########
+python3 UnicodeEncodeError: ‘ascii‘ codec:
+locale
+export LC_ALL="en_US.utf8"
+
+logstash host: 169.254.0.53:8084
+nohup ./bin/logstash -f filebeat_input.conf 2>&1 >> logstash.log &
+nohup ./filebeat -c poa.yml 2>&1 >> /dev/null &
+./bin/kibana &
+./bin/kibana-plugin install file:///home/pluging.zip
+
+tcpdump tcp port 80 or 443 -nn -s 0 -i eth1 -X -w out.cap
+tcpdump 'tcp port 80 and tcp[13] == 2' -nn -s 0 -i eth1 // sync packet only
+
+.vimrc
+set encoding=utf-8
+set fileencodings=utf-8
+set termencoding=utf-8
+
+adduser johnny -> passwd johnny -> chown -R johnny ./
+
+tar -cvf xiaoq.tar xiaoq/
+tar -czf xiaoq.tar.gz xiaoq/
+tar -xvf xiaoq.tar
+jar -xvf test.jar
+
+ln -s sourcename linkname
+
+ps显示命令不全 -> ps -aux > cmd.txt or ps -aux | grep xxx or top -c
+find . -maxdepth 1 -type d -print | sed -e 's;[^/]*/;|__;g;s;__|; |;g'
+ls *.jpg | xargs -I {} cp {} /data/images
+grep -rn 'hello' ./ (先查询是否有现成的功能再自己写命令)
+ps -aux | grep test | grep -v grep | awk '{print $2}' | xargs kill
+cut -b 1-3
+cut -d " " -f 2,6 #分隔符只能是一个字符!!!还是用awk靠谱
+sed -nE 's/^.*"subProductCode":"([^"]+)".*/\1/p'
+
+curl -i -H "Content-Type:application/json" -X POST --data '{"RequestId":"1082"}' http://127.0.0.1:5000/service
+ab -n 5000 -c 500 -H 'token:xxxxxxxxxxxxx' -T application/json -p data.json http://127.0.0.1:8081/api/cfp/invite/query
+
+mvn package -Dmaven.test.skip=true
+docker images | awk '$1~/myapp/{print $3}' | xargs docker rmi
+docker run -d --name poa-api -e APP_ENV=pre -v /data/filebeat/conf:/home/filebeat/conf
+docker run -id --name=mysql_prod -p 3306:3306 -e MYSQL_ROOT_PASSWORD=xxxx docker.io/mysql:5.7.29
+
+pip freeze >  requirements.txt
+pip install pipreqs
+pipreqs ./  --encoding=utf8
+
+mvn deploy:deploy-file -Dfile=pandora-core-1.0.0-SNAPSHOT.jar -DgroupId=com.xxx.financeft -DartifactId=pandora-core -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar -Durl=https://mirrors.xxx.com/repository/maven/finance_ft -DrepositoryId=finance_ft
+
+gentool --db=mysql --dsn="root:Rdis2fun@tcp(localhost:3306)/demo?charset=utf8&parseTime=True&loc=Local" -fieldWithTypeTag
+##########common cmd#########
+
 echo "start to create cluster for $1 and port $2 and number of master $3"
 
 # two ways to pass params to awk:
