@@ -61,9 +61,9 @@ pip freeze >  requirements.txt
 pip install pipreqs
 pipreqs ./  --encoding=utf8
 
-mvn deploy:deploy-file -Dfile=pandora-core-1.0.0-SNAPSHOT.jar -DgroupId=com.xxx.financeft -DartifactId=pandora-core -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar -Durl=https://mirrors.xxx.com/repository/maven/finance_ft -DrepositoryId=finance_ft
+mvn deploy:deploy-file -Dfile=myapp-1.0.0-SNAPSHOT.jar -DgroupId=com.xxx.xxxx -DartifactId=myapp -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar -Durl=https://mirrors.xxx.com/repository/maven/my_repo -DrepositoryId=my_repo
 
-gentool --db=mysql --dsn="root:Rdis2fun@tcp(localhost:3306)/demo?charset=utf8&parseTime=True&loc=Local" -fieldWithTypeTag
+gentool --db=mysql --dsn="root:xxxxxxx@tcp(localhost:3306)/demo?charset=utf8&parseTime=True&loc=Local" -fieldWithTypeTag
 ##########common cmd#########
 
 echo "start to create cluster for $1 and port $2 and number of master $3"
