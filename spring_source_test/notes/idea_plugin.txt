@@ -6,3 +6,5 @@ Statistic
 MyBatisX
 CheckStyle-IDEA
 Save Actions
+
+IDEA 2020
