@@ -1,0 +1,8 @@
+Jclasslib Bytecode Viewer
+Maven Helper
+PlantUML integration
+SequenceDiagram
+Statistic
+MyBatisX
+CheckStyle-IDEA
+Save Actions
