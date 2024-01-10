@@ -61,7 +61,7 @@
 先处理数据再解题，效率更高(Q18)
 数学公式推导主要是把不定项合并为定项，把k(多)项转化为单项 (Q494 完全背包状态转移函数推导)
 反证法的例子可能是特例，最好多一些例子来反证(Q785 无法推导为有无环问题)
-ascii码: +-*/% < 0~9 < A~Z < a~z 可以通过c - 'a'快速转换为数组下标,也可以int i = c - '0'; char c = (char)(i + '0');int char互转
+ascii码128个: +-*/% < 0~9 < A~Z < a~z 可以通过c - 'a'快速转换为数组下标,也可以int i = c - '0'; char c = (char)(i + '0');int char互转
 位移运算一定要注意移位符的优先级是最低的，括号不要忘记了，左移一位是乘以2，右移一位是除以2(整数除法) (Q779) 任何数减1再异或可以求1的个数，任何数异或0xffffff或0b111111可以取反
 链表操作全靠快慢双指针(滑动窗口) 检测死循环, (Q142 Q202) 有序数组则靠头尾双指针遍历降低一维循环 (Q15 Q611(巧妙地固定好最长的边))
 树的迭代root节点判空代码更优雅，避免子节点判空(Q98)，使用long类型来避免int范围不够(Q98)，数学运算导致数据上下限越界(Q2583) 注意 1L << 31 和 1 << 31的差异
@@ -72,7 +72,7 @@ ascii码: +-*/% < 0~9 < A~Z < a~z 可以通过c - 'a'快速转换为数组下标
 对复杂问题进行逻辑推导简化成简单问题(Q15)(Q1)
 
 java中 queue的实现 LinkedList 和 PriorityQueue (add poll peek), stack的实现是 Stack (push pop peek), Queue<Data> queue = new PriorityQueue<>(new Comparator<Data>() {}) a - b 升序
-char c = s.charAt(int) -> new String(char[]) or StringBuilder.append
+char c = s.charAt(int) -> new String(char[]) or StringBuilder.append; 一般对string转为char array后通过start、end下标来"分割"字符串从而避免转成string
 len1 = height.length; len2 = height[0].length; int[][] visited = new int[len1][len2];
 完全背包(每种石头无限个) -> 根据背包装载空间 -> 多重背包(每种石头有限个) -> 每种石头平铺开 -> 01背包(每种石头一个)
 动态规划要点(最优解或者多少解) -> 状态定义； 状态转移； 状态初始化： 定义dp[n]，初始化dp[0]，运算后答案为dp[n-1]； 空间优化
