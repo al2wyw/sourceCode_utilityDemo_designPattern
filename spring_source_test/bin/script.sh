@@ -40,6 +40,7 @@ jar -xvf test.jar
 ln -s sourcename linkname
 
 ps显示命令不全 -> ps -aux > cmd.txt or ps -aux | grep xxx or top -c
+find . -maxdepth 6 -type f -name 'restart*'
 find . -maxdepth 1 -type d -print | sed -e 's;[^/]*/;|__;g;s;__|; |;g'
 ls *.jpg | xargs -I {} cp {} /data/images
 grep -rn 'hello' ./ (先查询是否有现成的功能再自己写命令)
