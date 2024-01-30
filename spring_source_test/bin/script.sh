@@ -261,6 +261,12 @@ for i in `echo "10 11"`
 do
   echo "$i"
 done
+# ip.txt: 10.1.1.11,root,123
+IFS=","
+while read ip user pass
+do
+    echo "$ip--$user--$pass"
+done < ip.txt
 
 str="ONE,TWO,THREE,FOUR"
 #arr[0]="ONE" arr[1]="TWO" ... arr[@]="ONE TWO THREE FOUR"
