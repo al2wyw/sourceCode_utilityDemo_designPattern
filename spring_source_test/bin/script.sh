@@ -13,6 +13,10 @@
 #awk {} : BEGIN{action} or END{action}, /REG/{action}, 布尔表达式($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
 
 ##########common cmd#########
+date -d "20230109 21:33:11 2 minutes ago" +"%Y-%m-%d %H:%M:%S"
+date -d "2023-01-09 21:33:11 2 days" +"%Y-%m-%d %H:%M:%S"
+date -d "2 days" +"%Y-%m-%d %H:%M:%S"
+
 python3 UnicodeEncodeError: ‘ascii‘ codec:
 locale
 export LC_ALL="en_US.utf8"
