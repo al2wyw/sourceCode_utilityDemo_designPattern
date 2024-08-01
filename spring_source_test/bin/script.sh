@@ -12,6 +12,10 @@
 #!/bin/sh
 #awk {} : BEGIN{action} or END{action}, /REG/{action}, 布尔表达式($2~/REG/ or $0~var or $1 == "test" or var == 7000){action}
 
+# 全局/局部/环境变量 默认是全局,连在function内定义的也是全局,作用域只在当前进程
+# local var 作用域只在function内
+# export var 作用域在当前进程及其子进程,但不能从子进程反向传递给父进程,同时没有父子关系的进程无法传递
+# source/. 不会新启子进程, 而是在当前进程执行对应的脚本
 ##########common cmd#########
 date -d "20230109 21:33:11 2 minutes ago" +"%Y-%m-%d %H:%M:%S"
 date -d "2023-01-09 21:33:11 2 days" +"%Y-%m-%d %H:%M:%S"
