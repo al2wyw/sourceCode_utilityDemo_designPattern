@@ -130,8 +130,9 @@ partition的问题:
 nodeTime可以控制slave 接管master的时间
 slave端的 expire 实现: master发送del到slave
 
-一致性hash(hash cycle): 1. 使用虚拟节点避免数据倾斜 2. 数据迁移时减少需要迁移的机器节点
-redis hash(hash slot): 每个节点分配对应的slot，使用去中心化的p2p设计，每个节点都保存完整的slot表，可以转发客户端的请求到对应的节点
+普通的hash算法是对节点数进行取模，而一致性hash是对固定值 2^32 进行取模，从而避免在扩容缩容时大量的数据rehash
+一致性hash(hash cycle): 1. 使用虚拟节点避免数据倾斜 2. 数据迁移时减少需要迁移的机器节点 3. 通过计算节点的hash值从而分配在2^32的hash圆环上，无法很好的控制数据分布(节点位置分布)
+redis hash(hash slot): 每个节点分配对应的slot(可以精准控制分布)，使用去中心化的p2p设计，每个节点都保存完整的slot表，可以转发客户端的请求到对应的节点
 节点A  0－5460
 节点B  5461－10922
 节点C  10923－16383
