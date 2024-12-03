@@ -1,6 +1,6 @@
 唯一key生成
 数值型
--- 依靠时间，snowflake雪花算法(时间回拨问题，使用上一次生成的id顺推下去), UidGenerator预先分配id，弱依赖时间
+-- 依靠时间，snowflake雪花算法(时间（毫秒级）+集群ID+机器ID+序列号)(时间回拨问题，使用上一次生成的id顺推下去), UidGenerator预先分配id，弱依赖时间
 -- 依靠数据库，数据库表sequence生成(无时间顺序)
 字符型
 -- UUID
