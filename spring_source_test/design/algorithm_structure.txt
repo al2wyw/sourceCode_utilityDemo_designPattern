@@ -71,7 +71,7 @@ ascii码128个: +-*/% < 0~9 < A~Z < a~z 可以通过c - 'a'快速转换为数组
 一维数组无法使用Arrays.sort的comparator接口进行降序排序，二维可以(Q1696)
 对复杂问题进行逻辑推导简化成简单问题(Q15)(Q1)
 
-java中 queue的实现 LinkedList 和 PriorityQueue (add poll peek), stack的实现是 Stack (push pop peek), Queue<Data> queue = new PriorityQueue<>(new Comparator<Data>() {}) a - b 升序
+java中 queue的实现 LinkedList 和 PriorityQueue (add poll peek), stack的实现是 Stack (push pop peek), Queue<Data> queue = new PriorityQueue<>(new Comparator<Data>() {}) -> new PriorityQueue<>((a, b) -> a - b) a - b 升序
 char c = s.charAt(int) -> new String(char[]) or StringBuilder.append; 一般对string转为char array后通过start、end下标来"分割"字符串从而避免转成string
 len1 = height.length; len2 = height[0].length; int[][] visited = new int[len1][len2];
 完全背包(每种石头无限个) -> 根据背包装载空间 -> 多重背包(每种石头有限个) -> 每种石头平铺开 -> 01背包(每种石头一个)
