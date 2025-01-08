@@ -25,8 +25,9 @@ python3 UnicodeEncodeError: ‘ascii‘ codec:
 locale
 export LC_ALL="en_US.utf8"
 
-nohup ./bin/logstash -f filebeat_input.conf 2>&1 >> logstash.log &
-nohup ./filebeat -c poa.yml 2>&1 >> /dev/null &
+# 2>&1 要写到最后!!! 或者 nohup ./filebeat -c poa.yml 2>> err.log >> std.log &
+nohup ./bin/logstash -f filebeat_input.conf >> logstash.log 2>&1 &
+nohup ./filebeat -c poa.yml >> /dev/null 2>&1 &
 ./bin/kibana &
 ./bin/kibana-plugin install file:///home/pluging.zip
 
