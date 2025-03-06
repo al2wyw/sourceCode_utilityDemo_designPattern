@@ -21,24 +21,29 @@ csrf(跨站请求伪造):
 
 中间人攻击: 在http传输过程中被中间人窃取、伪造、篡改
 重放攻击: 重新播放流量，获取对应的返回
-https协议可以解决以上问题(4次握手):
+https协议可以解决以上问题(4次握手，ECDHE交换算法):
 客户hello: 客户端给服务器发一个随机数 Client Random, 并且发可用的密码套件列表.
 
 服务器hello: 服务器给客户端发一个随机数 Server Random, 选择一个密码套件.
-服务器证书: 服务器给客户端发送自己的证书, 表明自己是谁, 上面还有自己的公钥
-Server Key Exchange: 加密参数(某些加密算法才需要 ECDHE)
+服务器证书: 服务器给客户端发送自己的证书, 表明自己是谁, 上面还有自己的公钥(用于验签)
+Server Key Exchange: 加密参数(某些加密算法才需要 ECDHE)，根据加密参数和ECDHE私钥(动态)计算出的ECDHE公钥
 Server Hello done: 通知客户端， 最初阶段的 SSL握手协商部分结束
 
 客户证书：客户端给服务器发送自己的证书, 表明自己是谁, 上面还有自己的公钥(双向校验时才有)
-Client Key Exchange: 报文中包含通信加密中使用的一种被称为 Pre-master secret 的随机密码串
-ChangeCipherSpec: 客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信(密钥是用Client Random，Server Random，Pre-master secret三个随机数来生成的)
+Client Key Exchange: 根据加密参数和ECDHE私钥(动态)计算出的ECDHE公钥
+ChangeCipherSpec: 客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信(密钥是用Client Random，Server Random，Pre-master secret(使用ECDHE私钥和服务端ECDHE公钥生成ECDHE共同密钥的随机密码串)三个随机数来生成的)
 Finished: 该报文包含连接至今全部报文的整体校验值，主要是用来测试密钥的有效性和一致性
 
 ChangeCipherSpec: 同上
 Finished: 同上
 
-使用 RSA 密钥协商算法的最大问题是不支持前向保密，私钥一旦泄露，以前的所有通信密文都会被破解
-使用 DH 密钥协商算法(服务器和客户端分别生成一对公私钥，并把公钥发给对方，保证每一次的协商都使用新的密钥对)，但因为 DH 算法的计算效率问题，后面出现了 ECDHE 密钥协商算法
+秘钥交换算法: RSA -> DH -> DHE E为ephemeral(临时性的) -> ECDHE EC为ECC(椭圆曲线密码学)
+RSA：客户端生成随机密钥，使用服务端公钥加密传输给服务端，服务端使用私钥解密得到密钥
+DH：客户端动态生成公私钥对，使用私钥和服务端公钥计算出密钥，传输公钥给服务端，服务端使用私钥和客户端公钥计算出密钥(服务端公私钥固定)
+DHE：在DH的基础上，服务端也动态生成公私钥对
+ECDHE：在DHE的基础上，把模指数DH算法改进为椭圆曲线DH算法，提升计算效率
+使用 RSA 密钥协商算法的最大问题是不支持前向安全性，服务端私钥一旦泄露，以前的所有通信密文都会被破解
+使用 DHE 密钥协商算法(服务器和客户端分别生成一对公私钥，并把公钥发给对方，保证每一次的协商都使用新的密钥对)
 
 TCP+TLS解决的问题包括:
 消息的可靠传输
@@ -55,6 +60,10 @@ Oauth2和jwt认证机制
 auth2就是经常使用的
 jwt使用特定格式的token，认证过程与Oauth2不同
 
+私钥用于解密和签名
+sign(private key, content) -> verify(public key, signature, content)
+encrypt(public key, content) -> decrypt(private key, encrypted content)
+
 StatusMovedPermanently  = 301
 StatusMovedTemparily    = 302
 StatusNotModified       = 304
@@ -65,6 +74,7 @@ StatusPaymentRequired         = 402
 StatusForbidden               = 403
 StatusNotFound                = 404
 StatusMethodNotAllowed        = 405
+client has closed connection  = 499
 
 StatusInternalServerError     = 500
 StatusNotImplemented          = 501
