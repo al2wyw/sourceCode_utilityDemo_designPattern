@@ -17,13 +17,14 @@ index文件的key是消息offset，value是log文件的物理offset，index文�
 传统IO：hard drive -> DMA copy -> kernel buffer(页缓存) -> CPU copy -> user buffer -> CPU copy -> kernel buffer(socket缓存区) -> DMA copy -> socket 4 copy 4 cs(读写各两次sys call)
 mmap： hard drive -> DMA copy -> kernel buffer(页缓存) -> CPU copy -> kernel buffer(socket缓存区) -> DMA copy -> socket 3 copy 4 cs(读写各两次sys call)
 sendfile: hard drive -> DMA copy -> kernel buffer -> DMA copy -> socket 2 copy 2 cs(读写均只有一次sys call)
+无锁offset设计，提升生产和消费性能
 
 rocketmq:
 topic -> commit log(所有topic共享唯一) -> * comsumerqueue -> consumerQueueLog(只有commit log offset，没有消息实体)
 consumerQueueLog的元素是定长的，可以快速定位
 
 
-定时任务：时间轮TimingWheel+延迟队列DelayQueue。时间轮复杂任务的增删，延迟队列负责时间推进，相辅相成。
+定时任务：时间轮TimingWheel+延迟队列DelayQueue。时间轮负责任务的增删，其时间格为存储任务队列的桶，运行时把时间格中的任务队列插入延迟队列，延迟队列负责时间推进(有些任务相隔一段时间，轮询比较耗性能)，相辅相成。
 副本滞后Leader一定时间后会被移出ISR，默认是10秒，(或者滞后消息大小超过一定值，默认4000，由于很难界定大小，从0.9.x版本开始移除了)
 
 事务消息
@@ -40,9 +41,10 @@ Kafka和RMQ的事务消息完全是两个概念，Kafka事务是针对经典的A
 
 消息可靠性:
 消息发送方:
-发送方式: 发后即忘(one way), 同步, 异步
+发送方式: 发后即忘(one way，只发送请求不等待应答), 同步, 异步(缓存后批量发送，等待应答)
 消息发送重试设置
 ISR副本数设置，min.insync.replicas，少于这个数则无法发送消息
+
 消息broker:
 broker消息ack:
 ack=-1或者all，让所有ISR里的副本都拉取成功到消息才返回生产者成功通知
@@ -50,6 +52,7 @@ ack=1代表主要leader写入成功就返回，如果此时leader宕机就有可
 acks=0，不会等待服务器的响应
 是否可以从非ISR集合中选择leader：unclean.leader.election.enable，默认是false，不能从非ISR集合选择leader
 刷盘策略异步刷盘，由多副本保证高可用
+
 消息消费方:
 消费端参数enable.auto.commit设为false，避免自动提交
 

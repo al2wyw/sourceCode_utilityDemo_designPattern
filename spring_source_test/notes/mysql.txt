@@ -23,8 +23,8 @@ Serializable(RR的基础上读操作加锁)
 (一个事务)写操作对(另一个事务)读操作的影响：MVCC保证隔离性(解决脏读，不可重复读和部分幻读)
 
 RC, RR隔离级别:
-当前读，读取最新版本的数据同时获得锁(select意向锁&DML): 使用锁保证了隔离性 RR隔离级别: unique key不加间隙锁(必须使用uk命中记录行，不命中也直接加间隙锁，比较复杂)，非unique key加间隙锁
-版本读，也称快照读、一致性读(纯select): 使用MVVC保证了隔离性
+当前读，也称锁定读：读取最新版本的数据同时获得锁(select意向锁&DML): 使用锁保证了隔离性 RR隔离级别: unique key不加间隙锁(必须使用uk命中记录行，不命中也直接加间隙锁，比较复杂)，非unique key加间隙锁
+版本读，也称快照读、一致性读、普通读(纯select): 使用MVVC保证了隔离性
 
 MVVC多版本控制: (RC, RR隔离级别)
 事务在每次版本读都新建一份snapshot(RC)，所以RC无法避免不可重复读和幻读，同时也没有间歇锁保护
@@ -34,9 +34,13 @@ MVVC多版本控制: (RC, RR隔离级别)
 读写锁，可以实现读读并发；
 数据多版本并发控制，可以实现读写并发。
 MVVC实现原理:
-隐藏列: InnoDB中每行数据的隐藏列中包含了事务id、指向当前记录上一个版本的undo log的指针等。
+隐藏列: InnoDB中每行数据的隐藏列中包含了事务id(trx_id，版本号)、指向当前记录上一个版本的undo log的指针等。
 undo log的版本链: 指向undo log的指针，也会指向更早版本的undo log，形成版本链。
-ReadView: 事务在某一时刻给整个事务系统(trx_sys)打快照。
+ReadView: 事务在某一时刻给整个事务系统(trx_sys)打快照，根据数据行的trx_id与m_low_limit_id及m_up_limit_id的关系判断数据行是否对当前事务可见
+creator_trx_id，创建当前read view的事务ID
+m_ids，当前系统中所有的活跃事务的 id，即还没有提交的事务
+m_low_limit_id，m_ids中的最小值
+m_up_limit_id，m_ids中的最大值+1
 
 锁:
 意向锁: 1. select lock in share mode(共享意向锁) 2. select for update(排他意向锁)
