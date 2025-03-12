@@ -13,6 +13,7 @@ HA: (客户端 -> 负载均衡LVS / 方向代理(nginx) -> web应用-> 分布式
     -- 半同步复制
 -- 多机房多地部署
 2. 故障转移
+双主(active-active)/主备(active-passive) 热备/冷备
 -- 负载均衡LVS / 方向代理(nginx) (keepalived)
 -- web应用 (nginx扩展)
 -- 分布式服务(服务框架)
