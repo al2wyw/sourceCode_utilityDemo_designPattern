@@ -65,16 +65,16 @@ PERSISTENT_SEQUENTIAL_WITH_TTL
 zookeeper=文件系统+通知机制
 使用的场景: 1.数据发布/订阅 2.master选举(集群管理) 3.命名服务(注册中心) 4. 复杂均衡 5. 分布式锁 6. 分布式队列 7. 配置管理
 事务编号ZXID，是一个64位的数字: 前32位存储Leader周期届数epoch，后32位记录本届Leader处理的消息数
-ZAB协议(zookeeper atomic broadcast 原子消息广播): Leader Election -> Recovery -> Broadcase
+ZAB协议(zookeeper atomic broadcast 原子消息广播): Leader Election -> Recovery -> Broadcast
 广播模式:
 2PC 协议，所有事务请求都由Leader服务器来处理分发(非Leader服务器会转发事务请求)，Leader负责将请求封装成Proposal分发给集群中所有Follower，
-一旦收到超过半数的正确反馈，Leader就会再次向所有的Follower分发Commit消息，要求他们将前一个Prosocal提交
+一旦收到超过半数的正确反馈，Leader就会再次向所有的Follower分发Commit消息，要求他们将前一个Proposal提交
 崩溃恢复模式:(一旦Leader服务器出现崩溃或丢失一半Follower服务器的联系)
-丢弃只在Leader服务器上未commit的事务，重新选举出来的Leader拥有集群中所有服务器最高的ZXID，保证在Leader服务器上已经commit的事务继续被其他服务器提交
+丢弃只在Leader服务器上propose但未commit的事务，重新选举出来的Leader拥有集群中所有服务器最高的ZXID，保证在Leader服务器上已经commit的事务继续被其他服务器提交
 Leader Election:
-Leader: 1.事物请求的唯一调度和处理者，保证集群事务处理顺序性，2.集群内部各服务器调度者
+Leader: 1.事物请求的唯一调度和处理者，保证集群事务处理顺序性，2.集群内部各服务器调度者 (不直接与客户端连接)
 Follower: 1.处理客户端非事物请求，转发事物请求给Leader服务器 2.参与事物请求Proposal的投票 3.参与Leader选举投票
-Observer: 不参与任何形式的投票，只提供非事务处理服务。
+Observer: 1.不参与任何形式的投票 2.只提供非事务处理服务给客户端，转发事物请求给Leader服务器
 Server(Observer除外)有三种状态：
 LOOKING：当前Server不知道leader是谁，正在搜寻
 LEADING：当前Server即为选举出来的leader

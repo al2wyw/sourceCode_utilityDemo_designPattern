@@ -37,7 +37,7 @@ time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发�
 SACK机制 - 汇报收到的数据缺失片段以达到快速重传指定packet(建立在快速重传基础上)
 Duplicate SACK机制 – 解决重复收到数据packet的问题(建立在快速重传基础上)
 
-RTT(Round Trip Time)算法计算重传超时时间
+RTT(Round Trip Time)算法计算超时重传时间RTO(Retransmission Timeout)
 
 流量控制: 接收端告诉发送端自己还有多少缓冲区可以接收数据，避免接收端无法处理数据
 滑动接收窗口控制流量(动态实时调整窗口大小): seq 是发送的字节流的开始index， ack 是接收到的字节流的结尾index + 1
