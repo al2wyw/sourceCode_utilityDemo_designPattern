@@ -31,6 +31,8 @@ nohup ./filebeat -c poa.yml >> /dev/null 2>&1 &
 ./bin/kibana &
 ./bin/kibana-plugin install file:///home/pluging.zip
 
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+
 tcpdump tcp port 80 or 443 -nn -s 0 -i eth1 -X -w out.cap
 tcpdump 'tcp port 80 and tcp[13] == 2' -nn -s 0 -i eth1 // sync packet only
 
