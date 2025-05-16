@@ -54,7 +54,7 @@ public class ScriptPerfBenchmark {
 
     @Setup
     public void init() throws Exception {
-        SimpleCalculatorLexer lexer = new SimpleCalculatorLexer(new ANTLRInputStream("1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10)"));
+        SimpleCalculatorLexer lexer = new SimpleCalculatorLexer(new ANTLRInputStream("1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10)"));
         SimpleCalculatorParser parser = new SimpleCalculatorParser(new CommonTokenStream(lexer));
 
         tree = parser.cal();
@@ -74,13 +74,13 @@ public class ScriptPerfBenchmark {
         variables.put("abc", 10);
     }
 
-    //@Benchmark
+    @Benchmark
     public int testNative() throws Exception {
         int abc = variables.get("abc");
-        return 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10);
+        return 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10);
     }
 
-    //@Benchmark
+    @Benchmark
     public int testInterpret() throws Exception {
         return visitor.visit(tree);
     }
@@ -93,7 +93,13 @@ public class ScriptPerfBenchmark {
     public static void main(final String[] args) throws Exception {
         Options opt = new OptionsBuilder().include(ScriptPerfBenchmark.class.getSimpleName()).build();
         new Runner(opt).run();
-        Thread.sleep(100000000);
+    }
+
+    public static void profile() throws Exception {
+        ScriptPerfBenchmark test = new ScriptPerfBenchmark();
+        test.init();
+        for (int i = 0; i < 9900000; i++)
+            test.testCached();
     }
 
 }
