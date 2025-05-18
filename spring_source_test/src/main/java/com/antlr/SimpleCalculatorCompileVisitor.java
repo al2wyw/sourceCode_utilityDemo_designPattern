@@ -19,7 +19,7 @@ public class SimpleCalculatorCompileVisitor extends SimpleCalculatorBaseVisitor<
 
     private ClassEmitter classEmitter;
 
-    private CodeEmitter calculate;
+    protected CodeEmitter calculate;
 
     private String klassName;
 
@@ -27,11 +27,11 @@ public class SimpleCalculatorCompileVisitor extends SimpleCalculatorBaseVisitor<
 
     private String fieldName;
 
-    public SimpleCalculatorCompileVisitor() {
+    public SimpleCalculatorCompileVisitor(String name) {
         classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classEmitter = new ClassEmitter(classWriter);
 
-        klassName = "com.antlr.GeneratedSimpleCalculator";
+        klassName = name;
         typeName = "L" + klassName.replace('.', '/') + ";";
         classEmitter.begin_class(Constants.V1_8, Constants.ACC_PUBLIC, klassName,
                 Type.getType(Object.class), new Type[]{Type.getType(SimpleCalculator.class)}, Constants.SOURCE_FILE);
@@ -41,13 +41,6 @@ public class SimpleCalculatorCompileVisitor extends SimpleCalculatorBaseVisitor<
         classEmitter.declare_field(Constants.ACC_PRIVATE | Constants.ACC_FINAL, fieldName,
                 Type.getType(Map.class), null);
 
-        /*
-        * ALOAD 0
-    NEW java/util/HashMap
-    DUP
-    INVOKESPECIAL java/util/HashMap.<init> ()V
-    PUTFIELD com/antlr/SimpleCalculatorConstantFoldVisitor.cache : Ljava/util/Map;
-    * */
         CodeEmitter constructor = classEmitter.begin_method(Constants.ACC_PUBLIC,new Signature(Constants.CONSTRUCTOR_NAME,"()V"),null);
         constructor.load_this();
         constructor.super_invoke_constructor();
