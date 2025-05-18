@@ -1,6 +1,8 @@
 package com.test;
 
+import com.antlr.SimpleCalculator;
 import com.antlr.SimpleCalculatorCachedVisitor;
+import com.antlr.SimpleCalculatorCompileVisitor;
 import com.antlr.SimpleCalculatorConstantFoldVisitor;
 import com.antlr.SimpleCalculatorInterpretVisitor;
 import com.dsl.SimpleCalculatorLexer;
@@ -30,9 +32,10 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 /*
 *
 Benchmark                           Mode  Cnt       Score        Error   Units
-ScriptPerfBenchmark.testCached     thrpt    3    1417.554 ±   3515.793  ops/ms
-ScriptPerfBenchmark.testInterpret  thrpt    3    2019.355 ±   1057.434  ops/ms
-ScriptPerfBenchmark.testNative     thrpt    3  143113.659 ± 336753.762  ops/ms
+ScriptPerfBenchmark.testAsm        thrpt    3   97862.708 ± 204596.169  ops/ms
+ScriptPerfBenchmark.testCached     thrpt    3    1621.230 ±    314.391  ops/ms
+ScriptPerfBenchmark.testInterpret  thrpt    3     794.101 ±   1518.029  ops/ms
+ScriptPerfBenchmark.testNative     thrpt    3  159400.484 ±  17342.423  ops/ms
 *
 * */
 
@@ -52,6 +55,8 @@ public class ScriptPerfBenchmark {
 
     private Map<String, Integer> variables;
 
+    private SimpleCalculator calculator;
+
     @Setup
     public void init() throws Exception {
         SimpleCalculatorLexer lexer = new SimpleCalculatorLexer(new ANTLRInputStream("1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10)"));
@@ -64,20 +69,34 @@ public class ScriptPerfBenchmark {
         folder.addVariable("abc", 10);
         int ret = folder.visit(tree);
         System.out.println(ret);
-
-        cachedVisitor = new SimpleCalculatorCachedVisitor(folder.getCache());
-        visitor = new SimpleCalculatorInterpretVisitor();
-        cachedVisitor.addVariable("abc", 10);
-        visitor.addVariable("abc", 10);
+        SimpleCalculatorCompileVisitor compiler = new SimpleCalculatorCompileVisitor();
+        compiler.visit(tree);
 
         variables = new HashMap<>();
         variables.put("abc", 10);
+
+        cachedVisitor = new SimpleCalculatorCachedVisitor(folder.getCache());
+        visitor = new SimpleCalculatorInterpretVisitor();
+        calculator = compiler.getSimpleCalculator();
+
+        cachedVisitor.addVariable("abc", 10);
+        visitor.addVariable("abc", 10);
+        calculator.addVariable("abc", 10);
+    }
+
+    public int calculate() {
+        int abc = variables.get("abc");
+        return 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10);
     }
 
     @Benchmark
     public int testNative() throws Exception {
-        int abc = variables.get("abc");
-        return 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 1 * 3 + 10 * 100 + 6 * 7 + 10 * 130 + 10 * (abc+10);
+        return calculate();
+    }
+
+    @Benchmark
+    public int testAsm() throws Exception {
+        return calculator.calculate();
     }
 
     @Benchmark
@@ -99,7 +118,7 @@ public class ScriptPerfBenchmark {
         ScriptPerfBenchmark test = new ScriptPerfBenchmark();
         test.init();
         for (int i = 0; i < 9900000; i++)
-            test.testCached();
+            test.testAsm();
     }
 
 }
