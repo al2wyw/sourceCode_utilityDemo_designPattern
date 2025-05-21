@@ -1,0 +1,11 @@
+规则 "我的测试规则1"
+如果 test.age + 5 > 10
+那么 test.name = "peter"
+否则 test.name = "ken"
+结束
+
+规则 "我的测试规则2"
+如果 test.age > 20
+那么 test.name = "sue"
+否则 test.name = "anne"
+结束
