@@ -14,7 +14,7 @@ import java.net.URLClassLoader;
 public class PerfBenchmarkClassReplaced {
 
     public static void main(final String[] args) throws Exception {
-        Class<?> klass = new MyDefineClassLoader((URLClassLoader)Thread.currentThread().getContextClassLoader()).loadClass("com.test.PerfBenchmark");
+        Class<?> klass = new MyDefineClassLoader((URLClassLoader)Thread.currentThread().getContextClassLoader()).loadClass("com.test.TransformPerfBenchmark");
         System.out.println(klass.getClassLoader());
         Method testTransform = klass.getDeclaredMethod("testTransform");
         testTransform.invoke(klass.newInstance());
