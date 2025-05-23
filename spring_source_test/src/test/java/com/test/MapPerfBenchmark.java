@@ -127,4 +127,30 @@ public class MapPerfBenchmark {
         new Runner(opt).run();
     }
 
+    /*
+    *
+    *
+    * Benchmark                             Mode  Cnt       Score        Error   Units
+    * MapPerfBenchmark.testAttributeMap    thrpt    3    2465.159 ±   1113.639  ops/ms
+    * MapPerfBenchmark.testNormalMap       thrpt    3  432398.106 ±  38727.987  ops/ms
+    * MapPerfBenchmark.testThreadLocalMap  thrpt    3  628503.511 ± 207270.513  ops/ms
+    private int x = 99;
+    private String y = "test999";
+    @Benchmark
+    public String testNormalMap() throws Exception {
+        return map.get(y);
+    }
+
+    @Benchmark
+    public String testAttributeMap() throws Exception {
+        return arrayMap.attr(key).get();
+    }
+
+    @Benchmark
+    public Object testThreadLocalMap() throws Exception {
+        return localMap.indexedVariable(x);
+    }
+    *
+    * */
+
 }
