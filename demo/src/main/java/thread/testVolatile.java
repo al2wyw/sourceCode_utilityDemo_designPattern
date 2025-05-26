@@ -7,8 +7,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * User: johnny.ly
  * Date: 2017/3/30
  * Time: 15:39
- * Desc: failed!!!!
- *
+ * Desc:  64位系统long的写入应该是原子的，不会出现32位系统并发情况下高低位错乱(半写入)
+ * start: -346429
+ * Thread 2: 314234
+ * Thread 1: 314234
+ * start: 314234
  */
 public class testVolatile {
 

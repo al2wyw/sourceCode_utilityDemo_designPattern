@@ -3,14 +3,13 @@ package unsafe;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created with IntelliJ IDEA.
  * User: liyang
  * Date: 2023-05-09
  * Time: 19:07
- * Description: failed!!! seems compiler will not reorder instructions out of object construction function
+ * Description:
  *
  * -server
  * -XX:CompileThreshold=1
@@ -23,6 +22,18 @@ import java.util.Optional;
  * -XX:CompileCommand=compileonly,*UnsafePerformance.main
  * -XX:+LogCompilation
  * -XX:LogFile=./mylogfile.log
+ *
+ * reorder instructions out of object construction function:
+ * we get 0
+ * we get 0
+ * we get 0
+ * 12435708
+ * 3979750
+ * 3539250
+ * 3353209
+ * 3153750
+ * 这个测试主要关注unsafe提供的内存屏障防止重排序(另一个方案是object加volatile修饰符)
+ * synchronized双重锁不会出现重排序，详见synchronized的底层实现ObjectMonitor::exit，会发现storeload内存屏障
  */
 public class UnsafePerformance {
 
