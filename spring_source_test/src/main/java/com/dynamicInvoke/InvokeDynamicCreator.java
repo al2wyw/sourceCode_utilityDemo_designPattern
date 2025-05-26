@@ -31,10 +31,10 @@ public class InvokeDynamicCreator {
         final ClassWriter cw = new ClassWriter(0);
         MethodVisitor mv;
 
-        // ÎªÒýµ¼Àà´î½¨»ù±¾µÄÔªÊý¾Ý
+        // ä¸ºå¼•å¯¼ç±»æ­å»ºåŸºæœ¬çš„å…ƒæ•°æ®
         cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, outputClassName, null, "java/lang/Object", null);
 
-        // ´´½¨±ê×¼µÄvoid¹¹ÔìÆ÷
+        // åˆ›å»ºæ ‡å‡†çš„voidæž„é€ å™¨
         mv = cw.visitMethod(ACC_PUBLIC, "", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
@@ -43,7 +43,7 @@ public class InvokeDynamicCreator {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
 
-        // ´´½¨±ê×¼µÄmain·½·¨
+        // åˆ›å»ºæ ‡å‡†çš„mainæ–¹æ³•
         mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
         mv.visitCode();
         MethodType mt = MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class,
@@ -68,7 +68,7 @@ public class InvokeDynamicCreator {
     public static CallSite bootstrap(MethodHandles.Lookup caller, String name, MethodType type, String arg1) throws NoSuchMethodException, IllegalAccessException {
         System.out.println("arg1=" + arg1);
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        // ÐèÒªÊ¹ÓÃlookupClass()£¬ÒòÎªÕâ¸ö·½·¨ÊÇ¾²Ì¬µÄ
+        // éœ€è¦ä½¿ç”¨lookupClass()ï¼Œå› ä¸ºè¿™ä¸ªæ–¹æ³•æ˜¯é™æ€çš„
         final Class currentClass = lookup.lookupClass();
         final MethodType targetSignature = MethodType.methodType(void.class, String.class);
         final MethodHandle targetMH = lookup.findStatic(currentClass, "targetMethod", targetSignature);

@@ -19,8 +19,8 @@ public class MethodHandleTest {
         MethodHandles.Lookup lookup = MethodHandles.lookup();// Lookup class used to check visibility and access
         MethodHandle mh = lookup.findVirtual(String.class, "indexOf",
                 MethodType.methodType(int.class, String.class, int.class));
-        mh = mh.bindTo("Hello").bindTo("l");//µ÷ÓÃ½ÓÊÕÕß£¬µÚ1¸ö²ÎÊı
-        System.out.println(mh.invoke(3));//µÚ2¸ö²ÎÊı
+        mh = mh.bindTo("Hello").bindTo("l");//è°ƒç”¨æ¥æ”¶è€…ï¼Œç¬¬1ä¸ªå‚æ•°
+        System.out.println(mh.invoke(3));//ç¬¬2ä¸ªå‚æ•°
 
 
 
@@ -47,7 +47,7 @@ public class MethodHandleTest {
     }
 
     public static class GrandFather{
-        private GrandFather(){ //Èç¹ûÊÇÕı³£µÄÍâ²¿class£¬ÎŞ·¨±»¼Ì³Ğ
+        private GrandFather(){ //å¦‚æœæ˜¯æ­£å¸¸çš„å¤–éƒ¨classï¼Œæ— æ³•è¢«ç»§æ‰¿
 
         }
         public void action(){
