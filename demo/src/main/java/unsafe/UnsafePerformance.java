@@ -33,7 +33,7 @@ import java.util.List;
  * 3353209
  * 3153750
  * 这个测试主要关注unsafe提供的内存屏障防止重排序(另一个方案是object加volatile修饰符)
- * synchronized双重锁不会出现重排序，详见synchronized的底层实现ObjectMonitor::exit，会发现storeload内存屏障
+ * synchronized双重锁不会出现重排序，详见synchronized的底层实现ObjectMonitor::exit，会发现storeload内存屏障(网上说为了稳妥起见还是要加volatile修饰符，避免在不同的运行环境下行为有差异)
  */
 public class UnsafePerformance {
 
