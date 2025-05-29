@@ -11,6 +11,11 @@ import java.util.List;
  * Time: 19:07
  * Description:
  *
+ * jitwatch 依赖的 org.openjfx.javafx 需要jdk11及以上，oracle的jdk8自带javafx
+ * jitwatch启动命令 mvn clean compile exec:java
+ * jitwatch配置目录src/main/java以及target/classes
+ * HSDIS 编译后的动态库安装在$JAVA_HOME/jre/lib/server
+ *
  * -server
  * -XX:CompileThreshold=1
  *
