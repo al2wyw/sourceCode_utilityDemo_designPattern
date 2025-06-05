@@ -15,6 +15,7 @@ import java.util.List;
  * jitwatch启动命令 mvn clean compile exec:java
  * jitwatch配置目录src/main/java以及target/classes
  * HSDIS 编译后的动态库安装在$JAVA_HOME/jre/lib/server
+ * HSDB: java -cp $JAVAHOME/lib/sa-jdi.jar sun.jvm.hotspot.CLHSDB
  *
  * -server
  * -XX:CompileThreshold=1
