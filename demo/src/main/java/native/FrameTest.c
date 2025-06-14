@@ -3,8 +3,9 @@
 # include <jni.h>
 
 /*
- javah -jni jvm.FrameTest
- gcc -m64 -I/Users/liyang/jdk8/Contents/Home/include -I/Users/liyang/jdk8/Contents/Home/include/darwin FrameTest.c -dynamiclib -o libframeTest.dylib
+ javah -jni jvm.FrameTest (从class文件生成jni头文件)
+ mac: gcc -m64 -dynamiclib -o libframeTest.dylib -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin FrameTest.c
+ linux: gcc -shared -fpic -o libframeTest.so -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux FrameTest.c
 */
 
 int callee(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8)
