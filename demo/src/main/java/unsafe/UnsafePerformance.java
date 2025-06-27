@@ -28,6 +28,8 @@ import java.util.List;
  * -XX:CompileCommand=compileonly,*UnsafePerformance.main
  * -XX:+LogCompilation
  * -XX:LogFile=./mylogfile.log
+ * -XX:+PrintStubCode
+ * -XX:+PrintOptoAssembly
  *
  * reorder instructions out of object construction function:
  * we get 0
