@@ -1,5 +1,6 @@
 package gc;
 
+import demoObject.BigObject;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -51,6 +52,13 @@ public class TestFullGC {
         System.out.println("M3 HEX:0x" + Long.toHexString(addressOf(M3)));
         System.out.println("M8 HEX:0x" + Long.toHexString(addressOf(M8)));
 
+    }
+
+    public static void addressChange() throws Exception {
+        BigObject bigObject = new BigObject();
+        System.out.println("bigObject HEX:0x" + Long.toHexString(addressOf(bigObject)));
+        System.gc();
+        System.out.println("bigObject HEX:0x" + Long.toHexString(addressOf(bigObject)));
     }
 
     private static void sleep() throws Exception{
