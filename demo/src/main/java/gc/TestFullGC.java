@@ -18,7 +18,40 @@ public class TestFullGC {
 
     public static void main(String[] args) throws Exception
     {
-        addressChange();
+        /*Thread.sleep(10000);
+        System.out.println("start");*/
+        System.gc();
+        // 模拟fullgc场景
+        // 提升担保
+        // 提升担保
+        byte[] M6, M3, M4, M5, M7, M8;
+        M6 = new byte[6 * MB];
+        M6[0] = 0;
+        M6[0] = 0;
+        // 使用2次保证下次需要的时候可以晋升到老年代 会晋升那么 晋升经验值为6M
+        sleep();
+        M3 = new byte[4 * MB];
+        sleep();
+        M4 = new byte[2 * MB];
+        sleep();
+        M4 = null;
+        M5 = new byte[2 * MB];
+        M5[0] = 0;
+        M5[0] = 0;
+        sleep();
+        M7 = new byte[2 * MB];
+        M7[0] = 0;
+        M7[0] = 0;
+        M7 = null;
+        sleep();
+        M8 = new byte[3 * MB];
+        // 最终如下对象 老年代 M6 + M8 = 9M
+        // 年轻代:M3 + M5 = 6M = 6144K
+        System.out.println("M6 HEX:0x" + Long.toHexString(addressOf(M6)));
+        System.out.println("M5 HEX:0x" + Long.toHexString(addressOf(M5)));
+        System.out.println("M3 HEX:0x" + Long.toHexString(addressOf(M3)));
+        System.out.println("M8 HEX:0x" + Long.toHexString(addressOf(M8)));
+
 
     }
 
