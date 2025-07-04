@@ -14,22 +14,45 @@ import java.util.concurrent.atomic.AtomicInteger;
  *       volatile-read LL LS
  *       SS volatile-write SL
  *       SS lazySet
+ * x86_64
+ * 169482
+ * 290787
+ * 168343
+ * 188324
+ * 447588
+ * 601531
+ * 490
+ * -Xint
+ * 140995
+ * 207650
+ * 132392
+ * 150200
+ * 1238724
+ * 3537124
+ * 100243
+ * -Xcomp -XX:CompileCommand=compileonly,*testVolatilePerformance.*
+ * 17392
+ * 1214462
+ * 7422
+ * 11966
+ * 1229170
+ * 3797356
+ * 545
  */
 public class testVolatilePerformance {
 
-    private AtomicInteger int1 = new AtomicInteger(1);
-    private AtomicInteger int2 = new AtomicInteger(1);
+    private static AtomicInteger int1 = new AtomicInteger(1);
+    private static AtomicInteger int2 = new AtomicInteger(1);
 
-    private volatile boolean test1 = false;
+    private static volatile boolean test1 = false;
 
-    private boolean test2 = false;
+    private static boolean test2 = false;
 
     public static void main(String args[]) throws Exception{
-        testVolatilePerformance performance = new testVolatilePerformance();
-        int loop = 99999999;
+        int loop = 1000_0000;
         Stopwatch stopwatch = Stopwatch.createStarted();
         for(int i = 0; i < loop; i++){
-            if(performance.test1){
+            if(test1){
                 System.out.println("test1");
             }
         }
@@ -38,7 +61,7 @@ public class testVolatilePerformance {
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            if(performance.int1.get() == 10){
+            if(int1.get() == 10){
                 System.out.println("int1");
             }
         }
@@ -47,7 +70,7 @@ public class testVolatilePerformance {
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            if(performance.test2){
+            if(test2){
                 System.out.println("test2");
             }
         }
@@ -57,21 +80,21 @@ public class testVolatilePerformance {
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            performance.test1 = true;
+            test1 = true;
         }
         System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));// 273493
 
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            performance.int2.set(3);
+            int2.set(3);
         }
         System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));// 1137729
 
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            performance.int1.lazySet(2);
+            int1.lazySet(2);
         }
         System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));// 89829
 
@@ -79,7 +102,7 @@ public class testVolatilePerformance {
         stopwatch.reset();
         stopwatch.start();
         for(int i = 0; i < loop; i++){
-            performance.test2 = true;
+            test2 = true;
         }
         System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));// 10861
     }
