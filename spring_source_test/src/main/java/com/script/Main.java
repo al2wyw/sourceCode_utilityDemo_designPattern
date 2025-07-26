@@ -24,7 +24,8 @@ public class Main {
                 .println(k);
 
 
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("test.tl");
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                "script/nested_if.script");
         Compiler compiler = new AntlrCompiler();
         ScriptNode node = compiler.compile(stream, new CompileContext(Model.class));
 
