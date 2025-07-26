@@ -1,6 +1,7 @@
 package com.script;
 
 import com.github.pandora.antlr.AntlrCompiler;
+import com.github.pandora.compile.Compiler;
 import com.github.pandora.ast.GenerateContext;
 import com.github.pandora.ast.ScriptNode;
 import com.github.pandora.compile.CompileContext;
