@@ -19,3 +19,103 @@ Welcome to Pandora World! 一个把中文表达式脚本进行AST转换后生成
 更有甚者，"指令派发"这种通过循环方式(经典冯•诺依曼体系中的FDX循环方式)进行指令执行和"AST遍历"这种通过递归方式进行函数调用的实现基本无法进行函数内联，而函数内联是编译器优化的基石，是提供更加深度优化(如常量传播、复制传播、死代码消除、循环展开、值编号优化等等)机会的前提，解析执行的实现方式减少了后期可能的编译优化机会，让原本简单可优化的代码逻辑只能按部就班地执行，这跟可以享受编译优化的实现方式对比在性能上又降低了不少。虽然Jvm采用分层编译的方式运行，一开始对字节码也是进行解析执行，但经过多次采样达到阈值后最终会把字节码编译成机器代码进行编译执行，机器代码基于寄存器执行CPU指令集，比基于内存堆栈执行解析指令的速度更快，特别是经过编译器优化后的指令可以充分利用寄存器来减少寄存器和内存之间的读写交互。
 
 ## 方案说明
+### 模块设计图
+![Alt text](./docs/compiler.png "模块设计视图")
+
+### 架构设计图
+![Alt text](./docs/arch.png "架构设计视图")
+
+### 性能测试结果
+
+```text
+OS:  Darwin MC3 23.6.0 Darwin Kernel Version 23.6.0:RELEASE_ARM64_T6030 arm64
+CPU: Apple M3 Pro
+Benchmark                     Mode  Cnt        Score   Error   Units
+ScriptBenchmark.testBaseline  thrpt       3954801.951          ops/ms
+ScriptBenchmark.testEval      thrpt           159.004          ops/ms
+ScriptBenchmark.testNative    thrpt        211442.518          ops/ms
+ScriptBenchmark.testPandora   thrpt        168746.103          ops/ms
+```
+说明:
+* testBaseline 为机器性能基准测试结果
+* testEval 为解析执行测试结果
+* testNative 为纯原生java代码执行测试结果
+* testPandora 为编译执行测试结果
+
+注意，为了减少编译器优化带来的影响，特意关闭了内联优化，编译执行可以达到原生java代码执行效率的80%左右
+
+#### 性能测试脚本示例
+```java
+@Warmup(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+@BenchmarkMode(Mode.Throughput)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@State(Scope.Benchmark)
+public class ScriptBenchmark {
+
+    private ParseTree tree;
+
+    private EvalTemplate template;
+
+    private EvalVisitor visitor;
+
+    @Benchmark
+    public void testBaseline() {
+    }
+
+    @Benchmark
+    public void testEval() {
+        visitor.visit(tree);
+    }
+
+    @Benchmark
+    @CompilerControl(DONT_INLINE)
+    public Object testNative() {
+        Model model = new Model();
+        return invoke(model);
+    }
+
+    public Object invoke(Object o) {
+        Model model = (Model) o;
+        model.int1 = 666;
+        model.int2 = 879;
+        model.float1 = 12.34f;
+        model.float2 = 13.44f;
+        model.name1 = "my peter";
+        model.flag1 = model.int1 >= model.int1;
+        model.flag2 = model.float1 > model.int2;
+        model.double1 = (model.float1 + model.float2) * model.int1;
+        model.float3 = (model.float1 + model.float2) * model.int1;
+        model.int1 = model.int1 * (model.int1 + model.int2);
+
+        if(model.int1 < 100 || model.flag1)
+            model.int3 = 100;
+        else if (model.int1 > 800)
+            model.int3 = 10;
+        else if (model.int1 > 600)
+            model.int3 = 1000;
+        else
+            model.int3 = 1;
+
+        model.int2 = 0;
+        while(model.int2 < 10)
+            model.int2 = model.int2 + 1;
+
+        return o;
+    }
+
+    @Benchmark
+    @CompilerControl(DONT_INLINE)
+    public Object testPandora() {
+        Model model = new Model();
+        return template.eval(model);
+    }
+
+    public static void main(final String[] args) throws Exception {
+        Options opt = new OptionsBuilder().include(ScriptBenchmark.class.getSimpleName())
+                .build();
+        new Runner(opt).run();
+    }
+}
+```
