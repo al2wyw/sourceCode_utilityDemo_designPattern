@@ -1,5 +1,5 @@
 # 项目简介
-Welcome to Pandora World! 一个把中文表达式脚本进行AST转换后生成Jvm字节码的简易编译工具。
+Welcome to Pandora World! 一个把表达式脚本进行AST转换后生成Jvm字节码的简易编译工具。
 
 ## 背景问题
 此编译工具诞生于风控平台中的决策引擎，主要是为了解决传统决策引擎使用动态类型脚本进行解析执行时性能较慢的问题。
@@ -22,8 +22,15 @@ Welcome to Pandora World! 一个把中文表达式脚本进行AST转换后生成
 ### 模块设计图
 ![Alt text](./docs/compiler.png "模块设计视图")
 
+Pandora Script内部主要划分为Facade、Compiler和Evaluator三大模块：
+* 外部通过Facade模块的ScriptEngine接口和Pandora Script进行交互
+* Compiler模块主要负责把脚本代码解析成AST和生成对应的Jvm字节码
+* Evaluator模块主要负责通过AST解析执行脚本代码，同时提供一个Stub方便调用动态生成的Jvm字节码(编译执行)
+
 ### 架构设计图
 ![Alt text](./docs/arch.png "架构设计视图")
+
+注意图中含有用虚线标注的未实现的模块，未来规划落地中
 
 ### 性能测试结果
 
