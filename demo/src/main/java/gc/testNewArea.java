@@ -45,6 +45,7 @@ public class testNewArea {
  * */
 
 /**
+ * # OopMapSet::all_do
  * (gdb) p *fr
  * $3 = {_sp = 0x7ffff7fda708, _pc = 0x7fffe11ffb2c "\220\220\220\220H\272\230\v`\377", _cb = 0x7fffe11ff310,
  *   _deopt_state = frame::not_deoptimized, static _check_value = {<OopClosure> = {<Closure> = {<StackObj> = {<AllocatedObj> = {
