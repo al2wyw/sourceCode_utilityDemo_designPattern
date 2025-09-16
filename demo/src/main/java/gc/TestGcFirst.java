@@ -23,7 +23,7 @@ public class TestGcFirst {
 
     private static final int ARRAY_PAYOFF = 8 + 4 + 4; // 64位机器指针大小 + UseCompressedOops + array len
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         Object o = new Object();
         for (int i = 0; i < 32; i++) {
             if ( i == 14) {
@@ -31,6 +31,21 @@ public class TestGcFirst {
             }
             byte[] KB100 = new byte[256 * KB - ARRAY_PAYOFF];
             System.out.println(Long.toHexString(TestFullGC.addressOf(KB100)));
+        }
+
+        System.out.println("done");
+
+        Thread.sleep(234233333L);
+    }
+
+    private static void testBigObject() throws Exception {
+        Object o = new Object();
+        for (int i = 0; i < 32; i++) {
+            if ( i == 14) {
+                System.out.println("gc point");
+            }
+            BigObject bigObject = new BigObject();
+            System.out.println(Long.toHexString(TestFullGC.addressOf(bigObject)));
         }
 
         System.out.println("done");
