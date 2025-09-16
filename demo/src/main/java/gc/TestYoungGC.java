@@ -1,6 +1,5 @@
 package gc;
 
-import utils.GCUtils;
 import utils.ThreadUtils;
 
 /**

@@ -36,6 +36,10 @@ curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-
 tcpdump tcp port 80 or 443 -nn -s 0 -i eth1 -X -w out.cap
 tcpdump 'tcp port 80 and tcp[13] == 2' -nn -s 0 -i eth1 // sync packet only
 
+rsa密码1024 pem格式:
+ssh-keygen -t rsa -b 1024 -m pem -f rsa1024pem
+ssh-keygen -e -m pem -f rsa1024pem.pub
+
 .vimrc
 set encoding=utf-8
 set fileencodings=utf-8
