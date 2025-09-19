@@ -55,7 +55,11 @@ public class TestGcFirst {
 }
 
 /**
- *  ffe00000 -> ffe40000 地址打印的代码也会new占用内存, 分配到哪里了 ???
+ *  ffe00000 -> ffe40000 地址打印的代码也会new占用内存, 分配到哪里了? 分配到TLAB去了，byte array太大无法放入TLAB(20KB)，直接分配到Eden Heap
+ *  -XX:+PrintTLAB -XX:+Verbose:
+ *  ThreadLocalAllocBuffer::compute_size(6) returns 2627
+ *  TLAB: fill thread: 0x00007ff87400b000 [id: 24688] desired_size: 20KB slow allocs: 6  refill waste: 320B alloc: 0.99983      543KB refills: 22 waste  0.4% gc: 0B slow: 1680B fast: 0B
+ *
  *  G1HR COMMIT [0x00000000ff600000,0x00000000ff700000]
  *  G1HR COMMIT [0x00000000ff700000,0x00000000ff800000]
  *  G1HR COMMIT [0x00000000ff800000,0x00000000ff900000]

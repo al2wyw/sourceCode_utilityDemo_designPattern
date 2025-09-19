@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
  * User: johnny.ly
  * Date: 2018/5/16
  * Time: 13:37
- * Desc: -Xms20M -Xmx20M -Xmn10m -XX:SurvivorRatio=8 -XX:+PrintGCDetails -XX:MaxTenuringThreshold=1 -XX:+UseSerialGC -XX:+PrintTenuringDistribution -XX:+PrintHeapAtGC -verbose.gc
+ * Desc: -Xms20M -Xmx20M -Xmn10m -XX:SurvivorRatio=8 -XX:+PrintGCDetails -XX:MaxTenuringThreshold=1 -XX:+UseSerialGC -XX:+PrintTenuringDistribution -XX:+PrintHeapAtGC -verbose:gc
  * 搞不清楚...
  */
 public class TestFullGC {
