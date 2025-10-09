@@ -1,0 +1,21 @@
+参数介绍和调优
+
+G1HeapRegionSize
+G1ReservePercent
+xms/xmx和new region的配置建议
+MaxGCPauseMillis
+
+TLABWasteTargetPercent，指的是TLAB 可占用的Eden 空间的百分比，默认值是1。
+TLABRefillWasteFraction，指的是TLAB 中浪费空间和TLAB块的比例，默认值是64。
+TLABSize，一般不要设置，影响TLAB动态调整
+
+G1ConCRefinementThreads，G1 refine 的线程数。
+...
+
+ParallelGCThreads，默认值为O，表示的是并行执行GC的线程个数。一般不要设置。
+G1RsetScanBlockSize，默认值力64，指扫描Rset时一次处理的量。
+TargetSurvivorRatio，默认值为50，表示期望 Survivor 的大小。增大该值，则用于下一次 Survivor 的空间变大，晋升到 Old 分区的概率会减小。
+ParallelGCBufferWastePct，默认值10，参考TLABRefillWasteFraction
+YoungPLABSize，默认值为4096，是新生代PLAB缓存大小。在32位JVM 中PLAB 为16KB，在64位JVM 中为32KB，表示对象从Eden复制到 Survivor 时，每次请求16KB 作为分配缓存，提高分配效率。增大该值可以提高分配的效率，但是可能增加内存碎片，同时可能使得S分区很快耗尽；实际调优中可以尝试先减小该值。
+OLdPLABSize，默认值1024，指老生代 PLAB缓存大小。在32位JVM 中PLAB 为4KB,64位JVM中 8KB，表示对象从Eden 复制到 Old时，每次请求4KB作分配缓存，提高分配效率。增大该值可以提高分配的效率，但是可能增加内存碎片；通常来说 Old 分区空间更大，实际调优中可以尝试先增大该值。
+
