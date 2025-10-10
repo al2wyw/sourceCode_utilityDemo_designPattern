@@ -19,3 +19,19 @@ ParallelGCBufferWastePct，默认值10，参考TLABRefillWasteFraction
 YoungPLABSize，默认值为4096，是新生代PLAB缓存大小。在32位JVM 中PLAB 为16KB，在64位JVM 中为32KB，表示对象从Eden复制到 Survivor 时，每次请求16KB 作为分配缓存，提高分配效率。增大该值可以提高分配的效率，但是可能增加内存碎片，同时可能使得S分区很快耗尽；实际调优中可以尝试先减小该值。
 OLdPLABSize，默认值1024，指老生代 PLAB缓存大小。在32位JVM 中PLAB 为4KB,64位JVM中 8KB，表示对象从Eden 复制到 Old时，每次请求4KB作分配缓存，提高分配效率。增大该值可以提高分配的效率，但是可能增加内存碎片；通常来说 Old 分区空间更大，实际调优中可以尝试先增大该值。
 
+InitiatingHeapOccupancyPercent搭配G1PrintHeapRegions和G1PrintRegionLivenessInfo，观察内存的分配和使用情况来考量IHOP的大小
+G1ReservePercent，默认值力10，当发现GC晋升失败导致FGC，可以增大该值
+ConcGCThreads为并发线程数，如果没有设置则动态调整；如果发现并发标记耗时较多可以增大该值(会导致 Mutator 执行的吞吐量变小)。
+HeapSizePerGCThread，默认值力64M，可以简单地理解 每64M分配一个线程。
+G1SATBBufferSize，默认值 1K，表示每个 SATB 队列最多存放1000个灰色对象。
+G1SATBBufferEnqueueingThresholdPercent（默认值是60），表示当一个队列满了之后，首先进行过滤处理，过滤后如果使用率超过这个阈值把队列送入到queue set 并新分配一个队列。
+MarkStackSize和MarkStackSizeMax，在64位JVM中设置为4M和512M。如果没有设置可以启发式推断参数，确保 MarkStackSize和并发线程参数ParallelGCThreads 正相关，这个参数是并发标记子阶段中用到的标记栈的大小。
+GCDrainStackTargetSize，默认值力64，表示并发标记子阶段处理时为了保证处理的性能，一次标记的最多对象个数。
+G1MixedGCLiveThresholdPercent，默认值85，用于判断分区能否被加入到CSet 中，低于该值将会被加入。
+G1HeapWastePercent，默认值5，即当CSet中可回收空间的占总空间的比例大于5才会开始混合收集。
+G1MixedGCCountTarget，默认值8，这个参数越大，收集老生代的分区越少。老生代分区在 CSet 中的比例最小值为 1/G1MixedGCCountTarget。
+G1OldCSetRegionThresholdPercent，参数默认值10，即一次最多收集10%的分区。
+G1ConcMarkStepDurationMillis，默认值10，表示每个并发标记子阶段每次最多执行10ms。
+G1UseConcMarkReferenceProcessing，默认值true，打开表示在并发标记的时候可以标记引用。每次标记处理引用的对象数由 G1RefProcDrainInterval 控制，默认值为 10。
+ClassUnloadingWithConcurrentMark，默认值true，在并发标记的时候可以卸载类
+
