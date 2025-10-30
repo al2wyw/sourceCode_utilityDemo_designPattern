@@ -6,6 +6,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * PooledByteBufAllocator:
+ * numDirectArenas 控制 PoolArena 数组的大小，用于降低线程的并发度，当线程数大于Arena数量时多个线程共享同一个Arena
+ * PoolArena -> PoolChunkList(按PoolChunk内存使用比例划分为多个list，从而避免list过长) -> PoolChunk(底层是DirectByteBuffer, 使用完全二叉树管理16m大小的内存，内存集中在其叶子节点(8k大小))
+ * PoolThreadCache:
+ * free list of all sizes memory segment
+ * 4种对象大小: tiny < 512b <= small < 8kb(page size) <= normal <= 16mb(chunk size) < huge(unpooled)
+ */
 public class TestByteBuf {
 
     private static final int KB = 1024;
@@ -80,6 +88,7 @@ public class TestByteBuf {
         long pre = 0;
         Queue<ByteBuf> queue = new LinkedList<>();
         // 16 mb 可以分配 8 kb 节点 2048个，第2049个的内存起始地址等于memEnd
+        // 如果绝大部分都是大对象，只有个别small和tiny的对象，会造成内存浪费
         for (int i = 0; i < 2050; i++) {
             int initialCapacity = 16 << i;
             if (initialCapacity > 8 * KB || i > 20) {
