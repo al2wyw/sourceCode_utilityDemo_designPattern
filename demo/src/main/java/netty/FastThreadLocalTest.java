@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  *      FastThreadLocal 使用 自增index作为下标和array来存储value，利用了数组连续性，InternalThreadLocalMap使用缓存填充???
  *      注意需要手动remove
  *      内存扩容导致空洞产生，必须设置为静态变量
+ *      FastThreadLocal和FastThreadLocalThread配套使用才会真正的fast，否则的话就会fallback到ThreadLocal(slowGet)
  */
 public class FastThreadLocalTest {
 
