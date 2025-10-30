@@ -14,7 +14,7 @@ import java.util.Queue;
  * free list of all sizes memory segment
  * 4种对象大小: tiny < 512b <= small < 8kb(page size) <= normal <= 16mb(chunk size) < huge(unpooled)
  */
-public class TestByteBuf {
+public class ByteBufTest {
 
     private static final int KB = 1024;
 
