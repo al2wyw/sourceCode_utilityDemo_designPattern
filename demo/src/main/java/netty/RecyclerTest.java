@@ -7,7 +7,7 @@ import io.netty.util.Recycler;
  * User: win10
  * Date: 2019/5/18
  * Time: 22:37
- * Desc:  没弄明白 ...
+ * Desc:  Recycler就是轻量级的对象池，反复使用对象避免频繁申请和回收内存
  */
 public class RecyclerTest {
     public static void main(String args[]) throws Exception{
