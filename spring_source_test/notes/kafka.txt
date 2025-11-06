@@ -33,7 +33,7 @@ consumerQueueLog的元素是定长的，可以快速定位
 at least once: 发送方/broker 会重试
 at most once: 发送方/broker 不会重试
 exactly once(由幂等和事务消息共同实现，非常影响性能): Kafka的幂等性是指单个生产者对于单分区单会话的幂等(无法做到全区幂等)，事务可以保证原子性地写入多个分区，即写入多个分区的消息要么全部成功，要么全部回滚
-Kafka和RMQ的事务消息完全是两个概念，Kafka事务是针对经典的ACID本地事务(跟Mysql事务类似)，而RMQ事务消息是对经典的2PC分布式事务的实现
+Kafka和RMQ的事务消息完全是两个概念，Kafka事务是针对批量消息经典的ACID本地事务(跟Mysql事务类似)，而RMQ事务消息是对经典的2PC分布式事务的实现
 
 不支持读写分离:
 由于多副本设计，主读写已经具备负载均衡功能了，这样代码实现更简单，不容易出错，就没必要做主读从写了，而且主从还有数据一致性和延迟等问题
@@ -53,7 +53,7 @@ min.insync.replicas:
 ISR最少副本数设置，ack=-1或者all时，少于这个数则无法成功发送消息
 unclean.leader.election.enable:
 是否可以从非ISR集合中选择leader，默认是false，不能从非ISR集合选择leader
-刷盘策略异步刷盘，由多副本保证高可用
+刷盘策略异步刷盘，由多副本保证高可用，所以没有WAL保证持久性
 
 消息消费方:
 消费端参数enable.auto.commit设为false，避免自动提交

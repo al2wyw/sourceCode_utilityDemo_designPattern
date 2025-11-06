@@ -44,7 +44,7 @@
    2. election term(election epoch), commitIndex(zxid)
    3. 选举结束后没有同步上一轮遗留的日志数据
    总结: ZAB和Raft本质上是一样的，实现细节不同
-柔性事务 BASE:
+柔性事务 BASE: (basic available, soft state, eventual consistency)
 -- TCC:(不阻塞资源，需要把接口一拆为三)
     try(锁定资源) -> confirm(更新资源) -> cancel(取消锁定资源)
 -- Sagas异步消息协作:
@@ -74,6 +74,7 @@
     1. 异常识别
     2. 稳定性
 -- 隔离
+    1. 核心隔离 2. 读写隔离 3. 热点隔离 4. 动静隔离 ...
 
 MPP vs NUMA vs SMP:
 MPP 由shared nothing的多个SMP组成

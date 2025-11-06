@@ -6,6 +6,10 @@ term index和posting list会进行压缩
 列式存储:
 支持filter、sorting和aggregation
 
+准实时系统和实时系统
+WAL: TransLog 顺序写入同步刷盘，GetById查询可以从TransLog查出，实现实时查询
+内存: Segment 经过一段时间间隔后通过refresh将内存数据产生新的段，范围查询可以从段查出，实现准实时查询
+
 查询过程:
 1. query phase 查询阶段:
   1.客户端发送请求，接受到的节点变成coordinate node协调节点；
