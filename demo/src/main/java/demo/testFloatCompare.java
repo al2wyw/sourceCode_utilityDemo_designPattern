@@ -26,6 +26,13 @@ public class testFloatCompare {
             System.out.println("larger");
         }
 
+        //2.999999999999996 不能直接截断
+        double news = (int)(s*10000)/10000d;
+        System.out.println(news);//2.6
+        if(news==2.6){
+            System.out.println("equal");
+        }
+
         double d = 29.0 * 0.01;
         System.out.println(d);
         System.out.println( (d * 100));

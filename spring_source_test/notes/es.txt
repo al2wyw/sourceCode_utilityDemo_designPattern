@@ -3,6 +3,9 @@ term index(字典树(前缀树,Trie树))(只有部分term的前缀，值对应di
 term index全部加载到内存，term dictionary存储在磁盘，从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数
 term index和posting list会进行压缩
 
+列式存储:
+支持filter、sorting和aggregation
+
 查询过程:
 1. query phase 查询阶段:
   1.客户端发送请求，接受到的节点变成coordinate node协调节点；
