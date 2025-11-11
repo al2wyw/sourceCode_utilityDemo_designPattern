@@ -9,7 +9,7 @@ typedef struct redisObject {
          int refcount;
          void *ptr;
      } robj;
-数据类型(主要5种,每种对应2~3数据结构): string(raw, int, sds), list(zlist, qlist, llist), hash(zlist, ht), set(intset, ht), zset(sorted set)(zlist, slist), bitmaps and hyperLog(底层就是string)
+数据类型(主要5种,每种对应2~3数据结构): string(raw, int, sds), list(zlist, qlist, llist), hash(zlist, ht), set(intset, ht), zset(sorted set)(zlist, slist+ht), bitmaps and hyperLog(底层就是string)
 数据结构:
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
 #define OBJ_ENCODING_INT 1     /* Encoded as integer */

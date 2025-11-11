@@ -35,7 +35,7 @@ time_wait 2MSL的必要性: 避免最后一个ack包丢失后，可以重新发�
 乱序和重传：(网络延迟导致先发的包后到的情况称为乱序；乱序重传会导致接收到重复的数据包)
 超时重传 - 超过timeout时间未收到ack，发送端立刻重传
 快速重传 - 包丢失时，接收端就ack那个被丢了的包，如果发送方连续收到3次相同的ack，就重传
-SACK机制 - 汇报收到的数据缺失片段以达到快速重传指定packet(建立在快速重传基础上)
+SACK机制 - 汇报收到的数据缺失片段以达到快速重传指定packet(建立在快速重传基础上) (selective ack)
 Duplicate SACK机制 – 解决重复收到数据packet的问题(建立在快速重传基础上)
 
 RTT(Round Trip Time)算法计算超时重传时间RTO(Retransmission Timeout)
