@@ -114,6 +114,7 @@ public class ZkController {
         String base = ROOT_PATH + key + PROVIDER_PATH;
         String path = base + "/" + value;
         List<String> pathToDel = Lists.newArrayListWithCapacity(max);
+        // 同一个base目录下的节点的序号是全局递增的
         for(int i = 0; i < max; i++) {
             pathToDel.add(zookeeperManager.createSeqNode(path + i, System.currentTimeMillis() + ""));
         }
