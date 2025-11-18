@@ -76,12 +76,12 @@ CPU优化的两个维度:
 杀死进程，内存紧张时系统还会通过 OOM（Out of Memory），直接杀掉占用大量内存的进程。(/var/log/messages, dmesg)
 
 /proc/meminfo: Buffers + Cached + SReclaimable = buffer/cache总量 (man proc查看具体说明)
-buffer和cache如何理解: (cachetop: 进程的cache使用情况包括命中率)
+buffer和cache如何理解: (cachetop: 进程的缓存使用情况包括命中率, pcstat: 查看文件的缓存情况)
 cache指文件在内存的缓存可以用于读取和写入提效
 buffer是对磁盘数据的缓存可以用于读取和写入提效(dd 命令可以跳过文件系统直接读写磁盘)
 cpu缓存可以通过perf stat来观测cache miss
 如何利用缓存提高运行性能：
-
+O_DIRECT 会跳过系统缓存；cache hit每个hit对应读取到了page size大小的缓存(参考文中示例)
 
 如何定位内存泄露(memleak工具的使用)
 
