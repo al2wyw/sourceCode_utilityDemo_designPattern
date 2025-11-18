@@ -17,6 +17,9 @@
 # export var 作用域在当前进程及其子进程,但不能从子进程反向传递给父进程,同时没有父子关系的进程无法传递
 # source/. 不会新启子进程, 而是在当前进程执行对应的脚本
 ##########common cmd#########
+sysctl: 针对内核参数, 修改即时生效但需配置文件持久化(/etc/sysctl.conf)
+systemctl: 针对系统服务, 管理服务生命周期和依赖关系(替代传统init)
+
 date -d "20230109 21:33:11 2 minutes ago" +"%Y-%m-%d %H:%M:%S"
 date -d "2023-01-09 21:33:11 2 days" +"%Y-%m-%d %H:%M:%S"
 date -d "2 days" +"%Y-%m-%d %H:%M:%S"
