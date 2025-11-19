@@ -11,7 +11,7 @@
 输出参数比较重要的是排队长度、等待时间、系统负载水平和空闲率
 
 必须熟记的一组常用性能数字: L1 cache = 0.5 ~ 1ns
-线程上下文切换(20 x main mem) >> cpu缓存miss(main mem, 5 x L3) > L3 cache(4 x L2) ≈ mutex加锁 > 分支预测失败 ≈ L2 cache(4 x L1) > L1 cache(4 x reg) >> register
+线程上下文切换(20 x main mem) >> cpu缓存miss(main mem, 5 x L3) > L3 cache(4 x L2) ≈ mutex加锁解锁 > 分支预测失败 ≈ L2 cache(4 x L1) > L1 cache(4 x reg) >> register
 
 性能数据的分析:
 算法复杂度分析
