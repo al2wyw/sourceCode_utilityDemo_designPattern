@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  *       volatile-read LL LS
  *       SS volatile-write SL
  *       SS lazySet
+ *       http://ifeve.com/juc-atomic-class-lazyset-que/
+ *
+ * 好像lazySet的耗时更高: ???
  * x86_64
  * 169482
  * 290787
