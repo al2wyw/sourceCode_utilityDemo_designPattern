@@ -15,6 +15,17 @@ public class testLockSupport {
         //testPark();
         //testInterruptPark();
         testSpuriousPark();
+        //testSpinForTimeoutThreshold();
+    }
+
+    private static void testSpinForTimeoutThreshold() throws Exception {
+        // spinForTimeoutThreshold = 1000L;
+        long start = System.nanoTime();
+        for (int i = 0; i < 1000; i++) {
+            LockSupport.parkNanos(1000);
+        }
+        long end = System.nanoTime();
+        System.out.println("spend time: " + (end - start));
     }
 
     private static void testPark(){
@@ -72,6 +83,12 @@ public class testLockSupport {
         }
     }
 
+    /**
+     *  由于park会因为未知原因返回(spuriously return)，所以要用以下模式
+     *  while (!canProceed()) { ... LockSupport.park(this); }
+     *  Each blocking system call(including pthread_cond_wait) on Linux returns abruptly with EINTR when the process receives a signal.
+     *  Windows system have no spurious wake-up.
+     * */
     private static void testSpuriousPark(){
         Object lock = new Object();
         /*ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -95,9 +112,4 @@ public class testLockSupport {
 /**
  * 由于每个jvm的实现可以自己安排字段的存储顺序，对字段的访问可以使用offset抽象出来，统一接口，解耦实现
  * unsafe.putObject(t, parkBlockerOffset, arg);
- * */
-
-/**
- *  由于park会因为未知原因返回，所以要用一下模式
- *  while (!canProceed()) { ... LockSupport.park(this); }
  * */
