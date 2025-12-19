@@ -1,5 +1,7 @@
 package thread;
 
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 import utils.ThreadUtils;
 
 import java.util.concurrent.ExecutorService;
@@ -21,8 +23,8 @@ public class testLockSupport {
     private static void testSpinForTimeoutThreshold() throws Exception {
         // spinForTimeoutThreshold = 1000L;
         long start = System.nanoTime();
-        for (int i = 0; i < 1000; i++) {
-            LockSupport.parkNanos(1000);
+        for (int i = 0; i < 1_000_000; i++) {
+            LockSupport.parkNanos(1_000);//时间太短要考虑函数调用本身的耗时，run with profiler验证一下
         }
         long end = System.nanoTime();
         System.out.println("spend time: " + (end - start));
@@ -87,7 +89,7 @@ public class testLockSupport {
      *  由于park会因为未知原因返回(spuriously return)，所以要用以下模式
      *  while (!canProceed()) { ... LockSupport.park(this); }
      *  Each blocking system call(including pthread_cond_wait) on Linux returns abruptly with EINTR when the process receives a signal.
-     *  Windows system have no spurious wake-up.
+     *  Windows system have no spurious wakeup(虚假唤醒).
      * */
     private static void testSpuriousPark(){
         Object lock = new Object();
@@ -101,9 +103,12 @@ public class testLockSupport {
                 }
             }
         });*/
+        Signal.handle(new Signal("INT"),
+                signal -> System.out.println(signal.getName() + " " + System.currentTimeMillis()));
+        // failed !!!
         while(true) {
             System.out.println("main thread sleep" + System.currentTimeMillis());
-            LockSupport.parkNanos(lock, 3000000000L);//3 seconds
+            LockSupport.parkNanos(lock, 100_000_000_000L);//100 seconds
             System.out.println("main thread wake up" + System.currentTimeMillis());
         }
     }
