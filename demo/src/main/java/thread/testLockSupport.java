@@ -88,8 +88,7 @@ public class testLockSupport {
     /**
      *  由于park会因为未知原因返回(spuriously return)，所以要用以下模式
      *  while (!canProceed()) { ... LockSupport.park(this); }
-     *  Each blocking system call(including pthread_cond_wait) on Linux returns abruptly with EINTR when the process receives a signal.
-     *  Windows system have no spurious wakeup(虚假唤醒).
+     *  spurious wakeup(虚假唤醒) refer to server.c
      * */
     private static void testSpuriousPark(){
         Object lock = new Object();
@@ -103,9 +102,9 @@ public class testLockSupport {
                 }
             }
         });*/
-        Signal.handle(new Signal("INT"),
+        Signal.handle(new Signal("ABRT"),
                 signal -> System.out.println(signal.getName() + " " + System.currentTimeMillis()));
-        // failed !!!
+        // failed !!! Parker::park pthread_sigmask not block SIGABRT, but pthread_cond_timedwait not return when SIGABRT occurs ???
         while(true) {
             System.out.println("main thread sleep" + System.currentTimeMillis());
             LockSupport.parkNanos(lock, 100_000_000_000L);//100 seconds
