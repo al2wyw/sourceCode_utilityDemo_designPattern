@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 破解之道:
  *     -Xint
  *     index with long
+ *     手动插入安全点
  * */
 public class SafePointTest {
 
@@ -20,6 +21,15 @@ public class SafePointTest {
     public static void main(String[] args) throws InterruptedException {
         Runnable runnable = () -> {
             for (int i = 0; i < 500000000; i++) {
+                /*
+                if (i % 1000 == 0) {
+                    try {
+                        Thread.sleep(0); //native 方法调用后的安全点检查
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                */
                 num.getAndAdd(1);
             }
         };
