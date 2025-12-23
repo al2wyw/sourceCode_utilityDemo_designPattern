@@ -3,9 +3,15 @@ package thread;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * CountedLoop: index with int/char/byte counting loop
+ *
     -XX:+PrintSafepointStatistics
-    -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000
+    -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000 (进入安全点的超时时间)
+    -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=3000 (最小进入安全点的时间间隔)
+ *
+ * CountedLoop: index with int/char/byte counting loop
+ * 破解之道:
+ *     -Xint
+ *     index with long
  * */
 public class SafePointTest {
 
@@ -13,7 +19,7 @@ public class SafePointTest {
 
     public static void main(String[] args) throws InterruptedException {
         Runnable runnable = () -> {
-            for (int i = 0; i < 1000000000; i++) {
+            for (int i = 0; i < 500000000; i++) {
                 num.getAndAdd(1);
             }
         };
