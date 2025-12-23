@@ -6,7 +6,7 @@ package thread;
  * Date: 2018/10/29
  * Time: 12:30
  * Desc:
- *      synchronized、Lock.lock -> 无法被interrupt
+ *      synchronized、Lock.lock -> 无法被interrupt (被循环包裹了interrupt后跳不出来，底层也是park)
  *      Lock.lockInterruptibly -> thread.interrupt()
  *      thread sleep/wait/join -> thread.interrupt() throw InterruptException but thread.interrupted is false
  *      thread park -> thread.interrupt()
