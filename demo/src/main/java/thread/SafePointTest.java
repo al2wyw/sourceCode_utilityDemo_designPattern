@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
     -XX:+PrintSafepointStatistics
     -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000 (进入安全点的超时时间)
-    -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=3000 (最小进入安全点的时间间隔)
+    -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=1000 -XX:+PrintFlagsFinal (最小进入安全点的时间间隔)
  *
  * HotSpot会在长时间执行的指令处放置安全点，即所有方法的临返回之前，以及所有非CountedLoop的循环的回跳之前:
  * 长时间执行的最明显特征就是指令序列的复用，例如方法调用、循环跳转、异常跳转等
