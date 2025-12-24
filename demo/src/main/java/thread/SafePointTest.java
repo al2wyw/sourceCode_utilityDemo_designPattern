@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     手动插入安全点
  *
  * https://stackoverflow.com/questions/67068057/the-main-thread-exceeds-the-set-sleep-time
+ * https://stackoverflow.com/questions/72753599/counted-uncounted-loops-and-safepoints-is-while-i-someint-considered-u
  * */
 public class SafePointTest {
 
