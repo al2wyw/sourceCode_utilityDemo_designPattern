@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
     -XX:+PrintSafepointStatistics
     -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000 (进入安全点的超时时间)
     -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=3000 (最小进入安全点的时间间隔)
-
+ *
  * HotSpot会在长时间执行的指令处放置安全点，即所有方法的临返回之前，以及所有非CountedLoop的循环的回跳之前:
  * 长时间执行的最明显特征就是指令序列的复用，例如方法调用、循环跳转、异常跳转等
  *
@@ -54,3 +54,19 @@ public class SafePointTest {
         System.out.println("最终的计数，num= " + num);
     }
 }
+
+/*
+*
+          vmop                    [threads: total initially_running wait_to_block]    [time: spin block sync cleanup vmop] page_trap_count
+1.031: no vm operation                  [      11          2              2    ]      [  3075     0  3075     0     0    ]  0
+4.107: EnableBiasedLocking              [      11          0              0    ]      [     0     0     0     0     0    ]  0
+4.107: no vm operation                  [       8          0              1    ]      [     0     0     0     0     0    ]  0
+
+Polling page always armed
+EnableBiasedLocking                1
+    0 VM operations coalesced during safepoint
+Maximum sync time   3075 ms
+Maximum vm operation time (except for Exit VM operation)      0 ms
+
+*  "no vm operation" indicates a guaranteed safepoint(GuaranteedSafepointInterval) initiated by the JVM runtime, rather than an explicit, action-driven operation.
+* */
