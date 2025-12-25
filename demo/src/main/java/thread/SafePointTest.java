@@ -4,24 +4,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
-    -XX:+PrintSafepointStatistics
-    -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000 (进入安全点的超时时间)
-    -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=1000 -XX:+PrintFlagsFinal (最小进入安全点的时间间隔)
- *
+ -XX:+PrintSafepointStatistics
+ -XX:+SafepointTimeout -XX:SafepointTimeoutDelay=1000 (进入安全点的超时时间)
+ -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=1000 (最小进入安全点的时间间隔)
+ -XX:+TraceSafepoint -XX:+SafepointALot
+ -XX:+PrintFlagsFinal
+ -XX:+PrintNMethods -XX:+PrintNativeNMethods -XX:+TraceOnStackReplacement
+ * <p>
  * HotSpot会在长时间执行的指令处放置安全点，即所有方法的临返回之前，以及所有非CountedLoop的循环的回跳之前:
  * 长时间执行的最明显特征就是指令序列的复用，例如方法调用、循环跳转、异常跳转等
- *
+ * <p>
  * CountedLoop: index with int/char/byte counted loop
- *
+ * <p>
  * 破解之道:
  *     -Xint
  *     -XX:+UseCountedLoopSafepoints
  *     Loop Strip Mining (jdk10+)
  *     index with long
  *     手动插入安全点
- *
- * https://stackoverflow.com/questions/67068057/the-main-thread-exceeds-the-set-sleep-time
- * https://stackoverflow.com/questions/72753599/counted-uncounted-loops-and-safepoints-is-while-i-someint-considered-u
+ * <p>
+ * <a href="https://stackoverflow.com/questions/67068057/the-main-thread-exceeds-the-set-sleep-time">...</a>
+ * <a href="https://stackoverflow.com/questions/72753599/counted-uncounted-loops-and-safepoints-is-while-i-someint-considered-u">...</a>
  * */
 public class SafePointTest {
 

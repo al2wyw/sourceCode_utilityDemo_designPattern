@@ -13,7 +13,7 @@ package jvm;
  -XX:-BackgroundCompilation
 
  inlined method trace frame (exception) ??? OmitStackTraceInFastThrow 默认打开
- https://stackoverflow.com/questions/7218575/how-can-methods-throwing-exceptions-be-inlined
+ <a href="https://stackoverflow.com/questions/7218575/how-can-methods-throwing-exceptions-be-inlined">...</a>
  */
 public class InlineCompileOptTest {
 
@@ -31,3 +31,12 @@ public class InlineCompileOptTest {
         return adder.add(i, j);
     }
 }
+
+/**
+ * -XX:+PrintCompilation
+ * 27 7 % 3 OSRExample::main @ 4 (32 bytes)
+ * %: Indicates an OSR compilation.
+ * @ 4: Shows the bytecode index (bci) where the OSR occurs (usually a backward branch in a loop).
+ * 7: Compilation ID.
+ * 3: Tiered compilation level.
+ * */
