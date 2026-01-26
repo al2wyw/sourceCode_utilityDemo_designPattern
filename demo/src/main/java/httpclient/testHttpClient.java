@@ -71,6 +71,7 @@ public class testHttpClient {
         //KeepAliveDuration会影响conn的存活时间, 默认实现是从Keep-Alive报头取值
         HttpGet get = new HttpGet("http://baidu.com");
         HttpResponse response = httpClient.execute(get); //AbstractConnPool.getPoolEntryBlocking
+        //通过SystemDefaultDnsResolver最终走原生的InetAddress把域名解析成ip并把结果进行timed cache
         //HttpRequestExecutor.execute in the same thread, no asyn threadpool to execute
         if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
             System.out.println("good");
