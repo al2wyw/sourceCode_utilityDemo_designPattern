@@ -14,7 +14,12 @@ import java.nio.channels.FileLock;
  * User: johnny.ly
  * Date: 2018/6/13
  * Time: 11:49
- * Desc:
+ * Desc: ByteBuffer operations:
+ *          flip before read from ByteBuffer
+ *          rewind before re-read from ByteBuffer
+ *          clear before write to ByteBuffer
+ *          a new allocated ByteBuffer can write(don't read)
+ *
  */
 public class FileChannels {
 
