@@ -2,8 +2,6 @@ package netty.client;
 
 import com.google.protobuf.ByteString;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -19,8 +17,8 @@ import netty.proto.AntiFraud;
 import netty.proto.Req;
 import netty.proto.Res;
 import netty.proto.Scintf;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Driver {
 
