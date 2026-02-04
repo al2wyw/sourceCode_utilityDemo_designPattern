@@ -151,6 +151,13 @@
     </dependency>
     <!-- log end -->
 
+    <!-- Protobuf Java Runtime -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>4.33.4</version>
+    </dependency>
+
   </dependencies>
 
   <build>
