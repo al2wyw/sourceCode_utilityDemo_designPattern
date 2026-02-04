@@ -65,7 +65,7 @@ public class NettyClient {
     public Res sendMessage(Req message) throws Exception {
         SettableFuture<Res> future = SettableFuture.create();
         MessageWrapper<Req, Res> messageWrapper = new MessageWrapper<>(message, future);
-        Channel channel = channels.take();
+        Channel channel = getChannel();
         try {
             channel.writeAndFlush(messageWrapper);
             logger.info("out--------------{}", " " + channel);
@@ -73,5 +73,16 @@ public class NettyClient {
         } finally {
             channels.put(channel);
         }
+    }
+
+    private Channel getChannel() throws Exception {
+        if (channels.isEmpty()) {
+            throw new Exception("no available channel");
+        }
+        Channel channel = channels.take();
+        if (!channel.isActive()) {
+            return getChannel();
+        }
+        return channel;
     }
 }
