@@ -76,9 +76,6 @@ public class NettyClient {
     }
 
     private Channel getChannel() throws Exception {
-        if (channels.isEmpty()) {
-            throw new Exception("no available channel");
-        }
         Channel channel = channels.take();
         if (!channel.isActive()) {
             return getChannel();
