@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 public class NettyClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
+    /**
+     *  trpc java:
+     *  invokerCache ServiceInstance(ip:port) : DefRpcClient -> NettyTcpClientTransport -> Channels(ConnsPerAddr)
+     * */
     private BlockingQueue<Channel> channels;
     private Bootstrap bootstrap;
 
