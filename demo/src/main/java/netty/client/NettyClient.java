@@ -25,7 +25,8 @@ public class NettyClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
     /**
      *  trpc java:
-     *  invokerCache ServiceInstance(ip:port) : DefRpcClient -> NettyTcpClientTransport -> Channels(ConnsPerAddr)
+     *  DefClusterInvoker.invoke
+     *  invokerCache ServiceInstance(ip:port) : RpcClusterClientManager#RpcClientProxy -> DefRpcClient -> NettyTcpClientTransport -> Channels(ConnsPerAddr)
      * */
     private BlockingQueue<Channel> channels;
     private Bootstrap bootstrap;
