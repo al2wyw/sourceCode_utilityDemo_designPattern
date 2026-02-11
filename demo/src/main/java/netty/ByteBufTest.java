@@ -2,6 +2,9 @@ package netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -19,8 +22,24 @@ public class ByteBufTest {
     private static final int KB = 1024;
 
     public static void main(String[] args) throws Exception {
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(128);
+        String filePath = Thread.currentThread().getContextClassLoader().getResource("test.data").getFile();
 
-        allocRunOut();
+        try (RandomAccessFile file = new RandomAccessFile(filePath, "r")) {
+            FileChannel channel = file.getChannel();
+            MappedByteBuffer ro = channel.map(
+                    FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            buf.writeBytes(ro);
+
+            // byte i = -16; short k = i; int j = i; => i = 0xf0; k = 0xff f0; j = 0xff ff ff f0;
+            // unsigned byte: k = (short)((int)i & 0xff);
+            // 带符号的数值在转换时只是在最左边补ff或者移除ff
+            short f = buf.getUnsignedByte(0);
+            System.out.println(f);
+        }
+
+        buf.release();
+        // allocRunOut();
     }
 
     public static void test() {
