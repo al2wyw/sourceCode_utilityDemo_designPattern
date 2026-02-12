@@ -2,13 +2,12 @@ package netty.client;
 
 import static netty.client.SceneHandler.SCENE_KEY;
 
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.SettableFuture;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,7 @@ public class ClientHandler<R, T> extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 
-    private Map<Channel, MessageWrapper<R,T>> requestMap = Maps.newHashMap();
+    private final ConcurrentHashMap<Channel, MessageWrapper<R,T>> requestMap = new ConcurrentHashMap<>();
 
     private final String value;
 
