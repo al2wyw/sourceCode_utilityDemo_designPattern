@@ -34,7 +34,7 @@ public class NettyClient {
     public boolean start(String scene, int cons) {
         bootstrap = new Bootstrap();
         NioEventLoopGroup workerGroup =
-                new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2,
+                new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(),
                         new NamedThreadFactory("Client-Worker-Thread",false));
 
         bootstrap.group(workerGroup)//
