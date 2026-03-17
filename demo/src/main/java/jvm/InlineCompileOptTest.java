@@ -12,8 +12,8 @@ package jvm;
  -XX:+PrintInlining
  -XX:-BackgroundCompilation
 
- inlined method trace frame (exception) ??? OmitStackTraceInFastThrow 默认打开
- <a href="https://stackoverflow.com/questions/7218575/how-can-methods-throwing-exceptions-be-inlined">...</a>
+ inlined method trace frame (exception) ??? PcDesc in nmethod refer to java_lang_Throwable::fill_in_stack_trace (not verified)
+
  */
 public class InlineCompileOptTest {
 
