@@ -12,7 +12,7 @@ package jvm;
  -XX:+PrintInlining
  -XX:-BackgroundCompilation
 
- inlined method trace frame (exception) ??? PcDesc in nmethod refer to java_lang_Throwable::fill_in_stack_trace (not verified)
+ inlined method trace frame (exception) ??? PcDesc and ScopeDesc in nmethod refer to java_lang_Throwable::fill_in_stack_trace
 
  */
 public class InlineCompileOptTest {
