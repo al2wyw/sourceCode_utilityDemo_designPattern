@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  -XX:+UnlockDiagnosticVMOptions -XX:GuaranteedSafepointInterval=1000 (最小进入安全点的时间间隔)
  -XX:+TraceSafepoint -XX:+SafepointALot
  -XX:+PrintFlagsFinal
- -XX:+PrintNMethods -XX:+PrintNativeNMethods -XX:+TraceOnStackReplacement
+ -XX:+PrintNMethods -XX:+PrintExceptionHandlers -XX:+PrintDependencies -XX:+PrintDebugInfo -XX:+PrintRelocations
+ -XX:+PrintNativeNMethods -XX:+TraceOnStackReplacement
  * <p>
  * HotSpot会在长时间执行的指令处放置安全点，即所有方法的临返回之前，以及所有非CountedLoop的循环的回跳之前:
  * 长时间执行的最明显特征就是指令序列的复用，例如方法调用、循环跳转、异常跳转等
@@ -25,6 +26,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * <a href="https://stackoverflow.com/questions/67068057/the-main-thread-exceeds-the-set-sleep-time">...</a>
  * <a href="https://stackoverflow.com/questions/72753599/counted-uncounted-loops-and-safepoints-is-while-i-someint-considered-u">...</a>
+ *
+ * AtomicInteger::getAndAdd call site not reached (slowdebug openJDK)
+ * AtomicInteger::getAndAdd inline (hot) (tJDK)
+ * -Xcomp -XX:CompileCommand=compileonly 强制编译后变成inline (hot)(slowdebug openJDK)
+ * 记得 -XX:GuaranteedSafepointInterval=1000 -XX:+SafepointALot 才能看到效果
  * */
 public class SafePointTest {
 
@@ -51,7 +57,7 @@ public class SafePointTest {
         t2.start();
         long start = System.currentTimeMillis();
         System.out.println("***********主线程开始睡眠1秒***********");
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         long end = System.currentTimeMillis();
         System.out.println("***********主线程恢复,耗时：+" + (end - start) + "***********");
         System.out.println("最终的计数，num= " + num);

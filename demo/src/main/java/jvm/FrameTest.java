@@ -6,6 +6,7 @@ package jvm;
  * Date: 2023-06-12
  * Time: 19:58
  * Description:
+ * -XX:+PrintInterpreter -XX:+UnlockDiagnosticVMOptions -XX:LogFile=./mylogfile.log
  * -Djava.library.path=/Users/liyang/IdeaProjects/sourceCode_utilityDemo_designPattern/demo/src/main/java/native
  */
 public class FrameTest {
