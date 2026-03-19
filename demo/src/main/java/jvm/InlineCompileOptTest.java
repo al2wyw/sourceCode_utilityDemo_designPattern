@@ -6,11 +6,15 @@ package jvm;
  * Date: 2019/1/19
  * Time: 11:13
  * Desc:
- -XX:CompileThreshold=10
- -XX:+PrintCompilation
- -XX:+UnlockDiagnosticVMOptions
- -XX:+PrintInlining
- -XX:-BackgroundCompilation
+ -XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=compileonly,*InlineCompileOptTest.* -XX:CompileCommand=compileonly,*Adder.* -XX:CompileCommand=compileonly,*Object.*
+ -XX:-BackgroundCompilation -XX:+PrintCompilation -XX:+PrintInlining -XX:CompileThreshold=10000
+ -XX:+TraceDeoptimization
+ -XX:+LogCompilation -XX:LogFile=./mylogfile.log -XX:+PrintAssembly -XX:+PrintStubCode -XX:+PrintInterpreter
+
+ 为什么ArithmeticException发生时栈是Interpreted?
+ c2 osr level 4 生成的代码好复杂，包含inline和非inline的代码 !!!
+ c2 编译没有implicit exception handler(除非null check optimized)
+ c2 会对divide by zero进行显式检测触发uncommon trap退优化成解释执行，由Interpreter生成的汇编代码触发SIGFPE
 
  inlined method trace frame (exception) PcDesc and ScopeDesc in nmethod refer to java_lang_Throwable::fill_in_stack_trace
 
