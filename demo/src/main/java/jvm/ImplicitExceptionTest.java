@@ -2,7 +2,7 @@ package jvm;
 
 /**
  * c1 has IET(implicit exception table), compiled frame when exception occurs
- * c2 has no IET, interpreted frame when exception occurs ??? maybe deopt
+ * c2 has IET, interpreted frame when exception occurs ??? maybe deopt
  * -XX:CompileCommand=compileonly,*ImplicitExceptionTest.* -XX:-BackgroundCompilation -XX:CompileThreshold=10000 -XX:+PrintCompilation jvm.ImplicitExceptionTest 100000 100001
  * make count and loop small to just trigger only level 3 compile
  * */
