@@ -104,7 +104,7 @@ public class testLockSupport {
         });*/
         Signal.handle(new Signal("ABRT"),
                 signal -> System.out.println(signal.getName() + " " + System.currentTimeMillis()));
-        // failed !!! Parker::park pthread_sigmask not block SIGABRT, but pthread_cond_timedwait not return when SIGABRT occurs ???
+        // failed, Parker::park pthread_sigmask not block SIGABRT, but pthread_cond_timedwait not return when SIGABRT occurs (refer to c demo server.c)
         while(true) {
             System.out.println("main thread sleep" + System.currentTimeMillis());
             LockSupport.parkNanos(lock, 100_000_000_000L);//100 seconds
