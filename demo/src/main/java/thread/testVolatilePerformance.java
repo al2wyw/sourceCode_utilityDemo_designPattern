@@ -53,7 +53,7 @@ public class testVolatilePerformance {
 
     public static void main(String args[]) throws Exception{
         int loop = 1000_0000;
-        // lazySet 受到 osr 编译影响， call site not reached 无法inline
+        // lazySet 受到 osr 编译影响， call site not reached 无法inline，后面被修复了 https://bugs.openjdk.org/browse/JDK-8014830
         /*Stopwatch stopwatch = Stopwatch.createStarted();
         for(int i = 0; i < loop; i++){
             if(test1){
