@@ -203,11 +203,11 @@ public class testVolatilePerformance {
  *
  *
  * (the last run: tjdk)
- * 0 normal get
+ * 0 normal get //dead code eliminate
  * 2157 volatile get
  * 3659 atomic get
  * 231 normal set
  * 3622 atomic lazy set
- * 11803 volatile set
+ * 11803 volatile set //loop unroll -XX:LoopUnrollLimit=0 disable
  * 66560 atomic set
  * */
