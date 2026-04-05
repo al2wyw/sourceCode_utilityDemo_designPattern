@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit;
  * Date: 2019/5/7
  * Time: 14:22
  * Desc:
- * java -classpath ./guava-25.1-jre.jar:./ -XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=compileonly,*BranchPredictTest.*  -XX:CompileCommand=compileonly,*Math.* -XX:-BackgroundCompilation -XX:+PrintCompilation -XX:+PrintInlining -XX:+TraceDeoptimization jvm.BranchPredictTest 31
+ * java -classpath ./guava-25.1-jre.jar:./ -XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=compileonly,*BranchPredictTest.*  -XX:CompileCommand=compileonly,*Math.* -XX:-BackgroundCompilation -XX:+PrintCompilation -XX:+PrintInlining -XX:+TraceDeoptimization -XX:+TracePcPatching -XX:+TraceOnStackReplacement jvm.BranchPredictTest 31
+ * -XX:+PrintDeoptimizationDetails
  */
 public class BranchPredictTest {
 
