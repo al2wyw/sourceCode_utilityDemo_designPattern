@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
  * Desc:
  * java -classpath ./guava-25.1-jre.jar:./ -XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=compileonly,*BranchPredictTest.*  -XX:CompileCommand=compileonly,*Math.* -XX:-BackgroundCompilation -XX:+PrintCompilation -XX:+PrintInlining -XX:+TraceDeoptimization -XX:+TracePcPatching -XX:+TraceOnStackReplacement jvm.BranchPredictTest 31
  * -XX:+PrintDeoptimizationDetails
+ * -XX:-UseLoopPredicate
  */
 public class BranchPredictTest {
 
@@ -31,9 +32,21 @@ public class BranchPredictTest {
     private static void predict(int loop){
         Stopwatch stopwatch = Stopwatch.createStarted();
         for(int i = 0; i < loop; i++){
-            if(flag){//循环展开
+            if(flag){
                 double ret = 0.1 / (i + 1);
                 i += (int)Math.round(ret);
+            }
+        }
+        System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));
+    }
+
+    private static void predict2(int loop){
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        for(int i = 0; i < loop; i++){
+            if(flag){
+                double ret = 0.1 / (i + 1);
+                i += (int)Math.round(ret);
+                return;
             }
         }
         System.out.println(stopwatch.elapsed(TimeUnit.MICROSECONDS));
