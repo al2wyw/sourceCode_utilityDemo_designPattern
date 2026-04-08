@@ -42,6 +42,8 @@ public class BranchPredictTest {
 
     private static void predict2(int loop){
         Stopwatch stopwatch = Stopwatch.createStarted();
+        // Deoptimization::Reason_predicate 导致 Method 的 _code(nmethod) make_not_entrant, 从而重新进入解释执行+profile后再编译
+        // 如果Deoptimization的原因是Reason_div0_check, 则不会make_not_entrant，而是短暂进入解释执行后函数返回再直接进入编译执行
         for(int i = 0; i < loop; i++){
             if(flag){
                 double ret = 0.1 / (i + 1);
