@@ -11,6 +11,7 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -98,8 +99,8 @@ public class VolatilePerfBenchmark {
     public static void main(final String[] args) throws Exception {
         Options opt = new OptionsBuilder().include(VolatilePerfBenchmark.class.getSimpleName())
                 //.addProfiler(StackProfiler.class)
-                //.result(VolatilePerfBenchmark.class.getSimpleName() + ".json")
-                //.resultFormat(ResultFormatType.JSON)
+                .result(VolatilePerfBenchmark.class.getSimpleName() + ".json")
+                .resultFormat(ResultFormatType.JSON)
                 .build();
         new Runner(opt).run();
     }
