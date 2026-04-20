@@ -210,4 +210,58 @@ public class testVolatilePerformance {
  * 3622 atomic lazy set
  * 11803 volatile set //loop unroll -XX:LoopUnrollLimit=0 disable
  * 66560 atomic set
+ * tjdk:
+ *   normal set:
+ *   0x00007f1edd111410: movb   $0x1,0x71(%r11)    ;*putstatic test2
+ *                                                 ; - thread.testVolatilePerformance::test2Set@12 (line 184)
+ *
+ *   0x00007f1edd111415: inc    %r10d              ;*iinc
+ *                                                 ; - thread.testVolatilePerformance::test2Set@15 (line 183)
+ *
+ *   0x00007f1edd111418: cmp    %ebp,%r10d
+ *   0x00007f1edd11141b: jl     0x00007f1edd111410  ;*if_icmpge
+ *                                                 ; - thread.testVolatilePerformance::test2Set@8 (line 183)
+ *
+ *   atomic lazy set:
+ *   0x00007f1edd112fb0: mov    0x68(%r10),%r8d    ;*getstatic int1
+ *                                                 ; - thread.testVolatilePerformance::int1Lazy@11 (line 176)
+ *
+ *   0x00007f1edd112fb4: test   %r8d,%r8d
+ *   0x00007f1edd112fb7: je     0x00007f1edd112fe5
+ *   0x00007f1edd112fb9: movl   $0x2,0xc(%r12,%r8,8)  ;*invokevirtual putOrderedInt
+ *                                                 ; - java.util.concurrent.atomic.AtomicInteger::lazySet@8 (line 110)
+ *                                                 ; - thread.testVolatilePerformance::int1Lazy@15 (line 176)
+ *
+ *   0x00007f1edd112fc2: inc    %r11d              ;*iinc
+ *                                                 ; - thread.testVolatilePerformance::int1Lazy@18 (line 175)
+ *
+ *   0x00007f1edd112fc5: cmp    %ebp,%r11d
+ *   0x00007f1edd112fc8: jl     0x00007f1edd112fb0  ;*if_icmpge
+ *                                                 ; - thread.testVolatilePerformance::int1Lazy@8 (line 175)
+ *
+ *
+ *   atomic set:
+ *   0x00007f1edd11c110: mov    0x6c(%r10),%r8d    ;*getstatic int2
+ *                                                 ; - thread.testVolatilePerformance::int2Set@11 (line 168)
+ *   0x00007f1edd11c114: test   %r8d,%r8d
+ *   0x00007f1edd11c117: je     0x00007f1edd11c220
+ *   0x00007f1edd11c11d: movl   $0x3,0xc(%r12,%r8,8)
+ *   0x00007f1edd11c126: lock addl $0x0,(%rsp)     ;*putfield value
+ *                                                 ; - java.util.concurrent.atomic.AtomicInteger::set@2 (line
+ *                                                 ; - thread.testVolatilePerformance::int2Set@15 (line 168)
+ *   0x00007f1edd11c12b: inc    %r11d              ;*iinc
+ *                                                 ; - thread.testVolatilePerformance::int2Set@18 (line 167)
+ *   0x00007f1edd11c12e: cmp    %ebp,%r11d
+ *   0x00007f1edd11c131: jl     0x00007f1edd11c110  ;*if_icmpge
+ *                                                 ; - thread.testVolatilePerformance::int2Set@8 (line 167)
+ *
+ *   volatile set:
+ *   0x00007f1edd12c210: movb   $0x1,0x70(%r10)
+ *   0x00007f1edd12c215: lock addl $0x0,(%rsp)     ;*putstatic test1
+ *                                                 ; - thread.testVolatilePerformance::test1Set@12 (line 160)
+ *   0x00007f1edd12c21a: inc    %r11d              ;*iinc
+ *                                                 ; - thread.testVolatilePerformance::test1Set@15 (line 159)
+ *   0x00007f1edd12c21d: cmp    %ebp,%r11d
+ *   0x00007f1edd12c220: jl     0x00007f1edd12c210  ;*if_icmpge
+ *                                                 ; - thread.testVolatilePerformance::test1Set@8 (line 159)
  * */
