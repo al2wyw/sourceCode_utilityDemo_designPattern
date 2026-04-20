@@ -16,6 +16,18 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /*
+linux x86_64的测试结果:
+Benchmark                                 Mode  Cnt        Score   Error   Units
+VolatilePerfBenchmark.baseline           thrpt       2728982.687          ops/ms
+VolatilePerfBenchmark.testAtomicGet      thrpt        301024.312          ops/ms
+VolatilePerfBenchmark.testAtomicSet      thrpt        110253.050          ops/ms
+VolatilePerfBenchmark.testAtomicSetLazy  thrpt       1342074.026          ops/ms
+VolatilePerfBenchmark.testNormalGet      thrpt        363300.966          ops/ms
+VolatilePerfBenchmark.testNormalSet      thrpt       2142444.611          ops/ms
+VolatilePerfBenchmark.testVolatileGet    thrpt        361102.161          ops/ms
+VolatilePerfBenchmark.testVolatileSet    thrpt        110419.432          ops/ms
+
+mac arm64的测试结果:
 Benchmark                                 Mode  Cnt        Score         Error   Units
 VolatilePerfBenchmark.baseline           thrpt       3847346.497          ops/ms
 VolatilePerfBenchmark.testAtomicGet      thrpt        594446.270          ops/ms
@@ -25,7 +37,7 @@ VolatilePerfBenchmark.testNormalGet      thrpt        928968.673          ops/ms
 VolatilePerfBenchmark.testNormalSet      thrpt       3773354.571          ops/ms
 VolatilePerfBenchmark.testVolatileGet    thrpt        840582.472          ops/ms
 VolatilePerfBenchmark.testVolatileSet    thrpt       3487641.725          ops/ms
-感觉还是测不出来，测试代码的payload远远超过了这种简单的读写指令代码
+感觉还是测不出来，测试代码的payload远远超过了这种简单的读写指令代码 ???
 * */
 @Warmup(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
@@ -86,6 +98,8 @@ public class VolatilePerfBenchmark {
     public static void main(final String[] args) throws Exception {
         Options opt = new OptionsBuilder().include(VolatilePerfBenchmark.class.getSimpleName())
                 //.addProfiler(StackProfiler.class)
+                //.result(VolatilePerfBenchmark.class.getSimpleName() + ".json")
+                //.resultFormat(ResultFormatType.JSON)
                 .build();
         new Runner(opt).run();
     }
