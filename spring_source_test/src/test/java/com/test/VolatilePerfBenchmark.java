@@ -11,6 +11,9 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.profile.DTraceAsmProfiler;
+import org.openjdk.jmh.profile.LinuxPerfAsmProfiler;
+import org.openjdk.jmh.profile.LinuxPerfNormProfiler;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -97,8 +100,10 @@ public class VolatilePerfBenchmark {
 
 
     public static void main(final String[] args) throws Exception {
+        // 容器或云虚拟机可能关掉PMU，无法使用perf采集硬件事件，参考perf.txt
         Options opt = new OptionsBuilder().include(VolatilePerfBenchmark.class.getSimpleName())
-                //.addProfiler(StackProfiler.class)
+                //.addProfiler(LinuxPerfAsmProfiler.class, "hotThreshold=0.01;event=cpu-clock")
+                //.addProfiler(LinuxPerfNormProfiler.class, "events=cpu-clock,task-clock,context-switches,page-faults")
                 .result(VolatilePerfBenchmark.class.getSimpleName() + ".json")
                 .resultFormat(ResultFormatType.JSON)
                 .build();
