@@ -11,7 +11,10 @@ import java.util.concurrent.TimeUnit;
  * Desc:
  * java -classpath ./guava-25.1-jre.jar:./ -XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=compileonly,*BranchPredictTest.*  -XX:CompileCommand=compileonly,*Math.* -XX:-BackgroundCompilation -XX:+PrintCompilation -XX:+PrintInlining -XX:+TraceDeoptimization -XX:+TracePcPatching -XX:+TraceOnStackReplacement jvm.BranchPredictTest 31
  * -XX:+PrintDeoptimizationDetails
- * -XX:-UseLoopPredicate
+ * -XX:-UseLoopPredicate 关掉后又会有新的unloaded导致退优化reinterpret……
+ * 两种profile:
+ * -agentpath:/data/async-profiler-4.3-linux-x64/lib/libasyncProfiler.so=start,event=wall,interval=10ms,file=profile.html
+ * -XX:StartFlightRecording=settings=my_profile,filename=out.jfr,duration=60s,dumponexit=true
  */
 public class BranchPredictTest {
 
