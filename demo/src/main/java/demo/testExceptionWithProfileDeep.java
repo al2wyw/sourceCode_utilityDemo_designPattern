@@ -61,11 +61,11 @@ public class testExceptionWithProfileDeep {
     public static int inner(int i) {
         // LOOP trigger throw
         if (i == LOOP) {
-            throw new RuntimeException(); //c1 unwind exp(no exp tab), c2 uncommon -> c2 rethrow
+            throw new RuntimeException(); //c1 load_klass_patching -> invoke init and c1 unwind exp(no exp tab); c2 uncommon -> invoke init and c2 rethrow
         }
 
         // LOOP + 1 trigger div zero
-        int j = 0x600 / (LOOP_1 - i); //c1 implicit exp, c2 uncommon -> c2 rethrow
+        int j = 0x600 / (LOOP_1 - i); //c1 implicit exp; c2 uncommon -> pre-create exp and c2 rethrow
 
         // LOOP + 2 trigger npe
         // LOOP + 3 trigger out range
@@ -73,9 +73,9 @@ public class testExceptionWithProfileDeep {
         if (index < 0) {
             index = 0;
         }
-        ArrayData o = ARRAY[index];//c1 implicit exp, c2 uncommon -> c2 rethrow
+        ArrayData o = ARRAY[index];//c1 implicit exp; c2 uncommon -> pre-create exp and c2 rethrow
 
-        return o.value + j + i;//c1 implicit exp, c2 uncommon -> c2 rethrow
+        return o.value + j + i;//c1 implicit exp; c2 uncommon -> pre-create exp and c2 rethrow
     }
 
     public static class ArrayData {
