@@ -2,8 +2,8 @@ package jvm;
 
 /**
  *
- * -XX:+UnlockDiagnosticVMOptions -Xcomp -XX:TieredStopAtLevel=1 -XX:+PrintCompilation  -XX:CompileCommand=compileonly,*CompilerC1Test.* -XX:+PrintInitialBlockList -XX:+TraceLivenessGen -XX:+PrintIR -XX:+PrintCFG
- * -XX:-TieredCompilation -XX:+PrintIdeal -XX:PrintIdealGraphFile=ideal.xml -XX:PrintIdealGraphLevel=1
+ * -XX:+UnlockDiagnosticVMOptions -Xcomp -XX:CompileCommand=compileonly,*CompilerTest.* -XX:TieredStopAtLevel=1 -XX:+PrintCompilation -XX:+PrintInitialBlockList -XX:+TraceLivenessGen -XX:+PrintIR -XX:+PrintCFG
+ * -XX:+UnlockDiagnosticVMOptions -Xcomp -XX:CompileCommand=compileonly,*CompilerTest.* -XX:-TieredCompilation -XX:+PrintIdeal -XX:PrintIdealGraphFile=ideal.xml -XX:PrintIdealGraphLevel=1
  * */
 public class CompilerTest {
 
