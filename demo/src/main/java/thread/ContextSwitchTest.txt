@@ -1,0 +1,54 @@
+perf stat java thread.ContextSwitchTest
+
+parks: 992020
+parks: 992053
+Average time: 12034ns
+parks: 995685
+parks: 995755
+Average time: 12067ns
+parks: 999568
+parks: 999580
+Average time: 12009ns
+
+ Performance counter stats for 'java thread.ContextSwitchTest':
+
+      44047.934602      task-clock (msec)         #    0.608 CPUs utilized
+         5,979,376      context-switches          #    0.136 M/sec
+             3,879      cpu-migrations            #    0.088 K/sec
+             7,559      page-faults               #    0.172 K/sec
+                 0      cycles                    #    0.000 GHz
+                 0      stalled-cycles-frontend   #    0.00% frontend cycles idle
+                 0      stalled-cycles-backend    #    0.00% backend  cycles idle
+                 0      instructions              #    0.00  insns per cycle
+                 0      branches                  #    0.000 K/sec
+                 0      branch-misses             #    0.000 K/sec
+
+      72.433399304 seconds time elapsed
+
+
+
+perf stat taskset -c 0 java thread.ContextSwitchTest
+parks: 993705
+parks: 997631
+Average time: 1540ns
+parks: 996047
+parks: 1000001
+Average time: 1524ns
+parks: 996225
+parks: 1000001
+Average time: 1541ns
+
+ Performance counter stats for 'taskset -c 0 java thread.ContextSwitchTest':
+
+       9227.531366      task-clock (msec)         #    1.000 CPUs utilized
+         6,073,884      context-switches          #    0.658 M/sec
+                 9      cpu-migrations            #    0.001 K/sec
+             6,970      page-faults               #    0.755 K/sec
+                 0      cycles                    #    0.000 GHz
+                 0      stalled-cycles-frontend   #    0.00% frontend cycles idle
+                 0      stalled-cycles-backend    #    0.00% backend  cycles idle
+                 0      instructions              #    0.00  insns per cycle
+                 0      branches                  #    0.000 K/sec
+                 0      branch-misses             #    0.000 K/sec
+
+       9.231023889 seconds time elapsed
