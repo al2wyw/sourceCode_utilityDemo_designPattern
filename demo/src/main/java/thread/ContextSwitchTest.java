@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
 // https://ifeve.com/java-context-switch/
-// 把进程绑定在0号CPU上(测试CPU Affinity对于Context Switch的影响), 结果Context Switch的消耗小了一个数量级:
+// 把进程绑定在0号CPU内核上(测试CPU Affinity对于Context Switch的影响), 结果代码的 耗时 小了一个数量级:
 // taskset -c 0 java -cp . ContextSwitchTest
 
 public class ContextSwitchTest {
