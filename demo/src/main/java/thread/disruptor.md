@@ -1,6 +1,6 @@
 The Cost of Locks are high: require arbitration and context switch to kernel which suspend threads, leading to cache misses
 
-CAS(loop) is alternative to locks: lock the bus to ensure atomicity and employ a memory barrier to make visibility
+CAS(loop) is alternative to locks: "lock cmpxchg" lock the bus to ensure atomicity and employ a memory barrier to make visibility
 
 Cache lines: two variables in the same cache line can cause false sharing
 
@@ -28,4 +28,6 @@ produce:                               consume:
 seq(mem bar)   ->   (mem bar)cursor      cursor  ->     seq (prevent the ring from wrapping)
 ```
 
+memory allocate 预分配内存紧凑
 cas + release write/acquire read + false sharing 尽量减少cas操作
+disruptor 的消息消费模型不太一样，更像消息中间件的topic多播
