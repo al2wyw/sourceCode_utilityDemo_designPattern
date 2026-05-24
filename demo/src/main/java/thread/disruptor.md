@@ -22,12 +22,17 @@ Three Concerns:
 
 Sequence:
 ```text
-produce:                               consume:
- producer               consumer        consumer       producer
-    ↓                     ↑                 ↓            ↑
-seq(mem bar)   ->   (mem bar)cursor      cursor  ->     seq (prevent the ring from wrapping)
+produce:                                consume:
+ producer               consumer          consumer       producer
+    ↓ claim   write  commit ↑                  ↓            ↑
+ p seq(mem bar)  ->  (mem bar)cursor         cursor   ->   c seq (prevent the ring from wrapping)
+    ↓                       ↓                  ↓            ↓
+|   slot   |   slot   |   slot   |         | slot | slot | slot |
+
+index整体顺序: p seq -> cursor -> c seq
 ```
 
 memory allocate 预分配内存紧凑
 cas + release write/acquire read + false sharing 尽量减少cas操作
 disruptor 的消息消费模型不太一样，更像消息中间件的topic多播
+cas主要用在多p或多c协作时的竞争场景，order write主要用于更新cursor和c seq
