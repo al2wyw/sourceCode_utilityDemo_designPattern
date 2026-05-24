@@ -84,9 +84,8 @@ public boolean offer(E e) {
         long size = currProducerIndex - lvConsumerIndex();
         if (size > mask) return false;             // 真的满了
         // 否则自旋等消费者清空槽位
-        while (true) {
-            if (null != lvRefElement(buffer, offset)) continue;
-            // 注意：反编译代码这里有缺失（实际源码会 break）
+        while (null != lvRefElement(buffer, offset)) {
+            
         }
     }
     soRefElement(buffer, offset, e);
@@ -227,17 +226,17 @@ public E poll() {
 
 ## 四、对比总结表
 
-| 维度 | Spsc | Mpsc | Spmc | Mpmc |
-|------|------|------|------|------|
-| **offer 是否 CAS** | ❌ | ✅ CAS pIndex | ❌ | ✅ CAS pIndex + seq |
-| **poll 是否 CAS** | ❌ | ❌ | ✅ CAS cIndex | ✅ CAS cIndex + seq |
-| **pIndex 读** | `lp`（plain） | `lv` | `lv` | `lv` |
-| **cIndex 读** | `lp` | `lp` | `lv` | `lv` |
-| **判满策略** | 槽位 null + lookAhead | `pIndex` vs `producerLimit` 缓存 | 槽位 null + 索引差 + 自旋 | `seq < pIndex` 槽位状态机 |
+| 维度 | Spsc | Mpsc | Spmc | Mpmc                  |
+|------|------|------|------|-----------------------|
+| **offer 是否 CAS** | ❌ | ✅ CAS pIndex | ❌ | ✅ CAS pIndex + `so` seq |
+| **poll 是否 CAS** | ❌ | ❌ | ✅ CAS cIndex | ✅ CAS cIndex + `so` seq |
+| **pIndex 读** | `lp` | `lv` | `lv` | `lv`                  |
+| **cIndex 读** | `lp` | `lp` | `lv` | `lv`                  |
+| **判满策略** | 槽位 null + lookAhead | `pIndex` vs `producerLimit` 缓存 | 槽位 null + 索引差 + 自旋 | `seq < pIndex` 槽位状态机  |
 | **判空策略** | 槽位 null | 槽位 null + 必要时读 pIndex 自旋 | `cIndex >= pIndex`（带 cache） | `seq < cIndex+1` 槽位状态机 |
-| **额外内存** | producerLimit | producerLimit | producerIndexCache | sequenceBuffer[] |
-| **吞吐 / 性能** | 极高 | 高（生产端竞争） | 高（消费端竞争） | 较低（双端竞争 + seq） |
-| **典型场景** | Disruptor 风格、netty EventLoop 任务队列 | 多线程入队、单 worker（Netty 默认 task queue） | 单生产、多 worker 取任务 | 完全无约束的并发队列 |
+| **额外内存** | producerLimit | producerLimit | producerIndexCache | sequenceBuffer[]      |
+| **吞吐 / 性能** | 极高 | 高（生产端竞争） | 高（消费端竞争） | 较低（双端竞争 + seq）        |
+| **典型场景** | Disruptor 风格、netty EventLoop 任务队列 | 多线程入队、单 worker（Netty 默认 task queue） | 单生产、多 worker 取任务 | 完全无约束的并发队列            |
 
 ---
 
@@ -286,180 +285,6 @@ JUC 中常见的 `BlockingQueue` 实现包括 `ArrayBlockingQueue`、`LinkedBloc
 | **缓存行优化** | L1/L2/L3 Pad（多层填充消除伪共享） | 无任何字段填充 |
 | **API 契约** | `MessagePassingQueue`（弱契约，允许 relaxed 语义） | `BlockingQueue`（强契约） |
 | **核心目标** | 极致吞吐 / 低延迟 | 通用、阻塞协调 |
-
----
-
-## 二、`offer` 实现差异
-
-### 1. `MpmcArrayQueue.offer`（无锁 CAS + sequence）
-
-```java
-public boolean offer(E e) {
-    if (null == e) throw new NullPointerException();
-    long mask = this.mask;
-    long capacity = mask + 1L;
-    long[] sBuffer = this.sequenceBuffer;
-    long cIndex = Long.MIN_VALUE;
-    long pIndex, seqOffset, seq;
-    do {
-        pIndex = this.lvProducerIndex();           // volatile 读
-        seqOffset = calcCircularLongElementOffset(pIndex, mask);
-        seq = lvLongElement(sBuffer, seqOffset);   // 读槽位 sequence
-        if (seq < pIndex) {                        // 槽位还未被 consumer 释放
-            if (pIndex - capacity >= cIndex && pIndex - capacity >= (cIndex = lvConsumerIndex()))
-                return false;                      // 真满
-            seq = pIndex + 1L;                     // 让循环继续
-        }
-    } while (seq > pIndex || !casProducerIndex(pIndex, pIndex + 1L));  // CAS 抢索引
-
-    spRefElement(this.buffer, calcCircularRefElementOffset(pIndex, mask), e);  // plain 写元素
-    soLongElement(sBuffer, seqOffset, pIndex + 1L);                             // release 发布 sequence
-    return true;
-}
-```
-
-**核心特征**：
-- **完全无锁**：通过 CAS 抢占 `pIndex`，多个生产者并发执行，互不阻塞。
-- **`sequence` 状态机**：每个槽位一个 long，作为"槽位生命周期标记"，避免 ABA、避免脏数据。
-- **元素用 `sp` 写**：依赖随后 `soLongElement` 的 release 屏障来发布，节省一次 StoreStore。
-- **`offer` 满则立即返回 false**，从不阻塞。
-- **可见性靠 sequence 的 volatile 写**，而非锁。
-
-### 2. `ArrayBlockingQueue.offer`（独占锁）
-
-```java
-public boolean offer(E e) {
-    checkNotNull(e);
-    final ReentrantLock lock = this.lock;
-    lock.lock();                                   // 全局独占锁
-    try {
-        if (count == items.length)
-            return false;                          // 满
-        else {
-            enqueue(e);                            // putIndex++ , notEmpty.signal()
-            return true;
-        }
-    } finally {
-        lock.unlock();
-    }
-}
-
-private void enqueue(E x) {
-    final Object[] items = this.items;
-    items[putIndex] = x;
-    if (++putIndex == items.length) putIndex = 0;
-    count++;
-    notEmpty.signal();                             // 唤醒一个等待 take 的消费者
-}
-```
-
-**核心特征**：
-- **`ReentrantLock` 独占**：所有生产者 + 消费者**互斥串行化**，`put`、`take`、`offer`、`poll` 共享同一把锁。
-- **没有 CAS、没有自旋**：竞争激烈时通过 AQS 队列休眠等待。
-- **`signal()` 唤醒消费者**：通过 `Condition` 协调阻塞的 `take`。
-- **可见性 + 原子性靠锁**：进入临界区后所有操作都是简单的数组索引读写。
-
-### 3. 阻塞版本对比：`put` vs `offer(timeout)`
-
-| 行为 | `MpmcArrayQueue` | `ArrayBlockingQueue.put` |
-|------|------------------|--------------------------|
-| 队列满 | 直接 `return false`（**不阻塞**） | `notFull.await()` 释放锁挂起 |
-| 唤醒方式 | 无（生产者自己重试） | 消费者 `dequeue` 后 `notFull.signal()` |
-| 超时 offer | 无内置支持 | `notFull.awaitNanos(timeout)` |
-
-> JCTools 的"阻塞"通常通过 `MessagePassingQueueUtil.fill(queue, supplier, waitStrategy, exitCondition)` 由调用方自己定义忙等/退避策略，而非由队列内部使用 `LockSupport.park`。
-
----
-
-## 三、`poll` 实现差异
-
-### 1. `MpmcArrayQueue.poll`
-
-```java
-public E poll() {
-    long[] sBuffer = this.sequenceBuffer;
-    long mask = this.mask;
-    long pIndex = -1L;
-    long cIndex, seq, seqOffset, expectedSeq;
-    do {
-        cIndex = this.lvConsumerIndex();
-        seqOffset = calcCircularLongElementOffset(cIndex, mask);
-        seq = lvLongElement(sBuffer, seqOffset);
-        expectedSeq = cIndex + 1L;
-        if (seq < expectedSeq) {                    // 槽位未填充
-            if (cIndex >= pIndex && cIndex == (pIndex = lvProducerIndex()))
-                return null;                        // 真空
-            seq = expectedSeq + 1L;                 // 继续循环
-        }
-    } while (seq > expectedSeq || !casConsumerIndex(cIndex, cIndex + 1L));  // CAS 抢消费索引
-
-    long offset = calcCircularRefElementOffset(cIndex, mask);
-    E e = lpRefElement(this.buffer, offset);                       // plain 读
-    spRefElement(this.buffer, offset, null);                       // plain 清槽
-    soLongElement(sBuffer, seqOffset, cIndex + mask + 1L);         // 发布"再次空闲"sequence
-    return e;
-}
-```
-
-**核心特征**：
-- **多消费者并发，CAS `cIndex`**。
-- **空时立即返回 null**，绝不阻塞。
-- **释放槽位通过把 `seq` 设为 `cIndex + capacity`**：让该位置在下一轮 (`pIndex` 推进 capacity 后) 又能匹配 `seq == pIndex`，重新被生产者使用。
-
-### 2. `ArrayBlockingQueue.poll`
-
-```java
-public E poll() {
-    final ReentrantLock lock = this.lock;
-    lock.lock();
-    try {
-        return (count == 0) ? null : dequeue();
-    } finally {
-        lock.unlock();
-    }
-}
-
-private E dequeue() {
-    final Object[] items = this.items;
-    E x = (E) items[takeIndex];
-    items[takeIndex] = null;
-    if (++takeIndex == items.length) takeIndex = 0;
-    count--;
-    if (itrs != null) itrs.elementDequeued();
-    notFull.signal();                              // 唤醒一个等待 put 的生产者
-    return x;
-}
-```
-
-**核心特征**：
-- **同一把锁**：与 `offer` 互斥；高并发下生产者和消费者**完全串行化**。
-- **无并发消费者**：进了锁就独占，无需 CAS。
-- **`signal` 唤醒生产者**：阻塞的 `put` 醒来后继续插入。
-
-### 3. `take` vs `poll` 阻塞策略
-
-```java
-public E take() throws InterruptedException {
-    final ReentrantLock lock = this.lock;
-    lock.lockInterruptibly();
-    try {
-        while (count == 0)
-            notEmpty.await();                      // 释放锁、阻塞
-        return dequeue();
-    } finally {
-        lock.unlock();
-    }
-}
-```
-
-`MpmcArrayQueue` 没有任何内建的 `take`，需要外部循环：
-
-```java
-E e;
-while ((e = queue.poll()) == null) {
-    Thread.onSpinWait();   // 或 LockSupport.parkNanos / 自定义退避
-}
-```
 
 ---
 
