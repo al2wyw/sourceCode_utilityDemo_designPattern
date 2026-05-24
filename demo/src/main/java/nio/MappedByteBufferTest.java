@@ -28,5 +28,9 @@ public class MappedByteBufferTest {
             System.out.println(ret);
         }
 
+        // 防止进程退出，查看进程内存映射
+        // cat /proc/pid/maps
+        Thread.sleep(1000000000);
+
     }
 }
