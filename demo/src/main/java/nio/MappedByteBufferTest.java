@@ -10,6 +10,7 @@ public class MappedByteBufferTest {
     public static void main(String[] args) throws Exception {
 
         String filePath = args[0];
+        boolean shouldStop = args.length > 1 && Boolean.parseBoolean(args[1]);
         System.out.println(filePath);
 
         try (RandomAccessFile file = new RandomAccessFile(filePath, "r");
@@ -30,7 +31,9 @@ public class MappedByteBufferTest {
 
         // 防止进程退出，查看进程内存映射
         // cat /proc/pid/maps
-        Thread.sleep(1000000000);
+        if (shouldStop) {
+            Thread.sleep(1000000000);
+        }
 
     }
 }
