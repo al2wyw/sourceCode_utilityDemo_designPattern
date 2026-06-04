@@ -4,6 +4,7 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+// jdk update incompatibility javac 17 -> java 8 nsm error MappedByteBuffer.position(100)
 // check the major page fault
 public class MappedByteBufferTest {
 
