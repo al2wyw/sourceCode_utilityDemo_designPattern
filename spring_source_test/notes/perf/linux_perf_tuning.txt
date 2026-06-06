@@ -30,7 +30,7 @@ pidstat -wt: (t显示线程信息)
 
 CPU使用率高排查(瞬时进程的排查方法，无法用top,pidstat发现):
 perf top -g -p pid / perf record -g -p pid/ perf report
-# perf record -e cs,faults,cpu-clock -F 100 -g -o cmd.data ./cmd
+# perf record -e cs,faults,cpu-clock -g -o cmd.data ./cmd
 
 CPU的iowait排查:
 top: 进程状态 R D（Uninterruptible Sleep) Z S(interruptible Sleep) I(空闲)
