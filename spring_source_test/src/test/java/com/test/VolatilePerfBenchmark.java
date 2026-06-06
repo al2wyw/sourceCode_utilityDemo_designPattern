@@ -108,7 +108,7 @@ public class VolatilePerfBenchmark {
                 .resultFormat(ResultFormatType.JSON)
                 .build();
         new Runner(opt).run();
-        // perf + perf-map-agent to perf assembly codes of java methods
+        // perf + perf-map-agent to perf assembly codes of java methods, perf无法映射jit编译的汇编代码，需要perf-map-agent产生map文件协助其进行映射
         // assembly codes perf is out of async-profiler's scope
     }
 
