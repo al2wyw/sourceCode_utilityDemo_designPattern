@@ -108,6 +108,8 @@ public class VolatilePerfBenchmark {
                 .resultFormat(ResultFormatType.JSON)
                 .build();
         new Runner(opt).run();
+        // perf + perf-map-agent to perf assembly codes of java methods
+        // assembly codes perf is out of async-profiler's scope
     }
 
 }
