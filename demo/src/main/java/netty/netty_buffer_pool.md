@@ -274,7 +274,7 @@ flowchart
 
 [任务规划完成]
 
-## Netty 内存池总体架构图
+## Netty 内存池总体架构图 (SizeClass)
 
 ## 一、整体架构图：Thread → PoolThreadCache → PoolArena → PoolChunk
 
@@ -439,15 +439,14 @@ flowchart LR
 
 `PoolChunk.calculateRunSize()` 计算 run 长度的规则是 **找 `pageSize` 与 `elemSize` 的最小公倍数 (LCM)**：
 
-| elemSize | LCM(8KB, elem) | run 包含 page 数 | maxNumElems |
-|---|---|---|---|
-| 16B、32B…2KB、4KB | 8KB | **1 page** | runSize/elemSize |
-| 8KB | 8KB | **1 page** | 1 |
-| 10KB（仅举例） | 40KB | **5 page** | 4 |
-| 12KB | 24KB | **3 page** | 2 |
-| 14KB | 56KB | **7 page** | 4 |
-| 16KB | 16KB | **2 page** | 1 |
-| **28KB** | **56KB** | **7 page** | **2** |
+| elemSize | runSize(LCM(8KB, elem)) | run 包含 page 数 | maxNumElems(runSize/elemSize)  |
+|---|-------------------------|---|--------------------------------|
+| 8KB | 8KB                     | **1 page** | 1                              |
+| 10KB（仅举例） | 40KB                    | **5 page** | 4                              |
+| 12KB | 24KB                    | **3 page** | 2                              |
+| 14KB | 56KB                    | **7 page** | 4                              |
+| 16KB | 16KB                    | **2 page** | 1                              |
+| **28KB** | **56KB**                | **7 page** | **2**                          |
 
 > 这就是为什么 28KB 也能由 Subpage "分配"——它的 run 实际占了 **7 个连续 page = 56KB**，而不是塞在单个 8KB 的 page 里。
 
