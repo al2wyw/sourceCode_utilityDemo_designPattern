@@ -274,14 +274,14 @@ flowchart
 
 [任务规划完成]
 
-## Netty 内存池总体架构图（PooledByteBufAllocator 视角）
+## Netty 内存池总体架构图
 
-下面这张图自上而下展示了 **Thread → PoolThreadCache → PoolArena → PoolChunkList → PoolChunk → Page/Subpage** 的层级关系，并标明了内存按 `SizeClass` 的划分方式。
+## 一、整体架构图：Thread → PoolThreadCache → PoolArena → PoolChunk
 
 ```mermaid
 flowchart TB
     %% ===== 线程层 =====
-    subgraph Threads["① 业务线程层（多线程）"]
+    subgraph Threads["① 业务线程层"]
         T1["Thread-1<br/>(FastThreadLocalThread)"]
         T2["Thread-2"]
         T3["Thread-3"]
@@ -289,54 +289,50 @@ flowchart TB
     end
 
     %% ===== ThreadLocal Cache 层 =====
-    subgraph TLC["② PoolThreadCache（每线程一份，FastThreadLocal）"]
+    subgraph TLC["② PoolThreadCache（每线程一份，FastThreadLocal 存储）"]
         direction TB
         PTC1["PoolThreadCache#1<br/>持有 heapArena + directArena 引用"]
         PTC2["PoolThreadCache#2"]
         PTC3["PoolThreadCache#3"]
         PTCn["PoolThreadCache#N"]
 
-        subgraph CacheArrays["内部 4 组 MemoryRegionCache 数组（MPSC 队列）"]
-            C1["smallSubPageHeapCaches[]<br/>长度 = nSubpages（约 39 个）"]
-            C2["normalHeapCaches[]<br/>长度 ≈ pageSize ~ maxCachedBufferCapacity"]
-            C3["smallSubPageDirectCaches[]"]
-            C4["normalDirectCaches[]"]
+        subgraph CacheArrays["内部 4 组 MemoryRegionCache 数组（MPSC 无锁队列）"]
+            C1["smallSubPageHeapCaches[]<br/>长度=nSubpages（约 39 档）"]
+            C2["normalHeapCaches[]<br/>长度=pageSize~maxCachedBufferCapacity 的规格数"]
         end
         PTC1 -.内部持有.-> CacheArrays
     end
 
     %% ===== Arena 层 =====
-    subgraph Arenas["③ PoolArena 池（数量 ≈ 2 × CPU核数，由所有线程共享）"]
+    subgraph Arenas["③ PoolArena 池（数量 ≈ 2×CPU核数，多线程共享）"]
         direction LR
         HA1["HeapArena#0"]
         HA2["HeapArena#1"]
         HAn["HeapArena#..."]
     end
 
-    %% 线程 -> PoolThreadCache（1:1）
     T1 --> PTC1
     T2 --> PTC2
     T3 --> PTC3
     Tn --> PTCn
 
-    %% PoolThreadCache 通过 leastUsedArena 绑定到使用最少的 Arena
     PTC1 -- "heapArena" --> HA1
     PTC2 -- "heapArena" --> HA2
-    PTC3 -- "heapArena" --> HA1
+    PTC3 -- "leastUsedArena()" --> HA1
     PTCn -- "leastUsedArena()" --> HAn
 
     %% ===== Arena 内部结构 =====
-    subgraph ArenaInner["④ PoolArena 内部结构（以 HeapArena#0 为例）"]
+    subgraph ArenaInner["④ PoolArena 内部（以 HeapArena#0 为例）"]
         direction TB
 
         subgraph SubpagePools["smallSubpagePools[ ] —— 按 sizeIdx 分桶的 PoolSubpage 链表头数组"]
             SP0["[idx=0]<br/>elemSize=16B"]
             SP1["[idx=1]<br/>elemSize=32B"]
             SPx["[idx=...]<br/>...512B,1K,2K..."]
-            SPn["[idx=nSubpages-1]<br/>elemSize≈28K（小于 pageSize×2）"]
+            SPn["[idx=nSubpages-1]<br/>elemSize=28KB"]
         end
 
-        subgraph ChunkLists["⑤ PoolChunkList 链表（按 chunk 使用率分级）"]
+        subgraph ChunkLists["⑤ PoolChunkList 链表（按使用率分级）"]
             direction LR
             QInit["qInit<br/>(min~25%)"]
             Q000["q000<br/>(1~50%)"]
@@ -350,67 +346,109 @@ flowchart TB
 
     HA1 --> ArenaInner
 
-    %% ===== PoolChunk 内部结构 =====
-    subgraph ChunkInner["⑥ PoolChunk 内部布局（默认 chunkSize=4MB，pageSize=8KB → 512 pages）"]
-        direction TB
-        CMem["byte[] / ByteBuffer memory（连续内存块）"]
-        CMem --> Layout
-
-        subgraph Layout["chunk 内部按 page 切分，按 run 管理"]
-            R1["Run-A：多页连续<br/>(Normal 分配，例如 32KB=4 pages)"]
-            R2["Run-B：单页<br/>切分为 PoolSubpage<br/>(Small 分配，例如 elemSize=512B → 16 个槽位)"]
-            R3["Run-C：空闲<br/>(在 runsAvail[] 优先队列中)"]
-            R4["Run-D：多页连续<br/>(Normal 分配)"]
-            R5["..."]
-        end
-
-        Mgmt["管理结构：<br/>• runsAvail: IntPriorityQueue[]（按 pageIdx 分桶的可用 run）<br/>• runsAvailMap: 记录每个 run 首尾 offset → handle<br/>• subpages[]: 每个 page 对应一个 PoolSubpage<br/>• handle(long): runOffset|size|isUsed|isSubpage|bitmapIdx"]
-        Layout -.- Mgmt
-    end
-
-    Q050 --> Chunk1["PoolChunk#1"]
-    Q050 --> Chunk2["PoolChunk#2"]
-    Q025 --> Chunk3["PoolChunk#3"]
-    Chunk1 --> ChunkInner
-
-    %% Subpage 双向链表回连到 Arena 的 smallSubpagePools
-    R2 -. "PoolSubpage 加入对应 sizeIdx 的链表" .-> SP1
+    Q050 --> Chunk1["PoolChunk#1<br/>4MB"]
+    Q050 --> Chunk2["PoolChunk#2<br/>4MB"]
+    Q025 --> Chunk3["PoolChunk#3<br/>4MB"]
 ```
 
 ---
 
-## 内存按 SizeClass 的划分
+## 二、PoolChunk 内部结构：run 和 page 的关系
 
-Netty 把 `[16B, chunkSize]` 的所有可分配规格预先生成为一张固定 size 表，每个规格对应一个 `sizeIdx`：
+> 来自 PoolChunk 头部注释的核心定义：
+> - **page** —— 内存分配的最小单位（默认 `pageSize = 8KB`）
+> - **run**  —— 一段**连续的 N 个 page**，是 PoolChunk 真正参与分配/回收的基本单元
+> - **chunk** —— 一组 run 的集合（默认 `chunkSize = 4MB = 512 page`）
+
+也就是说：**`page` 是物理切分粒度，`run` 是逻辑分配粒度，1 个 run 由 1 个或多个连续 page 组成。**
 
 ```mermaid
-flowchart
+flowchart TB
+    subgraph CHUNK["PoolChunk = 4MB 连续内存（512 个 page，每 page 8KB）"]
+        direction TB
+
+        subgraph PAGES["物理层：page 数组（runOffset 0~511，每格 8KB）"]
+            direction LR
+            P0["page0"]:::p
+            P1["page1"]:::p
+            P2["page2"]:::p
+            P3["page3"]:::p
+            P9["..."]:::p
+            P10["page511"]:::p
+        end
+
+        subgraph RUNS["逻辑层：按 run 划分（每个 run = N 个连续 page）"]
+            direction LR
+            RUN_A["Run-A<br/>1 page = 8KB<br/>📦 Subpage(elemSize=512B)<br/>切 16 槽"]
+            RUN_B["Run-B<br/>4 pages = 32KB<br/>📦 Normal 分配<br/>整段返回"]
+            RUN_C["Run-C<br/>3 pages = 24KB<br/>🆓 空闲<br/>(在 runsAvail[] 队列中)"]
+            RUN_D["Run-D<br/>7 pages = 56KB<br/>📦 Subpage(elemSize=28KB)<br/>切 2 槽"]
+            RUN_E["Run-E<br/>...剩余 pages..."]
+        end
+
+        PAGES -. "page0" .-> RUN_A
+        PAGES -. "page1~4" .-> RUN_B
+        PAGES -. "page5~7" .-> RUN_C
+        PAGES -. "page8~14" .-> RUN_D
+    end
+
+    subgraph MGMT["PoolChunk 的 run 管理结构"]
+        direction TB
+        M1["runsAvail: IntPriorityQueue[ ]<br/>—— 按 pageIdx 分桶的可用 run 优先队列<br/>—— 每个 queue 内 run 按 offset 排序"]
+        M2["runsAvailMap: LongLongHashMap<br/>—— 记录每个 run 首/尾 page 的 offset → handle<br/>—— 用于 free 时合并相邻空闲 run"]
+        M3["subpages[ ]: PoolSubpage 数组<br/>—— 长度 = chunkSize/pageSize = 512<br/>—— subpages[runOffset] 指向该 run 的 Subpage"]
+        M4["handle (long, 64bit) 编码：<br/>oooooooo ooooooos ssssssss ssssssue bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb<br/>o=runOffset(15) | s=size页数(15) | u=isUsed(1) | e=isSubpage(1) | b=bitmapIdx(32)"]
+    end
+
+    classDef p fill:#e8f4ff,stroke:#5b8def
+```
+
+### run 与 page 关系的关键点
+
+| 维度 | page | run |
+|---|---|---|
+| 含义 | 物理最小单元 | 逻辑分配单元 |
+| 大小 | 固定 `pageSize = 8KB` | `N × pageSize`（N≥1） |
+| 数量 | chunk 中固定 512 个 | 动态变化（分配/合并） |
+| 标识 | `runOffset`（0~511） | `handle`（含 offset+size+flag） |
+| 管理 | `subpages[runOffset]` | `runsAvail[pageIdx]` 优先队列 |
+
+---
+
+## 三、PoolChunk 内存按 SizeClass 的划分（精确范围）
+
+SizeClasses 中 `isSubpage = log2Size < pageShifts + LOG2_SIZE_CLASS_GROUP`，即 `log2Size < 13+2 = 15`，所以 **<32KB 的规格归 Subpage，≥32KB 归 Normal**。
+
+```mermaid
+flowchart LR
     REQ["申请 reqCapacity"] --> N["sizeClass.size2SizeIdx(reqCapacity)"]
-    N --> JUDGE{sizeIdx 落在哪一段}
+    N --> JUDGE{落在哪一段}
 
-    JUDGE -- "sizeIdx ≤ smallMaxSizeIdx<br/>（约 0~38）" --> SMALL["Small<br/>16B / 32B / 48B / 64B ... ≈28KB<br/>↓<br/>走 PoolArena.smallSubpagePools[sizeIdx]<br/>从 PoolSubpage 切槽位"]
+    JUDGE -- "0 ≤ sizeIdx ≤ smallMaxSizeIdx<br/>elemSize ∈ [16B, 28KB]<br/>共 39 档" --> SMALL["🔹 Small（Subpage 分配）<br/>16,32,48,64,80,96,112,128,160,192,...,16K,20K,24K,28K<br/>↓<br/>从 PoolSubpage 的 bitmap 切槽位"]
 
-    JUDGE -- "smallMaxSizeIdx < sizeIdx < nSizes<br/>（pageSize ~ chunkSize）" --> NORMAL["Normal<br/>32KB / 40KB / 48KB ... 4MB<br/>↓<br/>走 PoolChunk.allocateRun()<br/>分配 N 个连续 page"]
+    JUDGE -- "smallMaxSizeIdx＜sizeIdx＜nSizes<br/>elemSize ∈ [32KB, 4MB]" --> NORMAL["🔸 Normal（Run 分配）<br/>32K,40K,48K,56K,64K,80K,96K,112K,128K,...,2M,2.5M,3M,3.5M,4M<br/>↓<br/>PoolChunk.allocateRun() 申请 N 连续 page"]
 
-    JUDGE -- "sizeIdx == nSizes（> chunkSize）" --> HUGE["Huge<br/>不池化<br/>↓<br/>allocateHuge() 直接 newUnpooledChunk"]
+    JUDGE -- "sizeIdx == nSizes<br/>elemSize > 4MB（chunkSize）" --> HUGE["🔺 Huge<br/>不进池，allocateHuge()<br/>直接 newUnpooledChunk"]
 
-    SMALL -.线程缓存.-> TC1["PoolThreadCache.<br/>smallSubPageXxxCaches[sizeIdx]"]
-    NORMAL -.线程缓存.-> TC2["PoolThreadCache.<br/>normalXxxCaches[sizeIdx - nSubpages]"]
-    HUGE -.X 不缓存.-> NOC["不进入 ThreadCache"]
+    SMALL -. ThreadCache .-> TC1["smallSubPageXxxCaches[sizeIdx]"]
+    NORMAL -. ThreadCache .-> TC2["normalXxxCaches[sizeIdx - nSubpages]"]
+    HUGE -. ❌ 不缓存 .-> NOC["不缓存"]
 ```
 
-### sizeClass 表结构（pageShifts=13 时的示例）
+### Small 段的 run-page 关系（核心难点）
 
-| 段 | sizeIdx 范围 | 大小范围 | 来源 | 是否进 ThreadCache |
-|---|---|---|---|---|
-| **Small / SubPage** | `0 ~ smallMaxSizeIdx` | 16B、32B、48B、64B … 接近 2×pageSize | 从 `PoolSubpage` 的位图槽位中切 | ✅ `smallSubPageXxxCaches[]` |
-| **Normal / Run** | `smallMaxSizeIdx+1 ~ nSizes-1` | pageSize 的多倍：32KB、40KB … chunkSize（默认 4MB）| 从 `PoolChunk` 的 `runsAvail` 中按 pageIdx 切 N 个 page | ✅ `normalXxxCaches[]`（≤ `maxCachedBufferCapacity`） |
-| **Huge** | `== nSizes`（> chunkSize） | > 4MB | 单独 `newUnpooledChunk` | ❌ 不缓存 |
+`PoolChunk.calculateRunSize()` 计算 run 长度的规则是 **找 `pageSize` 与 `elemSize` 的最小公倍数 (LCM)**：
 
-每一档的精确大小由公式：
+| elemSize | LCM(8KB, elem) | run 包含 page 数 | maxNumElems |
+|---|---|---|---|
+| 16B、32B…2KB、4KB | 8KB | **1 page** | runSize/elemSize |
+| 8KB | 8KB | **1 page** | 1 |
+| 10KB（仅举例） | 40KB | **5 page** | 4 |
+| 12KB | 24KB | **3 page** | 2 |
+| 14KB | 56KB | **7 page** | 4 |
+| 16KB | 16KB | **2 page** | 1 |
+| **28KB** | **56KB** | **7 page** | **2** |
 
-```
-size = (1 << log2Group) + nDelta * (1 << log2Delta)
-```
+> 这就是为什么 28KB 也能由 Subpage "分配"——它的 run 实际占了 **7 个连续 page = 56KB**，而不是塞在单个 8KB 的 page 里。
 
-每翻倍一组（`LOG2_SIZE_CLASS_GROUP=2` 即每组 4 个）地生成，做到密集且整齐对齐。
+---
