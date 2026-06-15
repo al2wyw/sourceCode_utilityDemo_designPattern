@@ -413,6 +413,8 @@ flowchart TB
 | 标识 | `runOffset`（0~511） | `handle`（含 offset+size+flag） |
 | 管理 | `subpages[runOffset]` | `runsAvail[pageIdx]` 优先队列 |
 
+**pageIdx为0~31，越大page越多(pageIdx的计算非常复杂)，runsAvail[pageIdx]的优先队列里的元素的pageIdx ∈ [pageIdx, pageIdx+1)**
+
 ---
 
 ## 三、PoolChunk 内存按 SizeClass 的划分（精确范围）
@@ -424,9 +426,9 @@ flowchart LR
     REQ["申请 reqCapacity"] --> N["sizeClass.size2SizeIdx(reqCapacity)"]
     N --> JUDGE{落在哪一段}
 
-    JUDGE -- "0 ≤ sizeIdx ≤ smallMaxSizeIdx<br/>elemSize ∈ [16B, 28KB]<br/>共 39 档" --> SMALL["🔹 Small（Subpage 分配）<br/>16,32,48,64,80,96,112,128,160,192,...,16K,20K,24K,28K<br/>↓<br/>从 PoolSubpage 的 bitmap 切槽位"]
+    JUDGE -- "0 ≤ sizeIdx ≤ smallMaxSizeIdx<br/>elemSize ∈ [16B, 28KB]<br/>1 ~ 39 档" --> SMALL["🔹 Small（Subpage 分配）<br/>16,32,48,64,80,96,112,128,160,192,...,16K,20K,24K,28K<br/>↓<br/>从 PoolSubpage 的 bitmap 切槽位"]
 
-    JUDGE -- "smallMaxSizeIdx＜sizeIdx＜nSizes<br/>elemSize ∈ [32KB, 4MB]" --> NORMAL["🔸 Normal（Run 分配）<br/>32K,40K,48K,56K,64K,80K,96K,112K,128K,...,2M,2.5M,3M,3.5M,4M<br/>↓<br/>PoolChunk.allocateRun() 申请 N 连续 page"]
+    JUDGE -- "smallMaxSizeIdx＜sizeIdx＜nSizes<br/>elemSize ∈ [32KB, 4MB]<br/>40 ~ 68 档" --> NORMAL["🔸 Normal（Run 分配）<br/>32K,40K,48K,56K,64K,80K,96K,112K,128K,...,2M,2.5M,3M,3.5M,4M<br/>↓<br/>PoolChunk.allocateRun() 申请 N 连续 page"]
 
     JUDGE -- "sizeIdx == nSizes<br/>elemSize > 4MB（chunkSize）" --> HUGE["🔺 Huge<br/>不进池，allocateHuge()<br/>直接 newUnpooledChunk"]
 
@@ -595,7 +597,7 @@ private final IntPriorityQueue[] runsAvail;   // 按 pageIdx 分桶
 // 每个 queue 内 run 按 offset 排序
 ```
 
-- `runFirstBestFit(pageIdx)` 从合适大小开始向上找第一个非空桶 → **best-fit**
+- `runFirstBestFit(pageIdx)` 从合适大小开始向后找第一个非空桶 → **best-fit**
 - 同桶内取**最小 offset** → 让分配集中在 chunk 前端，**减少空洞**
 
 这两点让外部碎片大幅减少。
