@@ -451,3 +451,198 @@ flowchart LR
 > 这就是为什么 28KB 也能由 Subpage "分配"——它的 run 实际占了 **7 个连续 page = 56KB**，而不是塞在单个 8KB 的 page 里。
 
 ---
+
+[任务规划完成]
+
+# Netty Small / Normal 内存使用率与内部碎片分析
+
+## 一、Netty 池化分配器中的内部碎片来源有三类：
+
+| 来源 | 出现位置 | 由谁决定 |
+|---|------|---|
+| **① size class 取整** | all  | SizeClasses.size2SizeIdx() |
+| **② Subpage 的 run 不被 elemSize 整除时的浪费** | Small | PoolChunk.calculateRunSize() |
+| **③ Normal 的 run 拆分残余** | Normal | PoolChunk.splitLargeRun() |
+
+---
+
+## 二、第一类：**size class 取整碎片**（Small/Normal 都有）
+
+### 2.1 Netty 是怎么造成这种碎片的
+
+任意申请 `reqCapacity` 都会被 `size2SizeIdx()` 向上对齐到下一档。
+
+### 2.2 碎片率上界
+
+| 申请 | 实际分配（normCapacity） | 浪费 | 碎片率 |
+|---|---|---|---|
+| 17B | 32B | 15B | 47% ⚠️ |
+| 33B | 48B | 15B | 31% |
+| 129B | 160B | 31B | 19% |
+| 257B | 320B | 63B | 19.6% |
+| 1025B | 1.25KB(1280B) | 255B | 19.9% |
+| 8KB+1 | 10KB（举例） | ~2KB | ~20% |
+
+**可见：申请越接近某档刚刚溢出，碎片率越高（最多约 1/4）。**
+
+### 2.3 怎么避免
+
+- 业务层取整到 size class
+- 避免临界值（如 17、33、65、129…）
+- 使用 `normalizeSize(size)` 提前预估
+- 一次申请到位，避免 reallocate 链路再次取整
+
+---
+
+## 三、第二类：**Small 段 Subpage 的碎片**（最复杂、最值得讲）
+
+### 3.1 Subpage 碎片的来源：run 大小不被 elemSize 整除
+
+PoolSubpage.java中：
+
+```java
+maxNumElems = numAvail = runSize / elemSize;   // 整数除法！
+```
+
+如果 `runSize % elemSize != 0`，**末尾的余数就会被永久浪费掉**。
+
+### 3.2 Netty 用 LCM 把这种碎片彻底消灭
+
+PoolChunk.calculateRunSize()：
+
+```java
+do {
+    runSize += pageSize;
+    nElements = runSize / elemSize;
+} while (nElements < maxElements && runSize != nElements * elemSize);
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//                                  必须找到 runSize 恰好 = nElements × elemSize
+```
+
+`runSize` 一直累加 `pageSize`，**直到找到 `pageSize` 与 `elemSize` 的最小公倍数（LCM）**。
+
+> 结论：**Subpage 内部 0 碎片**（理论上），所有槽位刚好填满整个 run。
+
+
+### 3.3 但还有一个隐藏成本：**run 越长，整 chunk 利用率越差**
+
+LCM 越大，意味着：
+- 申请这个 elemSize 时**要一次性占用更大的连续 page 段**
+- 如果 chunk 内没有这么长的连续空闲 run，就要新开 chunk
+- 而且由于一个 run 只服务一种 elemSize，**该 run 未填满前，剩余槽位无法被其他 sizeClass 复用**
+
+举例：
+- elemSize = 28KB → runSize = 56KB → 你只用了一个 28KB，**另外 28KB 空着但锁定**
+- elemSize = 14KB → runSize = 56KB → 你只用了一个 14KB，**剩 42KB 空着但锁定**
+
+这是一种 "**外部碎片转化为内部碎片**" 的现象（虽然 Netty 在 `PoolChunk` 文档里把它叫"slab 未填满"）。
+
+### 3.4 Subpage 碎片的优化手段
+
+| 优化手段 | 出处 / 操作 | 收益 |
+|---|---|---|
+| **LCM 算法本身** | `calculateRunSize()` | 消灭 run 内整除碎片 |
+| **smallSubpagePools 共享 Subpage** | `PoolArena.smallSubpagePools[sizeIdx]` 维护双向链表，多个线程的同档申请共用同一个未满的 Subpage | 提升 slab 填充率 |
+| **Subpage 用满后 removeFromPool** | [PoolSubpage.allocate()](/Users/liyang/Downloads/netty-buffer-4.1.127.Final/io/netty/buffer/PoolSubpage.java) 中 `if (--numAvail == 0) removeFromPool();` | 满了的 Subpage 不再被搜索，提高分配效率 |
+| **Subpage 全空后释放 run** | `PoolSubpage.free()` 中 `numAvail == maxNumElems` 且 pool 中还有其他 Subpage，则 `doNotDestroy=false` 释放 run 回 chunk | run 可被合并回大段空闲 |
+| **保留 pool 中"最后一个空 Subpage"** | `if (prev == next) return true;` 不释放唯一一个 | 抗抖动，避免反复 alloc/free run |
+| **业务层规避临界 elemSize** | 不要申请 13KB、15KB、29KB 这种与 8KB 互质度高的大小 | 使 run 短、复用率高 |
+
+---
+
+## 四、第三类：**Normal 段 run 拆分的碎片**
+
+### 4.1 splitLargeRun：分配时只取所需
+
+PoolChunk.splitLargeRun()：
+
+```java
+private long splitLargeRun(long handle, int needPages) {
+    int totalPages = runPages(handle);
+    int remPages = totalPages - needPages;
+
+    if (remPages > 0) {
+        int runOffset = runOffset(handle);
+        int availOffset = runOffset + needPages;
+        long availRun = toRunHandle(availOffset, remPages, 0);
+        insertAvailRun(availOffset, remPages, availRun);   // 剩余部分仍然挂回 runsAvail，不浪费！
+        return toRunHandle(runOffset, needPages, 1);
+    }
+    handle |= 1L << IS_USED_SHIFT;
+    return handle;
+}
+```
+
+> **关键设计**：拆分后剩余的 page 段**立即挂回 `runsAvail` 优先队列**，下次可继续被分配。所以 Normal 段**没有拆分残余碎片**。
+
+### 4.2 collapseRuns：释放时合并相邻空闲 run
+
+PoolChunk.free()中：
+
+```java
+long finalRun = collapseRuns(handle);   // collapsePast + collapseNext
+finalRun &= ~(1L << IS_USED_SHIFT);
+finalRun &= ~(1L << IS_SUBPAGE_SHIFT);
+insertAvailRun(runOffset(finalRun), runPages(finalRun), finalRun);
+```
+
+`collapsePast` 和 `collapseNext` 会沿 `runsAvailMap` 反复向前/向后吞并连续空闲 run。这就**对抗了外部碎片化**，让大 chunk 不会被切碎。
+
+### 4.3 runsAvail 按 pageIdx 分桶 + 优先队列：best-fit 但偏向小 offset
+
+```java
+private final IntPriorityQueue[] runsAvail;   // 按 pageIdx 分桶
+// 每个 queue 内 run 按 offset 排序
+```
+
+- `runFirstBestFit(pageIdx)` 从合适大小开始向上找第一个非空桶 → **best-fit**
+- 同桶内取**最小 offset** → 让分配集中在 chunk 前端，**减少空洞**
+
+这两点让外部碎片大幅减少。
+
+### 4.4 Normal 段的"取整碎片"仍然存在
+
+虽然没有拆分残余，但 Normal 段的 size class 仍按 1/4 步进：
+
+```
+32K, 40K, 48K, 56K, 64K, 80K, 96K, 112K, 128K, ...
+```
+
+申请 33KB → 分配 40KB → 浪费 7KB（约 17.5%）。
+
+---
+
+## 五、PoolChunkList 使用率分级：减少碎片化的全局策略
+
+**先从 q050（半满）下手**，背后的考量：
+- 半满的 chunk **再装一点就会变 100% 用满** → 提高单 chunk 利用率
+- q075 排到最后是因为它接近满，再装容易立刻晋升到 q100，反而失去再分配空间
+- 这是一个"**填满-退役**"的引导策略，让活跃 chunk 数尽量少 → **整体外部碎片率降低**
+
+---
+
+## 六、PoolThreadCache 对碎片的影响（双刃剑）
+
+### ✅ 正面：减少跨线程争用 → 减少新 chunk 创建 → 减少全局外部碎片
+
+线程本地缓存避免了"刚释放又申请同档"反复回到 Arena 加锁，减少 Arena 抖动。
+
+### ⚠️ 负面：缓存的 chunk handle 是"被占用"的内存
+
+- 缓存中的 handle 仍然占着 `PoolChunk` 内对应的 run/subpage 槽位，**对其他线程不可见**
+- 如果某线程缓存了大量 `normalCache` 但很少回 Arena，其他线程可能被迫开新 chunk
+
+### 缓解机制
+
+| 机制 | 出处 | 作用 |
+|---|---|---|
+| **trim()** | `PoolThreadCache.trim()` 每分配 `freeSweepAllocationThreshold`（默认 8192）次触发 | 释放本周期未用的缓存条目回 Arena |
+| **maxCachedBufferCapacity** | `PooledByteBufAllocator` 默认 32KB | 限制 normalCache 缓存的最大单个规格大小，避免大块长期被锁在线程本地 |
+| **smallCacheSize / normalCacheSize** | 默认 256 / 64 | 限制每档缓存队列长度 |
+| **onRemoval / FreeOnFinalize** | 线程退出时归还所有缓存 | 防止线程死亡导致内存泄漏 |
+
+---
+
+## 七、一句话总结
+
+> **Netty 通过 "size class 离散化（取整碎片≤25%）+ Subpage LCM run（slab 0 碎片）+ Run 拆分回插（无残余）+ 释放合并（runsAvail）+ 半满优先 PoolChunkList（提高 chunk 利用率）+ 线程缓存 trim（防止长期锁定）" 这一整套机制，把池化分配的内部碎片控制在一个非常可预期的上界（约 1/4），并通过开发者侧的 size 对齐和容量预估，可以进一步把碎片打到接近 0。**
