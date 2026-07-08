@@ -1,18 +1,45 @@
 package jvm;
 
+import java.util.concurrent.CountDownLatch;
+import utils.PrintUtils;
+
 /**
  * -XX:+UnlockDiagnosticVMOptions -XX:+LogCompilation -XX:LogFile=./mylogfile.log -XX:+PrintAssembly -XX:+PrintStubCode -XX:CompileCommand=dontinline,*RegisterMapTest.*  -XX:CompileCommand=compileonly,*RegisterMapTest.*
  * */
 public class RegisterMapTest {
 
-    private static int count;
+    private static volatile int flag = 0;
+    private static final CountDownLatch latch = new CountDownLatch(1);
     private static final int LOOP = 100000;
     private static final int GC_INTERVAL = LOOP / 10;
 
     public static void main(String[] args) {
+        new Thread(() -> {
+            latch.countDown();
+            int trigger = 0;
+            while (true) {
+                if (flag - trigger > 0) {
+                    PrintUtils.print("gc");
+                    System.gc();
+                    trigger++;
+                }
+            }
+        }).start();
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        int count = 0;
         for (int i = 0; i < LOOP; i++) {
             caller();
             count++;
+            if (count % GC_INTERVAL == 0) {
+                PrintUtils.print("gc trigger");
+                flag++;
+            }
         }
     }
 
@@ -26,9 +53,6 @@ public class RegisterMapTest {
 
     public static void callee(Object param1, Object param2) {
         Object local = new Object();
-        if (count % GC_INTERVAL == 0) {
-            System.gc();
-        }
         System.out.println(local);
     }
 }
