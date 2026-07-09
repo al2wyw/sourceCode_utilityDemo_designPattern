@@ -14,17 +14,18 @@ public class RegisterMapTest {
     private static final int GC_INTERVAL = LOOP / 10;
 
     public static void main(String[] args) {
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             latch.countDown();
             int trigger = 0;
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 if (flag - trigger > 0) {
                     PrintUtils.print("gc");
                     System.gc();
                     trigger++;
                 }
             }
-        }).start();
+        });
+        t.start();
 
         try {
             latch.await();
@@ -41,6 +42,7 @@ public class RegisterMapTest {
                 flag++;
             }
         }
+        t.interrupt();
     }
 
     public static void caller() {
