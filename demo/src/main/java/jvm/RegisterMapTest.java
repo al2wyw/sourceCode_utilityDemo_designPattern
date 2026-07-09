@@ -49,7 +49,7 @@ public class RegisterMapTest {
         Object local = new Object();
         Object param1 = new Object();
         Object param2 = new Object();
-        callee(param1, param2);//local saved on stack not in registers
+        callee(param1, param2);//local saved on stack not in registers (oopMap)
         System.out.println(local);
     }
 
