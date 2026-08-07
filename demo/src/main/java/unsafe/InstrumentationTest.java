@@ -30,7 +30,9 @@ import java.security.ProtectionDomain;
  *          -Xbootclasspath/a: 后缀在核心class搜索路径后面.常用!!
  *          -Xbootclasspath/p: 前缀在核心class搜索路径前面.不常用,避免引起不必要的冲突.
  *
- *          can re-transform classes start with java !!!
+ *          Cleaner是由bootstrap加载的，所以MyCleanerRunnable也要由bootstrap加载(父类加载委派)，不然Cleaner的类加载器找不到MyCleanerRunnable
+ *
+ *          can re-transform classes start with java.* !!!
  *          很多class在加载Instrumentation前就load完了，无法对其进行transform
  */
 public class InstrumentationTest {
