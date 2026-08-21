@@ -58,7 +58,9 @@ classDiagram
 
 ### 1. NIO transport（`AbstractNioChannel` 系）—— JDK NIO Selector
 
-依赖 JDK 的 `java.nio.channels.SocketChannel` / `Selector`，最终走的是 `epoll`(Linux) / `kqueue`(BSD/macOS) / `IOCP`(Windows)，但都被 JDK 包装。
+依赖 JDK 的 `java.nio.channels.SocketChannel` / `Selector`，最终走的是 `epoll`(Linux，`EPollSelectorProvider`) / `kqueue`(BSD/macOS，`KQueueSelectorProvider`) / `select`(Windows，`WindowsSelectorProvider`)，都被 JDK 包装。
+
+> 注：`sun.nio.ch.PollSelectorProvider`（基于 `poll(2)`）只是所有类 Unix 平台自带的**备用/回退**实现（AIX 上才作为默认），Linux/macOS 上默认都不会启用；Windows 上的 `Selector` 基于 `select`，`IOCP` 只用于 `AsynchronousChannel`（AIO）线路，与本文讨论的 `Selector` NIO 线路无关。
 
 [NioSocketChannel.java](/netty/transport/src/main/java/io/netty/channel/socket/nio/NioSocketChannel.java) 中的关键实现：
 
